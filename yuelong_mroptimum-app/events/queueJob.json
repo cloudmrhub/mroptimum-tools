@@ -1,0 +1,112 @@
+{
+  "body": "{\"application\":\"TESS\",\"pipeline\":[{\"subApplication\":\"TESS\",\"alias\":\"TESS - 2023-07-29 20:50:01\",\"options\":{\"version\":\"v0\",\"mask\":{\"id\":0,\"filename\":\"k.nii.gz\",\"link\":\"\",\"state\":\"\"},\"materialdensity\":{\"id\":0,\"filename\":\"Density.nii.gz\",\"link\":\"\",\"state\":\"\"},\"bloodperfusion\":{\"id\":0,\"filename\":\"BloodPerfusion.nii.gz\",\"link\":\"\",\"state\":\"\"},\"heatcapacity\":{\"id\":0,\"filename\":\"HeatCapacity.nii.gz\",\"link\":\"\",\"state\":\"\"},\"thermalconductivity\":{\"id\":0,\"filename\":\"ThermalConductivity.nii.gz\",\"link\":\"\",\"state\":\"\"},\"metabolism\":{\"id\":0,\"filename\":\"metabolism.nii.gz\",\"link\":\"\",\"state\":\"\"},\"sar\":{\"id\":0,\"filename\":\"SAR.nii.gz\",\"link\":\"\",\"state\":\"\"},\"told\":{\"id\":0,\"filename\":\"TOld.nii.gz\",\"link\":\"\",\"state\":\"\"},\"air\":{\"temperature\":293,\"capacity\":null,\"density\":null},\"blood\":{\"temperature\":310,\"capacity\":1057,\"density\":3600},\"heatingtime\":20,\"Alias\":\"TESS - 2023-07-29 20:50:01\"}}]}",
+  "resource": "/{proxy+}",
+  "path": "/pipeline",
+  "httpMethod": "POST",
+  "isBase64Encoded": true,
+  "headers": {
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+    "Accept-Encoding": "gzip, deflate, sdch",
+    "Accept-Language": "en-US,en;q=0.8",
+    "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczpcL1wvY2xvdWRtcmh1Yi5jb21cL2FwaVwvYXV0aFwvbG9naW4iLCJpYXQiOjE2OTI2NTY2NTgsImV4cCI6MTY5Mjc0MzA1OCwibmJmIjoxNjkyNjU2NjU4LCJqdGkiOiJPcnAzVkk1czJZRFVMMkFXIiwic3ViIjo5OTk5LCJwcnYiOiI4N2UwYWYxZWY5ZmQxNTgxMmZkZWM5NzE1M2ExNGUwYjA0NzU0NmFhIn0.p7U593g8O3pbq4GKxa1Q7XZV05YGWNeZo997Yr0Liq0",
+    "Cache-Control": "max-age=0",
+    "Cookie": "incap_ses_1291_2282567=ZnnDcJUZshwZzNIrho7qERfX42QAAAAAjMN3hiLTBya4/lRybgKIHg==; Path=/; Domain=cloudmrhub.com; visid_incap_2282567=XnLSVom4Qh6ljPID/iAXV1Es3WQAAAAAQUIPAAAAAACY+IeM3Pw6ckGMoj3jyONo; Path=/; Domain=cloudmrhub.com; HttpOnly; Expires=Thu, 15 Aug 2024 06:27:41 GMT;",
+    "CloudFront-Forwarded-Proto": "https",
+    "CloudFront-Is-Desktop-Viewer": "true",
+    "CloudFront-Is-Mobile-Viewer": "false",
+    "CloudFront-Is-SmartTV-Viewer": "false",
+    "CloudFront-Is-Tablet-Viewer": "false",
+    "CloudFront-Viewer-Country": "US",
+    "From": "fake.email@gmail.com",
+    "Host": "1234567890.execute-api.us-east-1.amazonaws.com",
+    "Upgrade-Insecure-Requests": "1",
+    "User-Agent": "My User Agent 1.0",
+    "Via": "1.1 08f323deadbeefa7af34d5feb414ce27.cloudfront.net (CloudFront)",
+    "X-Amz-Cf-Id": "cDehVQoZnx43VYQb9j2-nvCh-9z396Uhbp027Y2JvkCPNLmGJHqlaA==",
+    "X-Forwarded-For": "127.0.0.1, 127.0.0.2",
+    "X-Forwarded-Port": "443",
+    "X-Forwarded-Proto": "https"
+  },
+  "multiValueHeaders": {
+    "Accept": [
+      "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
+    ],
+    "Accept-Encoding": [
+      "gzip, deflate, sdch"
+    ],
+    "Accept-Language": [
+      "en-US,en;q=0.8"
+    ],
+    "Cache-Control": [
+      "max-age=0"
+    ],
+    "CloudFront-Forwarded-Proto": [
+      "https"
+    ],
+    "CloudFront-Is-Desktop-Viewer": [
+      "true"
+    ],
+    "CloudFront-Is-Mobile-Viewer": [
+      "false"
+    ],
+    "CloudFront-Is-SmartTV-Viewer": [
+      "false"
+    ],
+    "CloudFront-Is-Tablet-Viewer": [
+      "false"
+    ],
+    "CloudFront-Viewer-Country": [
+      "US"
+    ],
+    "Host": [
+      "0123456789.execute-api.us-east-1.amazonaws.com"
+    ],
+    "Upgrade-Insecure-Requests": [
+      "1"
+    ],
+    "User-Agent": [
+      "Custom User Agent String"
+    ],
+    "Via": [
+      "1.1 08f323deadbeefa7af34d5feb414ce27.cloudfront.net (CloudFront)"
+    ],
+    "X-Amz-Cf-Id": [
+      "cDehVQoZnx43VYQb9j2-nvCh-9z396Uhbp027Y2JvkCPNLmGJHqlaA=="
+    ],
+    "X-Forwarded-For": [
+      "127.0.0.1, 127.0.0.2"
+    ],
+    "X-Forwarded-Port": [
+      "443"
+    ],
+    "X-Forwarded-Proto": [
+      "https"
+    ]
+  },
+  "requestContext": {
+    "accountId": "123456789012",
+    "resourceId": "123456",
+    "stage": "prod",
+    "requestId": "c6af9ac6-7b61-11e6-9a41-93e8deadbeef",
+    "requestTime": "09/Apr/2015:12:34:56 +0000",
+    "requestTimeEpoch": 1428582896000,
+    "identity": {
+      "cognitoIdentityPoolId": null,
+      "accountId": null,
+      "cognitoIdentityId": null,
+      "caller": null,
+      "accessKey": null,
+      "sourceIp": "127.0.0.1",
+      "cognitoAuthenticationType": null,
+      "cognitoAuthenticationProvider": null,
+      "userArn": null,
+      "userAgent": "Custom User Agent String",
+      "user": null
+    },
+    "path": "/pipeline",
+    "resourcePath": "/{proxy+}",
+    "httpMethod": "POST",
+    "apiId": "1234567890",
+    "protocol": "HTTP/1.1"
+  }
+}

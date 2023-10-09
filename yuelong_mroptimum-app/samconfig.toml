@@ -1,0 +1,38 @@
+# More information about the configuration file can be found here:
+# https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-config.html
+version = 0.1
+
+[default]
+[default.global.parameters]
+stack_name = "sam-app"
+
+[default.build.parameters]
+cached = true
+parallel = true
+
+[default.validate.parameters]
+lint = true
+
+[default.deploy.parameters]
+capabilities = "CAPABILITY_IAM"
+confirm_changeset = true
+resolve_s3 = true
+s3_prefix = "mroptimum-app-new"
+region = "us-east-1"
+# image_repositories = ["ParseResultsFunction=003415768139.dkr.ecr.us-east-1.amazonaws.com/samapp7427b055/parseresultsfunction3f54a316repo"]
+image_repositories = ["ParseResultsFunction=469266894233.dkr.ecr.us-east-1.amazonaws.com/samapp7427b055/parseresultsfunction3f54a316repo"]
+parameter_overrides = "IdentityNameParameter=\"xyz\""
+stack_name = "mroptimum-app-new"
+profile = "469266894233_NYUMCResearcherAdminFullAccess"
+
+[default.package.parameters]
+resolve_s3 = true
+
+[default.sync.parameters]
+watch = true
+
+[default.local_start_api.parameters]
+warm_containers = "EAGER"
+
+[default.local_start_lambda.parameters]
+warm_containers = "EAGER"

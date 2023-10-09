@@ -1,0 +1,469 @@
+{
+	"info": {
+		"_postman_id": "9377fb69-8330-438b-8bd3-cf8ebe93676e",
+		"name": "TessAws",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "28813149"
+	},
+	"item": [
+		{
+			"name": "Cloud MR",
+			"item": [
+				{
+					"name": "Complete Pipeline",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"results\":\"mys3bucket.com/jsonfile.json\",\n\t \"output\":\"mys3bucket.com/jsonfile.zip\"\n\n}"
+						},
+						"url": {
+							"raw": "{{CMREndpoint}}/pipeline/completed/6b5e87d5-6a33-3243-9c2d-901277fbe685",
+							"host": [
+								"{{CMREndpoint}}"
+							],
+							"path": [
+								"pipeline",
+								"completed",
+								"6b5e87d5-6a33-3243-9c2d-901277fbe685"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Fail Pipeline",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "{{CMREndpoint}}/pipeline/failed/6b5e87d5-6a33-3243-9c2d-901277fbe685",
+							"host": [
+								"{{CMREndpoint}}"
+							],
+							"path": [
+								"pipeline",
+								"failed",
+								"6b5e87d5-6a33-3243-9c2d-901277fbe685"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Queue Pipeline",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "{{CMREndpoint}}/pipeline/queued/6b5e87d5-6a33-3243-9c2d-901277fbe685",
+							"host": [
+								"{{CMREndpoint}}"
+							],
+							"path": [
+								"pipeline",
+								"queued",
+								"6b5e87d5-6a33-3243-9c2d-901277fbe685"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Request Pipeline",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"application\": \"TESS\",\n    \"alias\": \"test-123-abcde\"\n}"
+						},
+						"url": {
+							"raw": "{{CMREndpoint}}/pipeline/request",
+							"host": [
+								"{{CMREndpoint}}"
+							],
+							"path": [
+								"pipeline",
+								"request"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Info",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "User-Agent",
+								"value": "My User Agent 1.0",
+								"type": "text"
+							},
+							{
+								"key": "From",
+								"value": "sahishnu.patel@gmail.com",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{CMREndpoint}}/auth/profile",
+							"host": [
+								"{{CMREndpoint}}"
+							],
+							"path": [
+								"auth",
+								"profile"
+							]
+						},
+						"description": "test if brainstem is active"
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Pipelines",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"disabled": true
+							},
+							{
+								"key": "User-Agent",
+								"value": "My User Agent 1.0",
+								"type": "text"
+							},
+							{
+								"key": "From",
+								"value": "s@s.com",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{CMREndpoint}}/pipeline/",
+							"host": [
+								"{{CMREndpoint}}"
+							],
+							"path": [
+								"pipeline",
+								""
+							]
+						},
+						"description": "gettheuser"
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Pipeline/{ID}",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"disabled": true
+							},
+							{
+								"key": "User-Agent",
+								"value": "My User Agent 1.0",
+								"type": "text"
+							},
+							{
+								"key": "From",
+								"value": "s@s.com",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{CMREndpoint}}/pipeline/6b5e87d5-6a33-3243-9c2d-901277fbe685",
+							"host": [
+								"{{CMREndpoint}}"
+							],
+							"path": [
+								"pipeline",
+								"6b5e87d5-6a33-3243-9c2d-901277fbe685"
+							]
+						},
+						"description": "gettheuser"
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"console.log(jsonData)",
+									"postman.setEnvironmentVariable(\"token\",jsonData.access_token)"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "User-Agent",
+								"value": "'My User Agent 1.0'",
+								"type": "text"
+							},
+							{
+								"key": "From",
+								"value": "e@e.it",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"email\":\"eros.montin@gmail.com\",\n\t\"password\":\"eros\"\n}"
+						},
+						"url": {
+							"raw": "{{CMREndpoint}}/auth/login",
+							"host": [
+								"{{CMREndpoint}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Queue Job - Lambda",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer sahishnu",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"application\": \"TESS\",\n  \"pipeline\": [\n    {\n      \"subApplication\": \"TESS\",\n      \"alias\": \"TESS - 2023-07-29 20:50:01\",\n      \"options\": {\n        \"version\": \"v0\",\n        \"mask\": {\n          \"id\": 0,\n            \"filename\": \"k.nii.gz\",\n          \"link\": \"\",\n          \"state\": \"\"\n        },\n        \"materialdensity\": {\n          \"id\": 0,\n          \"filename\": \"Density.nii.gz\",\n          \"link\": \"\",\n          \"state\": \"\"\n        },\n        \"bloodperfusion\": {\n          \"id\": 0,\n          \"filename\": \"BloodPerfusion.nii.gz\",\n          \"link\": \"\",\n          \"state\": \"\"\n        },\n        \"heatcapacity\": {\n          \"id\": 0,\n          \"filename\": \"HeatCapacity.nii.gz\",\n          \"link\": \"\",\n          \"state\": \"\"\n        },\n        \"thermalconductivity\": {\n          \"id\": 0,\n          \"filename\": \"ThermalConductivity.nii.gz\",\n          \"link\": \"\",\n          \"state\": \"\"\n        },\n        \"metabolism\": {\n          \"id\": 0,\n          \"filename\": \"metabolism.nii.gz\",\n          \"link\": \"\",\n          \"state\": \"\"\n        },\n        \"sar\": {\n          \"id\": 0,\n          \"filename\": \"SAR.nii.gz\",\n          \"link\": \"\",\n          \"state\": \"\"\n        },\n        \"told\": {\n          \"id\": 0,\n          \"filename\": \"TOld.nii.gz\",\n          \"link\": \"\",\n          \"state\": \"\"\n        },\n        \"air\": {\n          \"temperature\": 293,\n          \"capacity\": null,\n          \"density\": null\n        },\n        \"blood\": {\n          \"temperature\": 310,\n          \"capacity\": 1057,\n          \"density\": 3600\n        },\n        \"heatingtime\": 20,\n        \"Alias\": \"TESS - 2023-07-29 20:50:01\"\n      }\n    }\n  ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{LambdaEndpoint}}/pipeline",
+					"host": [
+						"{{LambdaEndpoint}}"
+					],
+					"path": [
+						"pipeline"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Parse Result - Lambda",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Cache-Control",
+						"value": "no-cache",
+						"type": "text"
+					},
+					{
+						"key": "From",
+						"value": "s@s.com",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{LambdaEndpoint}}/results?pipelineId=6772c9f4-fb1a-4d4a-910b-76357ebe5456",
+					"host": [
+						"{{LambdaEndpoint}}"
+					],
+					"path": [
+						"results"
+					],
+					"query": [
+						{
+							"key": "pipelineId",
+							"value": "6772c9f4-fb1a-4d4a-910b-76357ebe5456"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}

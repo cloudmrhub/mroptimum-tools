@@ -1,0 +1,163 @@
+Metadata-Version: 2.1
+Name: xsdata
+Version: 23.7
+Summary: Python XML Binding
+Author-email: Christodoulos Tsoulloftas <chris@komposta.net>
+License: MIT
+Project-URL: Homepage, https://github.com/tefra/xsdata
+Project-URL: Source, https://github.com/tefra/xsdata
+Project-URL: Documentation, https://xsdata.readthedocs.io/
+Project-URL: Changelog, https://xsdata.readthedocs.io/en/latest/changelog.html
+Keywords: xsd,wsdl,schema,dtd,binding,xml,json,dataclasses,generator,cli
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3 :: Only
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: Implementation :: CPython
+Classifier: Programming Language :: Python :: Implementation :: PyPy
+Classifier: Topic :: Software Development :: Code Generators
+Classifier: Topic :: Text Processing :: Markup :: XML
+Requires-Python: >=3.7
+Description-Content-Type: text/x-rst
+License-File: LICENSE
+Requires-Dist: typing-extensions
+Requires-Dist: importlib-metadata ; python_version < "3.8"
+Provides-Extra: cli
+Requires-Dist: click (>=5.0) ; extra == 'cli'
+Requires-Dist: click-default-group (>=1.2) ; extra == 'cli'
+Requires-Dist: docformatter (>=1.7.2) ; extra == 'cli'
+Requires-Dist: jinja2 (>=2.10) ; extra == 'cli'
+Requires-Dist: toposort (>=1.5) ; extra == 'cli'
+Provides-Extra: docs
+Requires-Dist: furo ; extra == 'docs'
+Requires-Dist: sphinx ; extra == 'docs'
+Requires-Dist: sphinx-autobuild ; extra == 'docs'
+Requires-Dist: sphinx-autodoc-typehints ; extra == 'docs'
+Requires-Dist: sphinx-copybutton ; extra == 'docs'
+Requires-Dist: sphinx-inline-tabs ; extra == 'docs'
+Provides-Extra: lxml
+Requires-Dist: lxml (>=4.4.1) ; extra == 'lxml'
+Provides-Extra: soap
+Requires-Dist: requests ; extra == 'soap'
+Provides-Extra: test
+Requires-Dist: pre-commit ; extra == 'test'
+Requires-Dist: pytest ; extra == 'test'
+Requires-Dist: pytest-benchmark ; extra == 'test'
+Requires-Dist: pytest-cov ; extra == 'test'
+
+.. image:: https://github.com/tefra/xsdata/raw/main/docs/_static/logo.svg
+    :target: https://xsdata.readthedocs.io/
+
+Naive XML Bindings for python
+=============================
+
+.. image:: https://github.com/tefra/xsdata/workflows/tests/badge.svg
+    :target: https://github.com/tefra/xsdata/actions
+
+.. image:: https://readthedocs.org/projects/xsdata/badge
+    :target: https://xsdata.readthedocs.io/
+
+.. image:: https://codecov.io/gh/tefra/xsdata/branch/main/graph/badge.svg
+    :target: https://codecov.io/gh/tefra/xsdata
+
+.. image:: https://img.shields.io/github/languages/top/tefra/xsdata.svg
+    :target: https://xsdata.readthedocs.io/
+
+.. image:: https://www.codefactor.io/repository/github/tefra/xsdata/badge
+   :target: https://www.codefactor.io/repository/github/tefra/xsdata
+
+.. image:: https://img.shields.io/pypi/pyversions/xsdata.svg
+    :target: https://pypi.org/pypi/xsdata/
+
+.. image:: https://img.shields.io/pypi/v/xsdata.svg
+    :target: https://pypi.org/pypi/xsdata/
+
+--------
+
+xsData is a complete data binding library for python allowing developers to access and
+use XML and JSON documents as simple objects rather than using DOM.
+
+The code generator supports XML schemas, DTD, WSDL definitions, XML & JSON documents.
+It produces simple dataclasses with type hints and simple binding metadata.
+
+The included XML and JSON parser/serializer are highly optimized and adaptable, with
+multiple handlers and configuration properties.
+
+xsData is constantly tested against the
+`W3C XML Schema 1.1 test suite <https://github.com/tefra/xsdata-w3c-tests>`_.
+
+Getting started
+---------------
+
+.. code:: console
+
+    $ # Install all dependencies
+    $ pip install xsdata[cli,lxml,soap]
+
+.. code:: console
+
+    $ # Generate models
+    $ xsdata tests/fixtures/primer/order.xsd --package tests.fixtures.primer
+
+.. code:: python
+
+    >>> # Parse XML
+    >>> from pathlib import Path
+    >>> from tests.fixtures.primer import PurchaseOrder
+    >>> from xsdata.formats.dataclass.parsers import XmlParser
+    >>>
+    >>> xml_string = Path("tests/fixtures/primer/sample.xml").read_text()
+    >>> parser = XmlParser()
+    >>> order = parser.from_string(xml_string, PurchaseOrder)
+    >>> order.bill_to
+    Usaddress(name='Robert Smith', street='8 Oak Avenue', city='Old Town', state='PA', zip=Decimal('95819'), country='US')
+
+
+Check the `documentation <https://xsdata.readthedocs.io>`_ for more
+✨✨✨
+
+Features
+--------
+
+- Generate code from:
+
+  - XML Schemas 1.0 & 1.1
+  - WSDL 1.1 definitions with SOAP 1.1 bindings
+  - DTD external definitions
+  - Directly from XML and JSON Documents
+  - Extensive configuration to customize output
+  - Pluggable code writer for custom output formats
+
+- Default Output:
+
+  - Pure python dataclasses with metadata
+  - Type hints with support for forward references and unions
+  - Enumerations and inner classes
+  - Support namespace qualified elements and attributes
+
+- Data Binding:
+
+  - XML and JSON parser, serializer
+  - PyCode serializer
+  - Handlers and Writers based on lxml and native xml python
+  - Support wildcard elements and attributes
+  - Support xinclude statements and unknown properties
+  - Customize behaviour through config
+
+
+
+Changelog: 23.7 (2023-07-23)
+----------------------------
+- Fixed decimal converter to avoid scientific notations (`#826 <https://github.com/tefra/xsdata/pull/826>`_)
+- Fixed nympy paramater docstring format  (`#827 <https://github.com/tefra/xsdata/pull/827>`_)
+- Fixed optional/required override validation (`#820 <https://github.com/tefra/xsdata/pull/820>`_)
+- Fixed WSDL mapper to respect the elements original location (`#832 <https://github.com/tefra/xsdata/pull/832>`_)
+- Added Python 3.12 support

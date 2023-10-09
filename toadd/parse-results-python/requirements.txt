@@ -1,0 +1,7 @@
+requests
+boto3
+botocore
+SimpleITK
+nibabel
+numpy
+pylab-sdk

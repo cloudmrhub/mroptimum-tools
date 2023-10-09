@@ -1,0 +1,8 @@
+{
+    "type": "TOKEN",
+    "authorizationToken": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczpcL1wvY2xvdWRtcmh1Yi5jb21cL2FwaVwvYXV0aFwvbG9naW4iLCJpYXQiOjE2OTI2NTAxOTMsImV4cCI6MTY5MjczNjU5MywibmJmIjoxNjkyNjUwMTkzLCJqdGkiOiI1TVhiUnB0ZHloTGkxdEV0Iiwic3ViIjo5OTk5LCJwcnYiOiI4N2UwYWYxZWY5ZmQxNTgxMmZkZWM5NzE1M2ExNGUwYjA0NzU0NmFhIn0._JKiygFgbujNYYnGFjxF1HLbohIS-28TFoQ7Sb4djEY",
+    "methodArn": "arn:aws:execute-api:us-east-1:123456789012:example/prod/POST/{proxy+}",
+    "headers": {
+        "Cookie": "incap_ses_1340_2282567=sc+Lc0Er3AqedSBjuqOYEl7P42QAAAAAvPSvmbRpd6u4BIn0El6aOg==; Path=/; Domain=cloudmrhub.com; visid_incap_2282567=XnLSVom4Qh6ljPID/iAXV1Es3WQAAAAAQUIPAAAAAACY+IeM3Pw6ckGMoj3jyONo; Path=/; Domain=cloudmrhub.com; HttpOnly; Expires=Thu, 15 Aug 2024 06:27:41 GMT;"
+    }
+}
