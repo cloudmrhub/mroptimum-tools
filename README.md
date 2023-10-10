@@ -15,3 +15,7 @@
 | ReadUploadFunction | /readdatad | get user data in the cloudmrhubdata |
 | UserAuthorizerFunction | APiGateway | Authprizes the users |
 |---|---|---|
+
+## Version
+1. v0
+1. v0y
