@@ -188,14 +188,74 @@ Resources:
 #       DockerContext: parse-results-python/
 #       DockerTag: python3.9-v1
 
+  # UserAuthorizerFunction:
+  #   Type: AWS::Serverless::Function
+  #   Properties:
+  #     PackageType: Zip
+  #     CodeUri: user-authorizer-node/
+  #     Handler: app.handler
+  #     Runtime: nodejs18.x
+
+## YUELONG
+
+  # The pair of functions below manages data.
+  # Data read function reads data list from cloudmrhub database,
+  # then retrieves them from s3, compiles the locations with
+  # presigned url
   UserAuthorizerFunction:
     Type: AWS::Serverless::Function
     Properties:
       PackageType: Zip
-      CodeUri: user-authorizer-node/
-      Handler: app.handler
-      Runtime: nodejs18.x
+      CodeUri: user-authorizer-python/  # Change this to point to your Python code directory
+      Handler: authorizer.lambda_handler  # Assuming your python file is named 'your_python_filename.py'
+      Runtime: python3.8  # Adjust based on your desired Python runtime version
+    Layers:
+        - arn:aws:lambda:us-east-1:469266894233:layer:Requests_Layer:1
+        
+  DataReadFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Zip
+      CodeUri: data-access-python/
+      Handler: data.read_data
+      Runtime: python3.8
+      Events:
+        DataReadApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MROptimumApi
+            Method: get
+            Path: /readdata
+            Auth:
+              Authorizer: UserAuthorizer
+      Layers:
+        - arn:aws:lambda:us-east-1:469266894233:layer:Requests_Layer:1
 
+  # Data upload function generates location for s3, gets the upload
+  # target url, stores the records to the cloudmrhub database, returns the record,
+  # and the upload target url back to the user
+  DataUploadFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: data-access-python/
+      Handler: data.upload_data
+      Runtime: python3.8
+      PackageType: Zip
+      Events:
+        DataUploadApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MROptimumApi
+            Method: post
+            Path: /uploaddata
+            Auth:
+              Authorizer: UserAuthorizer
+      Layers:
+        - arn:aws:lambda:us-east-1:469266894233:layer:Requests_Layer:1
+
+
+
+   
 
 
   MROptimumApi:
@@ -272,3 +332,17 @@ Outputs:
   #   Value: !Ref DataBucket
   ResultsBucketName:
     Value: !Ref ResultsBucket
+  UploadDataJobApi:
+    Description: API Gateway endpoint URL for Uploading Files
+    Value: !Sub "https://${MROptimumApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/uploaddata/"
+  ReadDataJobApi:
+    Description: API Gateway endpoint URL for Uploading Files
+    Value: !Sub "https://${MROptimumApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/readdata/"
+
+# YUELONG
+  DataUploadFunction:
+    Description: Upload Data Function ARN
+    Value: !GetAtt DataUploadFunction.Arn
+  DataReadFunction:
+    Description: Read Data Function ARN
+    Value: !GetAtt DataReadFunction.Arn

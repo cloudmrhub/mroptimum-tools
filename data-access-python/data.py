@@ -4,6 +4,7 @@ import boto3
 import uuid
 import os
 os.environ['CURL_CA_BUNDLE'] = ''
+Host=os.getenv('Host')
 
 def getHeadersForRequests():
     return {    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -56,7 +57,7 @@ def upload_data(event, context):
         }
 
 
-        response=requests.post('https://cloudmrhub.com/api/data/create',verify=False, data=json.dumps(payload), headers=getHeadersForRequestsWithToken(event['headers']['Authorization']))
+        response=requests.post(f'https://{Host}/api/data/create',verify=False, data=json.dumps(payload), headers=getHeadersForRequestsWithToken(event['headers']['Authorization']))
         if response.status_code != 200:
             raise Exception("Failed to save file metadata to cloudmrhub.com")
 
@@ -79,7 +80,7 @@ def read_data(event, context):
         headers = getHeadersForRequestsWithToken(event['headers']['Authorization'])
 
         # Obtain file records
-        cmr_profile_data = requests.get('https://cloudmrhub.com/api/data',verify=False,headers=headers)
+        cmr_profile_data = requests.get(f'https://{Host}/api/data',verify=False,headers=headers)
         data_list = cmr_profile_data.json()
         file_list = []
         for data in data_list:

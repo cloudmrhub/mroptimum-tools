@@ -39,10 +39,7 @@ def lambda_handler(event, context):
     "input":"None"
     }
     url=f'{pipelineAPI}/{pipelineid}'
-    # print(url)
-    # print(data2)
-    # response = requests.head(url, data=json.dumps(data2), headers=getHeadersForRequestsWithToken(token))
-    # print(response)
+
     r2=requests.post(url, data=json.dumps(data2), headers=getHeadersForRequestsWithToken(token))
     R=r2.json()
     print(R)

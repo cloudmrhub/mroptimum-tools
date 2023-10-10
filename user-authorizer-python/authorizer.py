@@ -1,15 +1,21 @@
 import json
 import requests
 import os
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
 os.environ['CURL_CA_BUNDLE'] = ''
-
+Host=os.getenv('Host')
 def getHeadersForRequests():
     return {    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
     'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
     'Accept-Encoding': 'none',
     'Accept-Language': 'en-US,en;q=0.8',
     'Connection': 'keep-alive',
-    "Content-Type": 'application/json','User-Agent': 'curl','From': 'mailto:devn@cloudmrhub.com','Host':'https://cloudmrhub.com'}
+    "Content-Type": 'application/json','User-Agent': 'curl','From': 'mailto:devn@cloudmrhub.com','Host':Host}
+def getHeadersForRequests2():
+    return {"Content-Type": "application/json","User-Agent": "My User Agent 1.0","From": "theweblogin@iam.com","Host":Host}
+
+
 
 
 def getHeadersForRequestsWithToken(token):
@@ -20,17 +26,13 @@ def getHeadersForRequestsWithToken(token):
 
 def lambda_handler(event, context):
     try:
-        data={
-        "email":"mailto:eros.montin@gmail.com",
-        "password":"eros"
-        }
-        X=requests.post('https://cloudmrhub.com/api/auth/login', data=json.dumps(data), headers=getHeadersForRequests())
-        X=X.json()
-        print(X)
-        token=f'Bearer {X["access_token"]}'
+        token = event["authorizationToken"]
         headers=getHeadersForRequestsWithToken(token)
-
-        cmr_profile_resp = requests.get('https://cloudmrhub.com/api/auth/profile', headers=headers)
+        url=f'https://{Host}/api/auth/profile'
+        print(url)
+        print(headers)
+        cmr_profile_resp = requests.get(url, headers=headers,verify = False)
+        print(cmr_profile_resp.text)
         resp_data = cmr_profile_resp.json()
         print(resp_data)
         del resp_data['info']
