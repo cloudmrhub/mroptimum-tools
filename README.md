@@ -9,13 +9,15 @@
 |Function| Route/Event | Description |
 |---|---|---|
 |QueueJobFunction  | /pipeline  | Receives a POST req, create a json file on JobsBucket |
-| RunJobFunction | JobsBucket upload | make the calulation and send the results to results bucket |
-| UpdateJobFunction | ResultsBucket upload | take the result zip file and update cloudmrhub |
-| DataUploadFunction | /uploaddatad | upload in the cloudmrhubdata bucket |
-| ReadUploadFunction | /readdatad | get user data in the cloudmrhubdata |
-| UserAuthorizerFunction | APiGateway | Authprizes the users |
+| RunJobFunction | JobsBucket upload | Makes the calulation and send the results to results bucket |
+| UpdateJobFunction | ResultsBucket upload | Takes the result zip file and update cloudmrhub |
+| DataUploadFunction | /uploaddatad | Uploads in the cloudmrhubdata bucket |
+| ReadUploadFunction | /readdatad | Gets user data in the cloudmrhubdata |
+| UserAuthorizerFunction | APiGateway | Authorizes the users |
 |---|---|---|
 
 ## Version
-1. v0
-1. v0y
+1. [] -- frontend
+1. [x] v0y  -- uploaders
+1. [x] v0 -- backend
+1. [x] EB 
