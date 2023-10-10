@@ -26,7 +26,7 @@ def lambda_handler(event, context):
     task = body['task']
     output = body['output']
     pipelineAPI = os.environ.get("PipelineScheduler")
-    print(pipelineAPI)
+    
     data2={"application":application,"alias":alias}
     r2=requests.post(pipelineAPI, data=json.dumps(data2), headers=getHeadersForRequestsWithToken(authorization_header))
     R=r2.json()
