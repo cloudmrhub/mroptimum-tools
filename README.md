@@ -17,7 +17,7 @@
 |---|---|---|
 
 ## Version
-1. [] -- frontend
+1. [ ] -- frontend
 1. [x] v0y  -- uploaders
 1. [x] v0 -- backend
 1. [x] EB 

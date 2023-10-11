@@ -15,7 +15,7 @@ def getHeadersForRequests():
     "Content-Type": 'application/json',
     'User-Agent': 'curl',
     'From': 'devn@cloudmrhub.com',
-    'Host':Host
+    'Host':'cloudmrhub.com'
 
     }
 
@@ -63,9 +63,6 @@ def upload_data(event, context):
 
         return {
             "statusCode": 200,
-            "headers": {
-                'Access-Control-Allow-Origin': '*'
-            },
             "body": json.dumps({
                 "upload_url": url,
                 "response": response.json()
@@ -73,10 +70,7 @@ def upload_data(event, context):
         }
     except Exception as error:
         print(f'Uploading data failed due to: {error}')
-        return {"statusCode": 403,
-            "headers": {
-                'Access-Control-Allow-Origin': '*'
-            }, "body":"Upload failed for user"}
+        return {"statusCode": 403, "body":"Upload failed for user"}
 
 def read_data(event, context):
     s3_client = boto3.client('s3')
@@ -96,18 +90,9 @@ def read_data(event, context):
             url = s3_client.generate_presigned_url('get_object',
                                                    Params={'Bucket': bucket_name, 'Key': location},
                                                    ExpiresIn=3600)
-            data['filename'] = alias
-            data['location'] = location
-            data['link'] = url
-            # {'user_id':data['user_id'],'filename':alias,'size':data['size'],'location':location,'link':url}
-            file_list.append(data)
-        return {"statusCode":200,
-            "headers": {
-                'Access-Control-Allow-Origin': '*'
-            }, "body":json.dumps(file_list)}
+            file = {'user_id':data['user_id'],'filename':alias,'size':data['size'],'location':location,'link':url}
+            file_list.append(file)
+        return {"statusCode":200, "body":json.dumps(file_list)}
     except Exception as error:
         print(f'Reading data failed due to: {error}')
-        return {"statusCode": 403,
-            "headers": {
-                'Access-Control-Allow-Origin': '*',
-            }, "body":"access failed"}
+        return {"statusCode": 403, "body":"access failed"}
