@@ -285,7 +285,21 @@ Resources:
         Ref: ApplicationResourceGroup
       AutoConfigurationEnabled: 'true'
 
-  
+  AmplifyApp:
+    Type: AWS::Amplify::App
+    Properties:
+      AppId: !Sub '${AWS::StackName}-${AWS::AccountId}'
+      AppName: !Sub '${AWS::StackName}'
+      Description: Amplify deployment for a React frontend on Git.
+      Repository:
+        Branch: main
+        Type: Git
+        Provider: GitHub
+        Url: https://github.com/cloudmrhub-com/MROptimum-frontend.git
+      EnvironmentVariables:
+        REACT_APP_API_URL: !Sub 'https://${AmplifyApp.DefaultDomain}/${AmplifyApp.EnvironmentName}/graphql'
+
+
 Outputs:
 #   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
 #   # Find out more about other implicit resources you can reference within SAM
@@ -346,3 +360,8 @@ Outputs:
   DataReadFunction:
     Description: Read Data Function ARN
     Value: !GetAtt DataReadFunction.Arn
+
+#AMPLIFY
+  AmplifyAppUrl:
+    Description: The URL of the Amplify deployment.
+    Value: !Sub 'https://${AmplifyApp.DefaultDomain}'
