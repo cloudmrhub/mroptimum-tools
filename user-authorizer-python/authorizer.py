@@ -59,5 +59,12 @@ def generate_policy(principal_id, effect, user_profile):
         auth_response['policyDocument'] = policy_document
 
     # Optional output with custom properties of the String, Number, or Boolean type.
+        # Set the CORS headers
+    # response_headers = {
+    #     'Access-Control-Allow-Origin': '*',
+    #     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    #     'Access-Control-Allow-Headers': 'Authorization'
+    # }
     auth_response['context'] = user_profile
+    # auth_response['headers']: response_headers
     return auth_response

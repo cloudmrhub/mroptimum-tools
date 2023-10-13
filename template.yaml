@@ -22,7 +22,12 @@ Globals:
         PipelineScheduler: https://cancelit-env.eba-pmamcuv5.us-east-1.elasticbeanstalk.com/api/pipeline/request
         PipelineCompleted: https://cancelit-env.eba-pmamcuv5.us-east-1.elasticbeanstalk.com/api/pipeline/completed
         PipelineFailed: https://cancelit-env.eba-pmamcuv5.us-east-1.elasticbeanstalk.com/api/pipeline/failed
-
+  Api:
+      Cors:
+          AllowMethods: "'GET,POST,OPTIONS'"
+          AllowHeaders: "'content-type'"
+          AllowOrigin: "'*'"
+          # AllowCredentials: true  Uncomment only if you choose a specific origin instead of the * wildcard.
 
 Resources:
   JobsBucket:
@@ -209,9 +214,11 @@ Resources:
       CodeUri: user-authorizer-python/  # Change this to point to your Python code directory
       Handler: authorizer.lambda_handler  # Assuming your python file is named 'your_python_filename.py'
       Runtime: python3.8  # Adjust based on your desired Python runtime version
+
     Layers:
         - arn:aws:lambda:us-east-1:469266894233:layer:Requests_Layer:1
-        
+  
+  
   DataReadFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -228,6 +235,7 @@ Resources:
             Path: /readdata
             Auth:
               Authorizer: UserAuthorizer
+              
       Layers:
         - arn:aws:lambda:us-east-1:469266894233:layer:Requests_Layer:1
 
@@ -255,15 +263,17 @@ Resources:
 
 
 
-   
-
-
   MROptimumApi:
     Type: 'AWS::Serverless::Api'
     Properties:
       StageName: Prod
       CacheClusterEnabled: false
+      Cors:
+        AllowMethods: "'POST,GET,PUT,DELETE,OPTIONS'"
+        AllowOrigin: "'*'"
+        AllowHeaders: "'*'"
       Auth:
+        AddDefaultAuthorizerToCorsPreflight: false
         DefaultAuthorizer: UserAuthorizer
         Authorizers:
           UserAuthorizer:
@@ -285,20 +295,16 @@ Resources:
         Ref: ApplicationResourceGroup
       AutoConfigurationEnabled: 'true'
 
-  AmplifyApp:
-    Type: AWS::Amplify::App
-    Properties:
-      AppId: !Sub '${AWS::StackName}-${AWS::AccountId}'
-      AppName: !Sub '${AWS::StackName}'
-      Description: Amplify deployment for a React frontend on Git.
-      Repository:
-        Branch: main
-        Type: Git
-        Provider: GitHub
-        Url: https://github.com/cloudmrhub-com/MROptimum-frontend.git
-      EnvironmentVariables:
-        REACT_APP_API_URL: !Sub 'https://${AmplifyApp.DefaultDomain}/${AmplifyApp.EnvironmentName}/graphql'
-
+  # AmplifyApp:
+  #   Type: AWS::Amplify::App
+  #   Properties:
+  #     Name: AmplifyApp
+  #     Description: Amplify deployment for a React frontend on Git.
+  #     Repository: https://github.com/cloudmrhub-com/MROptimum-frontend.git
+      # EnvironmentVariables:
+        # REACT_APP_API_URL: !Sub 'https://${MROptimumApi}.execute-api.${AWS::Region}/mroptimum'
+      # AutoDeploy:
+      #   Enabled: True
 
 Outputs:
 #   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
@@ -362,6 +368,6 @@ Outputs:
     Value: !GetAtt DataReadFunction.Arn
 
 #AMPLIFY
-  AmplifyAppUrl:
-    Description: The URL of the Amplify deployment.
-    Value: !Sub 'https://${AmplifyApp.DefaultDomain}'
+  # AmplifyAppUrl:
+  #   Description: The URL of the Amplify deployment.
+  #   Value: !Sub 'https://${MROptimumApi}.execute-api.${AWS::Region}/mroptimum'
