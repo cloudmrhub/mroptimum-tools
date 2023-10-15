@@ -22,34 +22,91 @@ const s3 = new AWS.S3()
 // Change this value to adjust the signed URL's expiration
 const URL_EXPIRATION_SECONDS = 300
 
+const { v4: uuidv4 } = require('uuid');
+
+const HOST = process.env.Host;
+
+const axios = require('axios');
+
+
 // Main Lambda entry point
 exports.handler = async (event) => {
-  return await getUploadURL(event)
+    return await upload_data(event);
+  }
+const getHeadersForRequests = () => {
+    return {
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
+        'Accept-Encoding': 'none',
+        'Accept-Language': 'en-US,en;q=0.8',
+        'Connection': 'keep-alive',
+        'Content-Type': 'application/json',
+        'User-Agent': 'curl',
+        'From': 'devn@cloudmrhub.com',
+        'Host': HOST
+    };
 }
 
-const getUploadURL = async function(event) {
-  const randomID = parseInt(Math.random() * 10000000)
-  const Key = `${randomID}.jpg`
+const getHeadersForRequestsWithToken = (token) => {
+    const headers = getHeadersForRequests();
+    headers["Authorization"] = token;
+    return headers;
+}
 
-  // Get signed URL from S3
-  const s3Params = {
-    Bucket: process.env.UploadBucket,
-    Key,
-    Expires: URL_EXPIRATION_SECONDS,
-    ContentType: 'image/jpeg',
+const upload_data = async (event) => {
+    try {
+        const body = JSON.parse(event.body);
+        const fileName = body.filename;
+        const fileType = body.filetype;
+        const fileSize = body.filesize;
+        const fileMd5 = body.filemd5;
+        const Key = `${uuidv4()}_${fileName}`;
 
-    // This ACL makes the uploaded object publicly readable. You must also uncomment
-    // the extra permission for the Lambda function in the SAM template.
+        // Get signed URL from S3
+        const s3Params = {
+          Bucket: process.env.DataBucketName,
+          Key,
+          Expires: URL_EXPIRATION_SECONDS,
+          ContentType: fileType,
+          // This ACL makes the uploaded object publicly readable. You must also uncomment
+          // the extra permission for the Lambda function in the SAM template.
+          ACL: 'public-read'
+        }
+      
+        console.log('Params: ', s3Params)
+        const uploadURL = await s3.getSignedUrlPromise('putObject', s3Params)
 
-    ACL: 'public-read'
-  }
+        // Post file metadata to cloudmrhub.com API
+        const headers = getHeadersForRequestsWithToken(event.headers['Authorization']);
+        const payload = {
+            filename: fileName,
+            location: JSON.parse({Key,Bucket:process.env.DataBucketName}),
+            size: fileSize,
+            md5: fileMd5
+        };
+        const response = await axios.post(`https://${HOST}/api/data/create`, payload, {
+            headers: headers,
+            validateStatus: function (status) {
+                return status >= 200 && status < 300; // default
+            },
+        });
 
-  console.log('Params: ', s3Params)
-  const uploadURL = await s3.getSignedUrlPromise('putObject', s3Params)
+        if (response.status !== 200) {
+            throw new Error("Failed to save file metadata to cloudmrhub.com");
+        }
 
-  return JSON.stringify({
-    uploadURL: uploadURL,
-    Key,
-    Buket:process.env.UploadBucket
-  })
+        return JSON.stringify({
+                upload_url: uploadURL,
+                response: response.data
+            });
+    } catch (error) {
+        console.error(`Uploading data failed due to: ${error.message}`);
+        return {
+            statusCode: 403,
+            headers: {
+                'Access-Control-Allow-Origin': '*'
+            },
+            body: "Upload failed for user"
+        };
+    }
 }

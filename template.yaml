@@ -15,7 +15,8 @@ Globals:
     Environment:
       Variables:
         JobBucketName: mroptimum-jobs
-        DataBucketName: cloudmrhub-data
+        # DataBucketName: cloudmrhub-data
+        DataBucketName: !Ref S3UploadBucket
         ResultsBucketName: mroptimum-results
         Host: cancelit-env.eba-pmamcuv5.us-east-1.elasticbeanstalk.com
         CloudMRApiUrl: https://cancelit-env.eba-pmamcuv5.us-east-1.elasticbeanstalk.com/api
@@ -369,15 +370,25 @@ Resources:
             Action:
               - s3:putObjectAcl
               - s3:putObject
+      Layers:
+        - !Ref UploadRequestFunctionLayer
       Events:
         UploadAssetAPI:
           Type: HttpApi
           Properties:
             Path: /uploads
-            Method: get
+            Method: post
             ApiId: !Ref MyApi
 
-            
+  UploadRequestFunctionLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: upload-node-layer
+      ContentUri: getSignedURL/
+      CompatibleRuntimes:
+        - nodejs16.x
+    Metadata:
+      BuildMethod: nodejs16.x         
   ## S3 bucket
   S3UploadBucket:
     Type: AWS::S3::Bucket
