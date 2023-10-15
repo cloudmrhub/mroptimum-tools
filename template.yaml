@@ -108,6 +108,7 @@ Resources:
           - 'arn:aws:s3:::mroptimum-jobs/*' # Allow access to data bucket
           - 'arn:aws:s3:::mroptimum-results/*' # Allow access to results bucket
           - 'arn:aws:s3:::mytestcmr/*' # Allow access to results bucket
+          - 'arn:aws:s3:::${S3UploadBucket}/*' # Allow access to results bucket
       Events:
         S3Event:
           Type: S3
@@ -366,7 +367,9 @@ Resources:
         # for objects that will be publicly readable. Uncomment if you want this ACL.
         - Statement:
           - Effect: Allow
-            Resource: !Sub 'arn:aws:s3:::${S3UploadBucket}/'
+            Resource: 
+            - !Sub 'arn:aws:s3:::${S3UploadBucket}/'
+            - 'arn:aws:s3:::cloudmr-data/*'
             Action:
               - s3:putObjectAcl
               - s3:putObject
