@@ -24,10 +24,9 @@ const URL_EXPIRATION_SECONDS = 300
 
 const { v4: uuidv4 } = require('uuid');
 
+process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0;
 const HOST = process.env.Host;
-
 const axios = require('axios');
-
 
 // Main Lambda entry point
 exports.handler = async (event) => {
@@ -64,7 +63,8 @@ const upload_data = async (event) => {
 
         // Get signed URL from S3
         const s3Params = {
-          Bucket: process.env.DataBucketName,
+        //   Bucket: process.env.DataBucketName,
+          Bucket: 'cloudmr-data',
           Key,
           Expires: URL_EXPIRATION_SECONDS,
           ContentType: fileType,
@@ -75,21 +75,22 @@ const upload_data = async (event) => {
       
         console.log('Params: ', s3Params)
         const uploadURL = await s3.getSignedUrlPromise('putObject', s3Params)
-
+        console.log(event.headers);
         // Post file metadata to cloudmrhub.com API
-        const headers = getHeadersForRequestsWithToken(event.headers['Authorization']);
+        const headers = getHeadersForRequestsWithToken(event.headers['authorization']);
         const payload = {
             filename: fileName,
-            location: JSON.parse({Key,Bucket:process.env.DataBucketName}),
+            location: JSON.stringify({Key,Bucket:process.env.DataBucketName}),
             size: fileSize,
             md5: fileMd5
         };
+        console.log(headers);
+        console.log(payload);
         const response = await axios.post(`https://${HOST}/api/data/create`, payload, {
-            headers: headers,
-            validateStatus: function (status) {
-                return status >= 200 && status < 300; // default
-            },
+            headers: headers
         });
+        
+        console.log(response);
 
         if (response.status !== 200) {
             throw new Error("Failed to save file metadata to cloudmrhub.com");
@@ -99,6 +100,7 @@ const upload_data = async (event) => {
                 upload_url: uploadURL,
                 response: response.data
             });
+        // return {statusCode: 200}
     } catch (error) {
         console.error(`Uploading data failed due to: ${error.message}`);
         return {
