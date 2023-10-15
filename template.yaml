@@ -370,6 +370,7 @@ Resources:
             Resource: 
             - !Sub 'arn:aws:s3:::${S3UploadBucket}/'
             - 'arn:aws:s3:::cloudmr-data/*'
+            - 'arn:aws:s3:::cloudmr-data/'
             Action:
               - s3:putObjectAcl
               - s3:putObject
