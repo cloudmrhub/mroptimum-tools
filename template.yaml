@@ -287,6 +287,16 @@ Resources:
         AllowMethods: "'POST,GET,PUT,DELETE,OPTIONS'"
         AllowOrigin: "'*'"
         AllowHeaders: "'*'"
+      # CorsConfiguration:
+      #   AllowMethods:
+      #     - GET
+      #     - POST
+      #     - DELETE
+      #     - OPTIONS
+      #   AllowHeaders:
+      #     - "*"   
+      #   AllowOrigins: 
+      #     - "*"    
       Auth:
         AddDefaultAuthorizerToCorsPreflight: false
         DefaultAuthorizer: UserAuthorizer
@@ -320,6 +330,68 @@ Resources:
         # REACT_APP_API_URL: !Sub 'https://${MROptimumApi}.execute-api.${AWS::Region}/mroptimum'
       # AutoDeploy:
       #   Enabled: True
+  MyApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      # CORS configuration - this is open for development only and should be restricted in prod.
+      # See https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-property-httpapi-httpapicorsconfiguration.html   
+      CorsConfiguration:
+        AllowMethods:
+          - GET
+          - POST
+          - DELETE
+          - OPTIONS
+        AllowHeaders:
+          - "*"   
+        AllowOrigins: 
+          - "*"    
+
+  UploadRequestFunction:
+    # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Type: AWS::Serverless::Function 
+    Properties:
+      CodeUri: getSignedURL/
+      Handler: app.handler
+      Runtime: nodejs16.x
+      Timeout: 3
+      MemorySize: 128
+      Environment:
+        Variables:
+          UploadBucket: !Ref S3UploadBucket  
+      Policies:
+        - S3WritePolicy:
+            BucketName: !Ref S3UploadBucket
+        # This permission allows the Lambda function to request signed URLs
+        # for objects that will be publicly readable. Uncomment if you want this ACL.
+        - Statement:
+          - Effect: Allow
+            Resource: !Sub 'arn:aws:s3:::${S3UploadBucket}/'
+            Action:
+              - s3:putObjectAcl
+              - s3:putObject
+      Events:
+        UploadAssetAPI:
+          Type: HttpApi
+          Properties:
+            Path: /uploads
+            Method: get
+            ApiId: !Ref MyApi
+
+            
+  ## S3 bucket
+  S3UploadBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      CorsConfiguration:
+        CorsRules:
+        - AllowedHeaders:
+            - "*"
+          AllowedMethods:
+            - GET
+            - PUT
+            - HEAD
+          AllowedOrigins:
+            - "*"
 
 Outputs:
 #   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
@@ -386,3 +458,13 @@ Outputs:
   # AmplifyAppUrl:
   #   Description: The URL of the Amplify deployment.
   #   Value: !Sub 'https://${MROptimumApi}.execute-api.${AWS::Region}/mroptimum'
+
+  APIendpoint:
+    Description: "HTTP API endpoint URL"
+    Value: !Sub "https://${MyApi}.execute-api.${AWS::Region}.amazonaws.com/"
+  UploadAPIendpointNode:
+    Description: "HTTP API endpoint URL"
+    Value: !Sub "https://${MyApi}.execute-api.${AWS::Region}.amazonaws.com/uploads"
+  S3UploadBucketName:
+    Description: "S3 bucket for application uploads"
+    Value: !Ref 'S3UploadBucket'    
