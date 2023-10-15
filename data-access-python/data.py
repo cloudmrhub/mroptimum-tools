@@ -42,9 +42,9 @@ def upload_data(event, context):
         object_name = f"{uuid.uuid4()}_{file_name}"
 
         # Generate a pre-signed URL for putting (uploading) an object
-        url = s3_client.generate_presigned_url('put_object',
-                                               Params={'Bucket': bucket_name, 'Key': object_name, 'ContentType': file_type},
-                                               ExpiresIn=3600)
+        # Generate a pre-signed URL for putting (uploading) an object
+        url = s3_client.generate_presigned_url(ClientMethod='put_object',
+                                              Params={'Bucket': bucket_name, 'Key': object_name, 'ACL': 'public-read','ContentType': file_type},ExpiresIn=3600)
 
         # Post file metadata to cloudmrhub.com API
         headers = getHeadersForRequestsWithToken(event['headers']['Authorization'])

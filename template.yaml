@@ -249,6 +249,21 @@ Resources:
       Handler: data.upload_data
       Runtime: python3.8
       PackageType: Zip
+      Policies:
+        - S3WritePolicy:
+            BucketName: cloudmr-data
+        # This permission allows the Lambda function to request signed URLs
+        # for objects that will be publicly readable. Uncomment if you want this ACL.
+        - Statement:
+          - Effect: Allow
+            Resource: "arn:aws:s3:::cloudmr-data/*"
+            Action:
+              - s3:PutObjectAcl
+              - s3:PutObject
+              - s3:PutObjectTagging
+              - s3:*
+
+              
       Events:
         DataUploadApiEvent:
           Type: Api
@@ -256,8 +271,8 @@ Resources:
             RestApiId: !Ref MROptimumApi
             Method: post
             Path: /uploaddata
-            Auth:
-              Authorizer: UserAuthorizer
+            # Auth:
+            #   Authorizer: UserAuthorizer
       Layers:
         - arn:aws:lambda:us-east-1:469266894233:layer:Requests_Layer:1
 
