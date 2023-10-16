@@ -58,5 +58,8 @@ def lambda_handler(event, context):
             'message': 'Successfully scheduled a job - {}'.format(key),
             'alias': key,
             'job': json.dumps(job)
-        })
+        }),
+                'headers': {
+                'Access-Control-Allow-Origin': '*'
+        }
     }

@@ -44,9 +44,14 @@ def handler(event, context):
     print(pipelineid)
 
     T=J["task"]
+    print(T)
+    print(f'noise - file {T["options"]["reconstructor"]["options"]["noise"]}')
     # donwload the file if needed
     if (T["options"]["reconstructor"]["options"]["noise"]["options"]["type"])=="s3":
         T["options"]["reconstructor"]["options"]["noise"]["options"]=s3FileTolocal(T["options"]["reconstructor"]["options"]["noise"]["options"],s3)
+    print("noise - file - downloaded")
+    print(f'signal - file {T["options"]["reconstructor"]["options"]["signal"]}')
+    
     if (T["options"]["reconstructor"]["options"]["signal"]["options"]["type"])=="s3":
         T["options"]["reconstructor"]["options"]["signal"]["options"]=s3FileTolocal(T["options"]["reconstructor"]["options"]["signal"]["options"],s3)
     #write the update json structure to compute with mroptimum
