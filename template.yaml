@@ -339,7 +339,7 @@ Resources:
         # REACT_APP_API_URL: !Sub 'https://${MROptimumApi}.execute-api.${AWS::Region}/mroptimum'
       # AutoDeploy:
       #   Enabled: True
-  MyApi:
+  DataApi:
     Type: AWS::Serverless::HttpApi
     Properties:
       # CORS configuration - this is open for development only and should be restricted in prod.
@@ -391,13 +391,13 @@ Resources:
           Properties:
             Path: /uploads
             Method: post
-            ApiId: !Ref MyApi
+            ApiId: !Ref DataApi
             
   DownloadRequestFunction:
     # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Type: AWS::Serverless::Function 
     Properties:
-      CodeUri: getSignedURL/
+      CodeUri: downloadRequestFunction/
       Handler: app.handler
       Runtime: nodejs16.x
       Timeout: 3
@@ -419,8 +419,8 @@ Resources:
         Type: HttpApi
         Properties:
           Path: /downloads
-          Method: post
-          ApiId: !Ref MyApi
+          Method: get
+          ApiId: !Ref DataApi
 
   UploadRequestFunctionLayer:
     Type: AWS::Serverless::LayerVersion
@@ -516,15 +516,15 @@ Outputs:
 
   APIendpoint:
     Description: "HTTP API endpoint URL"
-    Value: !Sub "https://${MyApi}.execute-api.${AWS::Region}.amazonaws.com/"
+    Value: !Sub "https://${DataApi}.execute-api.${AWS::Region}.amazonaws.com/"
   UploadAPIendpointNode:
     Description: "HTTP API endpoint URL"
-    Value: !Sub "https://${MyApi}.execute-api.${AWS::Region}.amazonaws.com/uploads"
+    Value: !Sub "https://${DataApi}.execute-api.${AWS::Region}.amazonaws.com/uploads"
   S3UploadBucketName:
     Description: "S3 bucket for application uploads"
     Value: !Ref 'S3UploadBucket'    
 
   DownloadAPIendpointNode:
     Description: "HTTP API endpoint URL"
-    Value: !Sub "https://${MyApi}.execute-api.${AWS::Region}.amazonaws.com/downloads"
+    Value: !Sub "https://${DataApi}.execute-api.${AWS::Region}.amazonaws.com/downloads"
   
