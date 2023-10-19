@@ -24,90 +24,98 @@ const URL_EXPIRATION_SECONDS = 300
 
 const { v4: uuidv4 } = require('uuid');
 
-process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0;
+process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
+// process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 1;
 const HOST = process.env.Host;
 const axios = require('axios');
 
 // Main Lambda entry point
 exports.handler = async (event) => {
-return await upload_data(event);
+    return await upload_data(event);
 }
 const getHeadersForRequests = () => {
-return {
-'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
-'Accept-Encoding': 'none',
-'Accept-Language': 'en-US,en;q=0.8',
-'Connection': 'keep-alive',
-'Content-Type': 'application/json',
-'User-Agent': 'curl',
-'From': 'devn@cloudmrhub.com',
-'Host': HOST
-};
+    return {
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
+        'Accept-Encoding': 'none',
+        'Accept-Language': 'en-US,en;q=0.8',
+        'Connection': 'keep-alive',
+        'Content-Type': 'application/json',
+        'User-Agent': 'curl',
+        'From': 'devn@cloudmrhub.com',
+        'Host': HOST
+    };
 }
 
 const getHeadersForRequestsWithToken = (token) => {
-const headers = getHeadersForRequests();
-headers["Authorization"] = token;
-return headers;
+    const headers = getHeadersForRequests();
+    headers["Authorization"] = token;
+    // console.log(token)
+    return headers;
 }
 
 const upload_data = async (event) => {
-try {
-const body = JSON.parse(event.body);
-const fileName = body.filename;
-const fileType = body.filetype;
-const fileSize = body.filesize;
-const fileMd5 = body.filemd5;
-const Key = `${uuidv4()}_${fileName}`;
+    try {
+        const body = JSON.parse(event.body);
+        const fileName = body.filename;
+        const fileType = body.filetype;
+        const fileSize = body.filesize;
+        const fileMd5 = body.filemd5;
+        const Key = `${uuidv4()}_${fileName}`;
 
-// Get signed URL from S3
-const s3Params = {
-Bucket: process.env.DataBucketName,
-Key,
-Expires: URL_EXPIRATION_SECONDS,
-ContentType: fileType,
-// This ACL makes the uploaded object publicly readable. You must also uncomment
-// the extra permission for the Lambda function in the SAM template.
-ACL: 'public-read'
-}
+        // Get signed URL from S3
+        const s3Params = {
+            Bucket: process.env.DataBucketName,
+            Key,
+            Expires: URL_EXPIRATION_SECONDS,
+            ContentType: fileType,
+            // This ACL makes the uploaded object publicly readable. You must also uncomment
+            // the extra permission for the Lambda function in the SAM template.
+            ACL: 'public-read'
+        }
 
-console.log('Params: ', s3Params)
-const uploadURL = await s3.getSignedUrlPromise('putObject', s3Params)
-console.log(event.headers);
-// Post file metadata to cloudmrhub.com API
-const headers = getHeadersForRequestsWithToken(event.headers['authorization']);
-const payload = {
-filename: fileName,
-location: JSON.stringify({Key,Bucket:process.env.DataBucketName}),
-size: fileSize,
-md5: fileMd5
-};
-console.log(headers);
-console.log(payload);
-const response = await axios.post(`https://${HOST}/api/data/create`, payload, {
-headers: headers
-});
+        console.log('Params: ', s3Params)
+        const uploadURL = await s3.getSignedUrlPromise('putObject', s3Params)
+        // console.log(event.headers);
+        // Post file metadata to cloudmrhub.com API
+        const headers = getHeadersForRequestsWithToken(event.headers['Authorization']);
+        const payload = {
+            filename: fileName,
+            location: JSON.stringify({ Key, Bucket: process.env.DataBucketName }),
+            size: fileSize,
+            md5: fileMd5
+        };
+        // console.log(headers);
+        // console.log(payload);
+        const response = await axios.post(`https://${HOST}/api/data/create`, payload, {
+            headers: headers
+        });
+        console.log("qui")
+        console.log(response.status);
 
-console.log(response);
-
-if (response.status !== 200) {
-throw new Error("Failed to save file metadata to cloudmrhub.com");
-}
-
-return JSON.stringify({
-upload_url: uploadURL,
-response: response.data
-});
-// return {statusCode: 200}
-} catch (error) {
-console.error(`Uploading data failed due to: ${error.message}`);
-return {
-statusCode: 403,
-headers: {
-'Access-Control-Allow-Origin': '*'
-},
-body: "Upload failed for user"
-};
-}
+        if (response.status !== 200) {
+            throw new Error("Failed to save file metadata to cloudmrhub.com");
+        }
+        
+        return {
+            statusCode: 200,
+            headers: {
+                'Access-Control-Allow-Origin': '*'
+            },
+            body: JSON.stringify({
+            upload_url: uploadURL,
+            response: response.data
+        })
+        };
+        // return {statusCode: 200}
+    } catch (error) {
+        console.error(`Uploading data failed due to: ${error.message}`);
+        return {
+            statusCode: 403,
+            headers: {
+                'Access-Control-Allow-Origin': '*'
+            },
+            body: "Upload failed for user"
+        };
+    }
 }

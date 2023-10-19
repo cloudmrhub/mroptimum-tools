@@ -1,11 +1,29 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: >
-  MROptimum SAM App
+# Description: >
+#   MROptimum SAM App
 
-  This SAM template describes the entire MROptimum AWS Architecture
+#   This SAM template describes the entire MROptimum AWS Architecture
 
-# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+
+Parameters:
+  CortexHost: 
+    Type: String
+    Description: cm cortex
+    Default: 'cancelit-env.eba-pmamcuv5.us-east-1.elasticbeanstalk.com'
+  JobsBucketPName: 
+    Type: String
+    Description: jobs bucket
+    Default: 'eros-c-j'
+  ResultsBucketPName: 
+    Type: String
+    Description: results bucket
+    Default: 'eros-c-r'
+  DataBucketPName: 
+    Type: String
+    Description: data bucket
+    Default: 'eros-c-d'
+
 Globals:
   Function:
     Timeout: 60
@@ -14,289 +32,18 @@ Globals:
     - x86_64
     Environment:
       Variables:
-        JobBucketName: mroptimum-jobs
-        # DataBucketName: cloudmrhub-data
-        DataBucketName: !Ref S3UploadBucket
-        ResultsBucketName: mroptimum-results
-        Host: cancelit-env.eba-pmamcuv5.us-east-1.elasticbeanstalk.com
-        CloudMRApiUrl: https://cancelit-env.eba-pmamcuv5.us-east-1.elasticbeanstalk.com/api
-        PipelineScheduler: https://cancelit-env.eba-pmamcuv5.us-east-1.elasticbeanstalk.com/api/pipeline/request
-        PipelineCompleted: https://cancelit-env.eba-pmamcuv5.us-east-1.elasticbeanstalk.com/api/pipeline/completed
-        PipelineFailed: https://cancelit-env.eba-pmamcuv5.us-east-1.elasticbeanstalk.com/api/pipeline/failed
-  Api:
-      Cors:
-          AllowMethods: "'GET,POST,OPTIONS'"
-          AllowHeaders: "'content-type'"
-          AllowOrigin: "'*'"
-          # AllowCredentials: true  Uncomment only if you choose a specific origin instead of the * wildcard.
+        JobBucketName: !Ref JobsBucketPName
+        DataBucketName: !Ref DataBucketPName
+        ResultsBucketName: !Ref ResultsBucketPName
+        Host: !Ref CortexHost
+        CloudMRApiUrl: !Sub https://${CortexHost}/api
+        PipelineScheduler: !Sub https://${CortexHost}/api/pipeline/request
+        PipelineCompleted: !Sub https://${CortexHost}/api/pipeline/completed
+        PipelineFailed: !Sub https://${CortexHost}/api/pipeline/failed
 
 Resources:
-  JobsBucket:
-    Type: 'AWS::S3::Bucket'
-    Properties:
-      BucketName: mroptimum-jobs
 
-  ResultsBucket:
-    Type: 'AWS::S3::Bucket'
-    Properties:
-      BucketName: mroptimum-results
-      # Delete unzipped results objects after 7 days to save on storage costs.
-      LifecycleConfiguration:
-        Rules:
-          - Id: DeleteUnzippedObjects
-            Status: Enabled
-            ExpirationInDays: 7
-            Prefix: unzipped/
-
-            
-  # This is the function which queues (or schedules) jobs on the pipeline.
-  #
-  # It is triggered by POST /pipeline request and will write the job to the
-  # cloudmrhub-jobs bucket.
-  # The request is authorized using the Authorization header which expects
-  # a Bearer JWT token. This should get validated with the user db.
-
-  QueueJobFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Description: >
-        This function creates an object defining the job configuration (<pipeline-id>.json) 
-        in the jobs bucket. It is triggered by POST /pipeline.
-      PackageType: Zip
-      CodeUri: queue-job-python/
-      Handler: app.lambda_handler
-      Runtime: python3.8
-      Policies:
-      - Version: '2012-10-17'
-        Statement:
-        - Effect: Allow
-          Action:
-          - 's3:PutObject'
-          - 's3:ListBucket'
-          Resource: 'arn:aws:s3:::*'  
-      Events:
-        PostJobApiEvent:
-          Type: Api
-          Properties:
-            RestApiId: !Ref MROptimumApi
-            Path: /pipeline
-            Method: post
-            Auth:
-              Authorizer: UserAuthorizer
-      Layers:
-        - arn:aws:lambda:us-east-1:469266894233:layer:Requests_Layer:1
-  
-  RunJobFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Description: >
-        This function runs the Mroptium computation (it is the muscle worker).
-        It should be triggered when an object is created in the jobs bucket.      PackageType: Image
-      PackageType: Image
-      Timeout: 900
-      MemorySize: 4096
-      Policies:
-      - Version: '2012-10-17'
-        Statement:
-        - Effect: Allow
-          Action:
-          - 's3:*Object'
-          - 's3:*Bucket'
-          - 's3:*'
-          Resource:
-          - 'arn:aws:s3:::*'
-          - 'arn:aws:s3:::cloudmrhub-data/*' # Allow access to jobs bucket
-          - 'arn:aws:s3:::mroptimum-jobs/*' # Allow access to data bucket
-          - 'arn:aws:s3:::mroptimum-results/*' # Allow access to results bucket
-          - 'arn:aws:s3:::mytestcmr/*' # Allow access to results bucket
-          - !Sub 'arn:aws:s3:::${S3UploadBucket}/*' # Allow access to results bucket
-      Events:
-        S3Event:
-          Type: S3
-          Properties:
-            Bucket:
-              Ref: JobsBucket
-            Events: s3:ObjectCreated:*
-    Metadata:
-      Dockerfile: Dockerfile
-      DockerContext: run-job-python/
-      DockerTag: python3.10-v1
-
-  UpdateJobFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Description: >
-        This function update Cloudmrhub after Mroptium computation.
-        It should be triggered when an object is created in the results bucket.      
-      PackageType: Zip
-      CodeUri: update-job-python/
-      Handler: app.lambda_handler
-      Runtime: python3.8
-      Policies:
-      - Version: '2012-10-17'
-        Statement:
-        - Effect: Allow
-          Action:
-          - 's3:PutObject'
-          - 's3:ListBucket'
-          - "s3:GetObject*" 
-          - "s3:GetBucket*"
-          Resource: 
-          - 'arn:aws:s3:::*'  
-          - 'arn:aws:s3:::mroptimum-results/*' # Allow access to results bucket
-      
-      Events:
-        S3ResultsEvent:
-          Type: S3
-          Properties:
-            Bucket:
-              Ref: ResultsBucket
-            Events: s3:ObjectCreated:*
-      
-      Layers:
-        - arn:aws:lambda:us-east-1:469266894233:layer:Requests_Layer:1
-  
-
-#   # This function is called by the front-end to parse the results zip file and 
-#   # convert it to a format which can be inspected on the client.
-#   #
-#   # It is triggered by GET /results/{id}.
-#   # The function will need sufficient permission to red from results bucket.
-#   ParseResultsFunction:
-#     Type: AWS::Serverless::Function
-#     Properties:
-#       Description: >
-#         This function parses the job results and converts them to a format which
-#         can be inspected on the client. It is triggered by a GET /results/{id}
-#       PackageType: Image
-#       Timeout: 300
-#       Policies:
-#       - Version: '2012-10-17'
-#         Statement:
-#         - Effect: Allow
-#           Action:
-#           - 's3:*Object'
-#           - 's3:*Bucket'
-#           Resource:
-#           - 'arn:aws:s3:::*'
-#           - 'arn:aws:s3:::cloudmrhub-jobs1/*' # Allow access to jobs bucket
-#           - 'arn:aws:s3:::cloudmrhub-data1/*' # Allow access to data bucket
-#           - 'arn:aws:s3:::cloudmrhub-results1/*' # Allow access to results bucket
-#       Events:
-#         GetParseResultsApiEvent:
-#           Type: Api
-#           Properties:
-#             RestApiId: !Ref MROptimumApi
-#             Method: get
-#             Path: /results
-#             Auth:
-#               Authorizer: UserAuthorizer
-#     Metadata:
-#       Dockerfile: Dockerfile
-#       DockerContext: parse-results-python/
-#       DockerTag: python3.9-v1
-
-  # UserAuthorizerFunction:
-  #   Type: AWS::Serverless::Function
-  #   Properties:
-  #     PackageType: Zip
-  #     CodeUri: user-authorizer-node/
-  #     Handler: app.handler
-  #     Runtime: nodejs18.x
-
-## YUELONG
-
-  # The pair of functions below manages data.
-  # Data read function reads data list from cloudmrhub database,
-  # then retrieves them from s3, compiles the locations with
-  # presigned url
-  UserAuthorizerFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      PackageType: Zip
-      CodeUri: user-authorizer-python/  # Change this to point to your Python code directory
-      Handler: authorizer.lambda_handler  # Assuming your python file is named 'your_python_filename.py'
-      Runtime: python3.8  # Adjust based on your desired Python runtime version
-
-    Layers:
-        - arn:aws:lambda:us-east-1:469266894233:layer:Requests_Layer:1
-  
-  
-  DataReadFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      PackageType: Zip
-      CodeUri: data-access-python/
-      Handler: data.read_data
-      Runtime: python3.8
-      Events:
-        DataReadApiEvent:
-          Type: Api
-          Properties:
-            RestApiId: !Ref MROptimumApi
-            Method: get
-            Path: /readdata
-            Auth:
-              Authorizer: UserAuthorizer
-
-      Policies:
-        - S3ReadPolicy:
-            BucketName: !Ref S3UploadBucket
-        # This permission allows the Lambda function to request signed URLs
-        # for objects that will be publicly readable. Uncomment if you want this ACL.
-        - Statement:
-            - Effect: Allow
-              Resource:
-                - !Sub 'arn:aws:s3:::${S3UploadBucket}/'
-                - 'arn:aws:s3:::cloudmr-data/*'
-                - 'arn:aws:s3:::cloudmr-data/'
-              Action:
-                - s3:getObjectAcl
-                - s3:getObject
-
-      Layers:
-        - arn:aws:lambda:us-east-1:469266894233:layer:Requests_Layer:1
-
-  # Data upload function generates location for s3, gets the upload
-  # target url, stores the records to the cloudmrhub database, returns the record,
-  # and the upload target url back to the user
-  # DataUploadFunction:
-  #   Type: AWS::Serverless::Function
-  #   Properties:
-  #     CodeUri: data-access-python/
-  #     Handler: data.upload_data
-  #     Runtime: python3.8
-  #     PackageType: Zip
-  #     Policies:
-  #       - S3WritePolicy:
-  #           BucketName: !Ref S3UploadBucket
-  #       # This permission allows the Lambda function to request signed URLs
-  #       # for objects that will be publicly readable. Uncomment if you want this ACL.
-  #       - Statement:
-  #         - Effect: Allow
-  #           Resource: "arn:aws:s3:::/*"
-  #           Action:
-  #             - s3:PutObjectAcl
-  #             - s3:PutObject
-  #             - s3:PutObjectTagging
-  #             - s3:*
-
-              
-  #     Events:
-  #       DataUploadApiEvent:
-  #         Type: Api
-  #         Properties:
-  #           RestApiId: !Ref MROptimumApi
-  #           Method: post
-  #           Path: /uploaddata
-  #           # Auth:
-  #           #   Authorizer: UserAuthorizer
-  #     Layers:
-  #       - arn:aws:lambda:us-east-1:469266894233:layer:Requests_Layer:1
-
-
-
-  MROptimumApi:
+  CMAPI:
     Type: 'AWS::Serverless::Api'
     Properties:
       StageName: Prod
@@ -314,7 +61,6 @@ Resources:
             FunctionArn: !GetAtt UserAuthorizerFunction.Arn
             Identity:
               ReauthorizeEvery: 0
-
   ApplicationResourceGroup:
     Type: AWS::ResourceGroups::Group
     Properties:
@@ -327,114 +73,13 @@ Resources:
     Properties:
       ResourceGroupName:
         Ref: ApplicationResourceGroup
-      AutoConfigurationEnabled: 'true'
-
-  # AmplifyApp:
-  #   Type: AWS::Amplify::App
-  #   Properties:
-  #     Name: AmplifyApp
-  #     Description: Amplify deployment for a React frontend on Git.
-  #     Repository: https://github.com/cloudmrhub-com/MROptimum-frontend.git
-      # EnvironmentVariables:
-        # REACT_APP_API_URL: !Sub 'https://${MROptimumApi}.execute-api.${AWS::Region}/mroptimum'
-      # AutoDeploy:
-      #   Enabled: True
-  DataApi:
-    Type: AWS::Serverless::HttpApi
+      AutoConfigurationEnabled: true
+  
+  JobsBucket:
+    Type: 'AWS::S3::Bucket'
+    DeletionPolicy: Delete
     Properties:
-      # CORS configuration - this is open for development only and should be restricted in prod.
-      # See https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-property-httpapi-httpapicorsconfiguration.html   
-      CorsConfiguration:
-        AllowMethods:
-          - GET
-          - POST
-          - PUT
-          - DELETE
-          - OPTIONS
-        AllowHeaders:
-          - "*"   
-        AllowOrigins: 
-          - "*"    
-
-  UploadRequestFunction:
-    # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
-    Type: AWS::Serverless::Function 
-    Properties:
-      CodeUri: getSignedURL/
-      Handler: app.handler
-      Runtime: nodejs16.x
-      Timeout: 3
-      MemorySize: 128
-      Environment:
-        Variables:
-          UploadBucket: !Ref S3UploadBucket  
-      Policies:
-        - S3WritePolicy:
-            BucketName: !Ref S3UploadBucket
-        # This permission allows the Lambda function to request signed URLs
-        # for objects that will be publicly readable. Uncomment if you want this ACL.
-        - Statement:
-          - Effect: Allow
-            Resource: 
-            - !Sub 'arn:aws:s3:::${S3UploadBucket}/'
-            - !Sub 'arn:aws:s3:::${S3UploadBucket}/*'
-            - 'arn:aws:s3:::cloudmr-data/*'
-            - 'arn:aws:s3:::cloudmr-data/'
-            Action:
-              - s3:putObjectAcl
-              - s3:putObject
-      Layers:
-        - !Ref UploadRequestFunctionLayer
-      Events:
-        UploadAssetAPI:
-          Type: HttpApi
-          Properties:
-            Path: /uploads
-            Method: post
-            ApiId: !Ref DataApi
-            
-  DownloadRequestFunction:
-    # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
-    Type: AWS::Serverless::Function 
-    Properties:
-      CodeUri: downloadRequestFunction/
-      Handler: app.handler
-      Runtime: nodejs16.x
-      Timeout: 3
-      MemorySize: 128
-      Policies:
-      - Version: '2012-10-17'
-        Statement:
-        - Effect: Allow
-          Action:
-          - 's3:*'
-          Resource: 
-          - 'arn:aws:s3:::*'  
-          - 'arn:aws:s3:::mroptimum-results/*' # Allow access to results bucket
-
-    Layers:
-        - !Ref UploadRequestFunctionLayer
-    Events:
-      UploadAssetAPI:
-        Type: HttpApi
-        Properties:
-          Path: /downloads
-          Method: get
-          ApiId: !Ref DataApi
-
-  UploadRequestFunctionLayer:
-    Type: AWS::Serverless::LayerVersion
-    Properties:
-      LayerName: upload-node-layer
-      ContentUri: getSignedURL/
-      CompatibleRuntimes:
-        - nodejs16.x
-    Metadata:
-      BuildMethod: nodejs16.x         
-  ## S3 bucket
-  S3UploadBucket:
-    Type: AWS::S3::Bucket
-    Properties:
+      BucketName: !Ref JobsBucketPName
       CorsConfiguration:
         CorsRules:
         - AllowedHeaders:
@@ -447,84 +92,262 @@ Resources:
             - DELETE
           AllowedOrigins:
             - "*"
+  ResultsBucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: !Ref ResultsBucketPName
+      CorsConfiguration:
+        CorsRules:
+        - AllowedHeaders:
+            - "*"
+          AllowedMethods:
+            - GET
+            - PUT
+            - HEAD
+            - POST
+            - DELETE
+          AllowedOrigins:
+            - "*"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+      OwnershipControls:
+        Rules:
+        - ObjectOwnership: BucketOwnerPreferred
+      # Delete unzipped results objects after 7 days to save on storage costs.
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteUnzippedObjects
+            Status: Enabled
+            ExpirationInDays: 7
+            Prefix: unzipped/
+
+#   # This is the function that authorizes users
+  DataBucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: !Ref DataBucketPName
+      CorsConfiguration:
+        CorsRules:
+        - AllowedHeaders:
+            - "*"
+          AllowedMethods:
+            - GET
+            - PUT
+            - HEAD
+            - POST
+            - DELETE
+          AllowedOrigins:
+            - "*"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+      OwnershipControls:
+        Rules:
+        - ObjectOwnership: BucketOwnerPreferred
+
+  UserAuthorizerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Zip
+      CodeUri: user-authorizer-python/  # Change this to point to your Python code directory
+      Handler: authorizer.lambda_handler  # Assuming your python file is named 'your_python_filename.py'
+      Runtime: python3.8  # Adjust based on your desired Python runtime version
+
+    Layers:
+        - arn:aws:lambda:us-east-1:469266894233:layer:Requests_Layer:1
+
+#   # This is the function which queues (or schedules) jobs on the pipeline.
+#   #
+#   # It is triggered by POST /pipeline request and will write the job to the
+#   # cloudmrhub-jobs bucket.
+#   # The request is authorized using the Authorization header which expects
+#   # a Bearer JWT token. This should get validated with the user db.
+
+  QueueJobFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: >
+        This function creates an object defining the job configuration (<pipeline-id>.json) 
+        in the jobs bucket. It is triggered by POST /pipeline.
+      PackageType: Zip
+      CodeUri: queue-job-python/
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Policies:
+        - S3FullAccessPolicy:
+            BucketName: !Ref JobsBucket 
+      Events:
+        PostJobApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref CMAPI
+            Path: /pipeline
+            Method: post
+            Auth:
+              Authorizer: UserAuthorizer
+      Layers:
+        - arn:aws:lambda:us-east-1:469266894233:layer:Requests_Layer:1
+  RunJobFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: >
+        This function runs the Mroptium computation (it is the muscle worker).
+        It should be triggered when an object is created in the jobs bucket.   
+      PackageType: Image
+      Timeout: 900
+      MemorySize: 4096
+      Policies:
+        - S3FullAccessPolicy:
+            BucketName: !Ref JobsBucketPName
+        - S3FullAccessPolicy:
+            BucketName: !Ref DataBucketPName
+        - S3FullAccessPolicy:
+            BucketName: !Ref ResultsBucketPName
+        - S3FullAccessPolicy:
+            BucketName: mytestcmr
+            
+      Events:
+        S3Event:
+          Type: S3
+          Properties:
+            Bucket: !Ref JobsBucket
+            Events: s3:ObjectCreated:*
+    Metadata:
+      Dockerfile: Dockerfile
+      DockerContext: run-job-python/
+      DockerTag: python3.10-v1
+  
+  
+  UpdateJobFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: >
+        This function update Cloudmrhub after Mroptium computation.
+        It should be triggered when an object is created in the results bucket.      
+      PackageType: Zip
+      CodeUri: update-job-python/
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Policies:
+      - S3FullAccessPolicy:
+            BucketName: !Ref ResultsBucketPName
+      Events:
+        S3ResultsEvent:
+          Type: S3
+          Properties:
+            Bucket: !Ref ResultsBucket
+            Events: s3:ObjectCreated:*
+      
+      Layers:
+        - arn:aws:lambda:us-east-1:469266894233:layer:Requests_Layer:1
+
+
+  DataReadFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Zip
+      CodeUri: data-access-python/
+      Handler: data.read_data
+      Runtime: python3.8
+      Events:
+        DataReadApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref CMAPI
+            Method: get
+            Path: /readdata
+            Auth:
+              Authorizer: UserAuthorizer
+
+      Policies:
+        - S3FullAccessPolicy:
+            BucketName: !Ref DataBucketPName
+        # This permission allows the Lambda function to request signed URLs
+        # for objects that will be publicly readable. Uncomment if you want this ACL.
+
+      Layers:
+        - arn:aws:lambda:us-east-1:469266894233:layer:Requests_Layer:1
+
+  UploadRequestFunction:
+    Type: AWS::Serverless::Function 
+    Properties:
+      CodeUri: getSignedURL/
+      Handler: app.handler
+      Runtime: nodejs16.x
+      Timeout: 100
+      MemorySize: 128
+      Environment:
+        Variables:
+          UploadBucket: !Ref DataBucketPName  
+      Policies:
+        - S3FullAccessPolicy:
+            BucketName: !Ref DataBucketPName
+        # This permission allows the Lambda function to request signed URLs
+        # for objects that will be publicly readable. Uncomment if you want this ACL.
+      Layers:
+        - !Ref UploadRequestFunctionLayer
+      Events:
+        UploadAssetAPI:
+          Type: Api
+          Properties:
+            Path: /uploads
+            Method: post
+            RestApiId: !Ref CMAPI
+            Auth:
+              Authorizer: UserAuthorizer
+            
+  DownloadRequestFunction:
+    # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Type: AWS::Serverless::Function 
+    Properties:
+      CodeUri: downloadRequestFunction/
+      Handler: app.handler
+      Runtime: nodejs16.x
+      Timeout: 30
+      MemorySize: 128
+      Policies:
+        - S3FullAccessPolicy:
+            BucketName: !Ref ResultsBucketPName
+
+    Layers:
+        - !Ref UploadRequestFunctionLayer
+    Events:
+      UploadAssetAPI:
+        Type: Api
+        Properties:
+          Path: /downloads
+          Method: get
+          RestApiId: !Ref CMAPI
+          Auth:
+            Authorizer: UserAuthorizer
+            
+
+  UploadRequestFunctionLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: upload-node-layer
+      ContentUri: getSignedURL/
+      CompatibleRuntimes:
+        - nodejs16.x
+    Metadata:
+      BuildMethod: nodejs16.x         
+
 
 Outputs:
-#   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
-#   # Find out more about other implicit resources you can reference within SAM
-#   # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
   QueueJobApi:
     Description: API Gateway endpoint URL for Prod stage for Queue function
-    Value: !Sub "https://${MROptimumApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/pipeline/"
-  QueueJobFunction:
-    Description: QueueJob Lambda Function ARN
-    Value: !GetAtt QueueJobFunction.Arn
-  QueueJobFunctionIamRole:
-    Description: Implicit IAM Role created for QueueJob function
-    Value: !GetAtt QueueJobFunctionRole.Arn
-  RunJobFunction:
-    Description: RunJob Lambda Function ARN
-    Value: !GetAtt RunJobFunction.Arn
-  RunJobFunctionIamRole:
-    Description: Implicit IAM Role created for RunJob function
-    Value: !GetAtt RunJobFunctionRole.Arn
-  UpdateJobFunction:
-    Description: UpdateJob Lambda Function ARN
-    Value: !GetAtt UpdateJobFunction.Arn
-  UpdateJobFunctionIamRole:
-    Description: Implicit IAM Role created for UpdateJob function
-    Value: !GetAtt UpdateJobFunctionRole.Arn
-#   ParseResultsApi:
-#     Description: API Gateway endpoint URL for Prod stage for ParseResults function
-#     Value: !Sub "https://${MROptimumApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/results/"
-#   ParseResultsFunction:
-#     Description: ParseResults Lambda Function ARN
-#     Value: !GetAtt ParseResultsFunction.Arn
-#   ParseResultsFunctionIamRole:
-#     Description: Implicit IAM Role created for ParseResults function
-#     Value: !GetAtt ParseResultsFunctionRole.Arn
-  UserAuthorizerFunction:
-    Description: UserAuthorizer Lambda Function ARN
-    Value: !GetAtt UserAuthorizerFunction.Arn
-  UserAuthorizerFunctionIamRole:
-    Description: Implicit IAM Role created for UserAuthorizer function
-    Value: !GetAtt UserAuthorizerFunctionRole.Arn
-  JobsBucketName:
-    Value: !Ref JobsBucket
-  # DataBucketName:
-  #   Value: !Ref DataBucket
-  ResultsBucketName:
-    Value: !Ref ResultsBucket
-  # UploadDataJobApi:
-  #   Description: API Gateway endpoint URL for Uploading Files
-  #   Value: !Sub "https://${MROptimumApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/uploaddata/"
-  ReadDataJobApi:
-    Description: API Gateway endpoint URL for Uploading Files
-    Value: !Sub "https://${MROptimumApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/readdata/"
-
-# YUELONG
-  # DataUploadFunction:
-  #   Description: Upload Data Function ARN
-  #   Value: !GetAtt DataUploadFunction.Arn
-  DataReadFunction:
-    Description: Read Data Function ARN
-    Value: !GetAtt DataReadFunction.Arn
-
-#AMPLIFY
-  # AmplifyAppUrl:
-  #   Description: The URL of the Amplify deployment.
-  #   Value: !Sub 'https://${MROptimumApi}.execute-api.${AWS::Region}/mroptimum'
-
-  APIendpoint:
-    Description: "HTTP API endpoint URL"
-    Value: !Sub "https://${DataApi}.execute-api.${AWS::Region}.amazonaws.com/"
-  UploadAPIendpointNode:
-    Description: "HTTP API endpoint URL"
-    Value: !Sub "https://${DataApi}.execute-api.${AWS::Region}.amazonaws.com/uploads"
-  S3UploadBucketName:
-    Description: "S3 bucket for application uploads"
-    Value: !Ref 'S3UploadBucket'    
-
-  DownloadAPIendpointNode:
-    Description: "HTTP API endpoint URL"
-    Value: !Sub "https://${DataApi}.execute-api.${AWS::Region}.amazonaws.com/downloads"
-  
+    Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/Prod/pipeline/"
+  ReadDataApi:
+    Description: API Gateway endpoint URL for Prod stage for ReadData function
+    Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/Prod/readdata/"
+  UploadData:
+    Description: "HTTP API endpoint URL to upload data"
+    Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/uploads"
+  DownloadData:
+    Description: "HTTP API endpoint URL to download data"
+    Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/downloads"
