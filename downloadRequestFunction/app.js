@@ -33,23 +33,23 @@ exports.handler = async (event) => {
     return await download_data(event);
 }
 const getHeadersForRequests = () => {
-return {
-'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
-'Accept-Encoding': 'none',
-'Accept-Language': 'en-US,en;q=0.8',
-'Connection': 'keep-alive',
-'Content-Type': 'application/json',
-'User-Agent': 'curl',
-'From': 'devn@cloudmrhub.com',
-'Host': HOST
-};
+    return {
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
+        'Accept-Encoding': 'none',
+        'Accept-Language': 'en-US,en;q=0.8',
+        'Connection': 'keep-alive',
+        'Content-Type': 'application/json',
+        'User-Agent': 'curl',
+        'From': 'devn@cloudmrhub.com',
+        'Host': HOST
+    };
 }
 
 const getHeadersForRequestsWithToken = (token) => {
-const headers = getHeadersForRequests();
-headers["Authorization"] = token;
-return headers;
+    const headers = getHeadersForRequests();
+    headers["Authorization"] = token;
+    return headers;
 }
 
 const createUploadedFile = async (name, address, createdAt, updatedAt)=>{
@@ -68,7 +68,7 @@ const createUploadedFile = async (name, address, createdAt, updatedAt)=>{
     let paths = address.split('/');
     let Bucket = paths[2];
     let Key = paths[3];
-    
+
     const params = {
         Bucket,
         Key,
@@ -87,51 +87,51 @@ const createUploadedFile = async (name, address, createdAt, updatedAt)=>{
     }
 }
 const download_data = async (event) => {
-    try {
-        console.log(event);
-        // Post file metadata to cloudmrhub.com API
-        const headers = getHeadersForRequestsWithToken(event.headers['Authorization']);
-        const response = await axios.get(`https://${HOST}/api/pipeline`, {
-            headers: headers
-        });
-        console.log(response);
-        if (response.status !== 200) {
-            throw new Error("Failed to retrieve pipelines from cloudmrhub.com");
-        }
-        const pipelines = response.data;
-        const jobs = []
-        for(let pipeline of pipelines[0]){
-            console.log(pipeline);
-            jobs.push({
-                id: pipeline.id,
-                alias: pipeline.alias,
-                status: pipeline.status,
-                createdAt: pipeline.created_at,
-                updatedAt: pipeline.updated_at,
-                setup: undefined,
-                files: [await createUploadedFile(`${pipeline.alias}_results`,pipeline.results,pipeline.created_at,pipeline.updated_at),
-                         await createUploadedFile(`${pipeline.alias}_output`,pipeline.output,pipeline.created_at,pipeline.updated_at)]
-            })
-        }
-        
-        return {
-            statusCode: 200,
-            headers: {
-                'Access-Control-Allow-Origin': '*'
-            },
-            body: JSON.stringify({
-                jobs
-            })
-        };
-    // return {statusCode: 200}
-    } catch (error) {
-        console.error(`Uploading data failed due to: ${error.message}`);
-        return {
-            statusCode: 403,
-            headers: {
-                'Access-Control-Allow-Origin': '*'
-            },
-            body: "Download jobs failed for user"
-        };
+    // try {
+    console.log(event);
+    // Post file metadata to cloudmrhub.com API
+    const headers = getHeadersForRequestsWithToken(event.headers['Authorization']);
+    const response = await axios.get(`https://${HOST}/api/pipeline`, {
+        headers: headers
+    });
+    console.log(response);
+    if (response.status !== 200) {
+        throw new Error("Failed to retrieve pipelines from cloudmrhub.com");
     }
+    const pipelines = response.data;
+    const jobs = []
+    for(let pipeline of pipelines[0]){
+        console.log(pipeline);
+        jobs.push({
+            id: pipeline.id,
+            alias: pipeline.alias,
+            status: pipeline.status,
+            createdAt: pipeline.created_at,
+            updatedAt: pipeline.updated_at,
+            setup: undefined,
+            files: [await createUploadedFile(`${pipeline.alias}_results`,pipeline.results,pipeline.created_at,pipeline.updated_at),
+                await createUploadedFile(`${pipeline.alias}_output`,pipeline.output,pipeline.created_at,pipeline.updated_at)]
+        })
+    }
+
+    return {
+        statusCode: 200,
+        headers: {
+            'Access-Control-Allow-Origin': '*'
+        },
+        body: JSON.stringify({
+            jobs
+        })
+    };
+    // return {statusCode: 200}
+    // } catch (error) {
+    //     console.error(`Uploading data failed due to: ${error.message}`);
+    //     return {
+    //         statusCode: 403,
+    //         headers: {
+    //             'Access-Control-Allow-Origin': '*'
+    //         },
+    //         body: "Upload failed for user"
+    //     };
+    // }
 }
