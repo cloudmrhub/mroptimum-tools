@@ -90,7 +90,7 @@ const upload_data = async (event) => {
     try {
         
         // Post file metadata to cloudmrhub.com API
-        const headers = getHeadersForRequestsWithToken(event.headers['authorization']);
+        const headers = getHeadersForRequestsWithToken(event.headers['Authorization']);
         const response = await axios.get(`https://${HOST}/api/pipeline`, {
             headers: headers
         });

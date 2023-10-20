@@ -52,7 +52,7 @@ Resources:
         AllowMethods: "'POST,GET,PUT,DELETE,OPTIONS'"
         AllowOrigin: "'*'"
         AllowHeaders: "'*'"
-   
+
       Auth:
         AddDefaultAuthorizerToCorsPreflight: false
         DefaultAuthorizer: UserAuthorizer
@@ -74,7 +74,7 @@ Resources:
       ResourceGroupName:
         Ref: ApplicationResourceGroup
       AutoConfigurationEnabled: true
-  
+
   JobsBucket:
     Type: 'AWS::S3::Bucket'
     DeletionPolicy: Delete
@@ -180,7 +180,7 @@ Resources:
       Runtime: python3.8
       Policies:
         - S3FullAccessPolicy:
-            BucketName: !Ref JobsBucket 
+            BucketName: !Ref JobsBucket
       Events:
         PostJobApiEvent:
           Type: Api
@@ -197,7 +197,7 @@ Resources:
     Properties:
       Description: >
         This function runs the Mroptium computation (it is the muscle worker).
-        It should be triggered when an object is created in the jobs bucket.   
+        It should be triggered when an object is created in the jobs bucket.
       PackageType: Image
       Timeout: 900
       MemorySize: 4096
@@ -210,7 +210,7 @@ Resources:
             BucketName: !Ref ResultsBucketPName
         - S3FullAccessPolicy:
             BucketName: mytestcmr
-            
+
       Events:
         S3Event:
           Type: S3
@@ -221,14 +221,14 @@ Resources:
       Dockerfile: Dockerfile
       DockerContext: run-job-python/
       DockerTag: python3.10-v1
-  
-  
+
+
   UpdateJobFunction:
     Type: AWS::Serverless::Function
     Properties:
       Description: >
         This function update Cloudmrhub after Mroptium computation.
-        It should be triggered when an object is created in the results bucket.      
+        It should be triggered when an object is created in the results bucket.
       PackageType: Zip
       CodeUri: update-job-python/
       Handler: app.lambda_handler
@@ -242,7 +242,7 @@ Resources:
           Properties:
             Bucket: !Ref ResultsBucket
             Events: s3:ObjectCreated:*
-      
+
       Layers:
         - arn:aws:lambda:us-east-1:469266894233:layer:Requests_Layer:1
 
@@ -274,7 +274,7 @@ Resources:
         - arn:aws:lambda:us-east-1:469266894233:layer:Requests_Layer:1
 
   UploadRequestFunction:
-    Type: AWS::Serverless::Function 
+    Type: AWS::Serverless::Function
     Properties:
       CodeUri: getSignedURL/
       Handler: app.handler
@@ -283,7 +283,7 @@ Resources:
       MemorySize: 128
       Environment:
         Variables:
-          UploadBucket: !Ref DataBucketPName  
+          UploadBucket: !Ref DataBucketPName
       Policies:
         - S3FullAccessPolicy:
             BucketName: !Ref DataBucketPName
@@ -300,10 +300,10 @@ Resources:
             RestApiId: !Ref CMAPI
             Auth:
               Authorizer: UserAuthorizer
-            
+
   DownloadRequestFunction:
     # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
-    Type: AWS::Serverless::Function 
+    Type: AWS::Serverless::Function
     Properties:
       CodeUri: downloadRequestFunction/
       Handler: app.handler
@@ -313,19 +313,18 @@ Resources:
       Policies:
         - S3FullAccessPolicy:
             BucketName: !Ref ResultsBucketPName
+      Layers:
+          - !Ref UploadRequestFunctionLayer
+      Events:
+        UploadAssetAPI:
+          Type: Api
+          Properties:
+            Path: /downloads
+            Method: get
+            RestApiId: !Ref CMAPI
+            Auth:
+              Authorizer: UserAuthorizer
 
-    Layers:
-        - !Ref UploadRequestFunctionLayer
-    Events:
-      UploadAssetAPI:
-        Type: Api
-        Properties:
-          Path: /downloads
-          Method: get
-          RestApiId: !Ref CMAPI
-          Auth:
-            Authorizer: UserAuthorizer
-            
 
   UploadRequestFunctionLayer:
     Type: AWS::Serverless::LayerVersion
@@ -335,8 +334,30 @@ Resources:
       CompatibleRuntimes:
         - nodejs16.x
     Metadata:
-      BuildMethod: nodejs16.x         
+      BuildMethod: nodejs16.x
 
+#  AmplifyApp:
+#     Type: AWS::Amplify::App
+#     Properties:
+#       Name: AmplifyApp
+#       Description: Amplify deployment for a React frontend on Git.
+#       Repository: https://github.com/cloudmrhub-com/MROptimum-frontend.git
+#       Environment:
+#        Variables:
+#           SIGNIN : 'https://cancelit-env.eba-pmamcuv5.us-east-1.elasticbeanstalk.com/api/auth/login'
+#           SIGNOUT: 'https://cancelit-env.eba-pmamcuv5.us-east-1.elasticbeanstalk.com/api/auth/logout'
+#           DATAAPI: !Ref ReadDataJobApi
+#           DATAUPLODAAPI : !Ref UploadAPIendpointNode
+#            DATA_RENAME_API : ''
+#            DATA_DELETE_API :  ''
+#            JOBS_API : !Ref QueueJobApi
+#            JOBS_RETRIEVE_API : !Ref DownloadAPIendpointNode
+#            JOBS_RENAME_API : ''
+#            JOBS_DELETE_API :  ''
+#            HOST : 'cancelit-env.eba-pmamcuv5.us-east-1.elasticbeanstalk.com'
+#
+#       AutoDeploy:
+#         Enabled: True
 
 Outputs:
   QueueJobApi:
