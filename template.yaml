@@ -11,15 +11,15 @@ Parameters:
     Type: String
     Description: cm cortex
     Default: 'cancelit-env.eba-pmamcuv5.us-east-1.elasticbeanstalk.com'
-  JobsBucketPName: 
+  JobsBucketPName:
     Type: String
     Description: jobs bucket
     Default: 'eros-c-j'
-  ResultsBucketPName: 
+  ResultsBucketPName:
     Type: String
     Description: results bucket
     Default: 'eros-c-r'
-  DataBucketPName: 
+  DataBucketPName:
     Type: String
     Description: data bucket
     Default: 'eros-c-d'
@@ -279,8 +279,6 @@ Resources:
       CodeUri: getSignedURL/
       Handler: app.handler
       Runtime: nodejs16.x
-      Timeout: 100
-      MemorySize: 128
       Environment:
         Variables:
           UploadBucket: !Ref DataBucketPName
@@ -368,7 +366,7 @@ Outputs:
     Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/Prod/readdata/"
   UploadData:
     Description: "HTTP API endpoint URL to upload data"
-    Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/uploads"
+    Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/Prod/uploads"
   DownloadData:
     Description: "HTTP API endpoint URL to download data"
-    Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/downloads"
+    Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/Prod/downloads"

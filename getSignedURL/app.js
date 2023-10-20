@@ -15,7 +15,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 'use strict'
 
-const AWS = require('aws-sdk')
+const AWS = require('aws-sdk');
 AWS.config.update({ region: process.env.AWS_REGION })
 const s3 = new AWS.S3()
 
@@ -92,20 +92,20 @@ const upload_data = async (event) => {
         });
         console.log("qui")
         console.log(response.status);
-
         if (response.status !== 200) {
             throw new Error("Failed to save file metadata to cloudmrhub.com");
         }
-        
+        response.data.filename = fileName;
+
         return {
             statusCode: 200,
             headers: {
                 'Access-Control-Allow-Origin': '*'
             },
             body: JSON.stringify({
-            upload_url: uploadURL,
-            response: response.data
-        })
+                upload_url: uploadURL,
+                response: response.data
+            })
         };
         // return {statusCode: 200}
     } catch (error) {
