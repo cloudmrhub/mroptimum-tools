@@ -24,13 +24,13 @@ const URL_EXPIRATION_SECONDS = 300
 
 const { v4: uuidv4 } = require('uuid');
 
-process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0;
+process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
 const HOST = process.env.Host;
 const axios = require('axios');
 
 // Main Lambda entry point
 exports.handler = async (event) => {
-return await upload_data(event);
+    return await download_data(event);
 }
 const getHeadersForRequests = () => {
 return {
@@ -86,15 +86,15 @@ const createUploadedFile = async (name, address, createdAt, updatedAt)=>{
         location: JSON.stringify({Bucket,Key})
     }
 }
-const upload_data = async (event) => {
+const download_data = async (event) => {
     try {
-        
+        console.log(event);
         // Post file metadata to cloudmrhub.com API
         const headers = getHeadersForRequestsWithToken(event.headers['Authorization']);
         const response = await axios.get(`https://${HOST}/api/pipeline`, {
             headers: headers
         });
-        
+        console.log(response);
         if (response.status !== 200) {
             throw new Error("Failed to retrieve pipelines from cloudmrhub.com");
         }
@@ -114,7 +114,15 @@ const upload_data = async (event) => {
             })
         }
         
-        return jobs;
+        return {
+            statusCode: 200,
+            headers: {
+                'Access-Control-Allow-Origin': '*'
+            },
+            body: JSON.stringify({
+                jobs
+            })
+        };
     // return {statusCode: 200}
     } catch (error) {
         console.error(`Uploading data failed due to: ${error.message}`);
@@ -123,7 +131,7 @@ const upload_data = async (event) => {
             headers: {
                 'Access-Control-Allow-Origin': '*'
             },
-            body: "Upload failed for user"
+            body: "Download jobs failed for user"
         };
     }
 }

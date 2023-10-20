@@ -314,7 +314,7 @@ Resources:
       Layers:
           - !Ref UploadRequestFunctionLayer
       Events:
-        UploadAssetAPI:
+        DownloadAssetAPI:
           Type: Api
           Properties:
             Path: /downloads
