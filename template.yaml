@@ -158,7 +158,7 @@ Resources:
       Handler: authorizer.lambda_handler  # Assuming your python file is named 'your_python_filename.py'
       Runtime: python3.8  # Adjust based on your desired Python runtime version
 
-    Layers:
+      Layers:
         - arn:aws:lambda:us-east-1:469266894233:layer:Requests_Layer:1
 
 #   # This is the function which queues (or schedules) jobs on the pipeline.
@@ -246,6 +246,30 @@ Resources:
       Layers:
         - arn:aws:lambda:us-east-1:469266894233:layer:Requests_Layer:1
 
+  GetNIIFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: >
+        This function takes a result file from s3 (specified with Bucket and Key), unzips
+        it and returns its data through presigned url links
+      PackageType: Zip
+      CodeUri: getNii/
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Policies:
+        - S3FullAccessPolicy:
+            BucketName: !Ref ResultsBucketPName
+      Events:
+        GetNIIAPI:
+          Type: Api
+          Properties:
+            Path: /unzip
+            Method: post
+            RestApiId: !Ref CMAPI
+            Auth:
+              Authorizer: UserAuthorizer
+      Layers:
+        - arn:aws:lambda:us-east-1:469266894233:layer:Requests_Layer:1
 
   DataReadFunction:
     Type: AWS::Serverless::Function
@@ -370,3 +394,6 @@ Outputs:
   DownloadData:
     Description: "HTTP API endpoint URL to download data"
     Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/Prod/downloads"
+  UnzipResult:
+    Description: "HTTP API endpoint files for Nii direct access"
+    Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/Prod/unzip"
