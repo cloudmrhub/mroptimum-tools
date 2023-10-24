@@ -99,7 +99,6 @@ def read_data(event, context):
             data['filename'] = alias
             data['location'] = location
             data['link'] = url
-            data['database'] = 's3'
             # {'user_id':data['user_id'],'filename':alias,'size':data['size'],'location':location,'link':url}
             file_list.append(data)
         return {"statusCode":200,
