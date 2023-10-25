@@ -96,6 +96,7 @@ const upload_data = async (event) => {
             throw new Error("Failed to save file metadata to cloudmrhub.com");
         }
         response.data.filename = fileName;
+        response.data.database = 's3';
 
         return {
             statusCode: 200,
