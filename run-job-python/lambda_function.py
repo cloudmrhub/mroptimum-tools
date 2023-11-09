@@ -46,19 +46,19 @@ def handler(event, context):
     OUTPUT=J["output"]
     # savecoils=OUTPUT["coilsensitivity"] if OUTPUT["coilsensitivity"] exists
     # if not savecoils=False
-    savecoils="-no-coilsens"
-    savematlab="-no-matlab"
-    savegfactor="-no-gfactor"
+    savecoils="--no-coilsens"
+    savematlab="--no-matlab"
+    savegfactor="--no-gfactor"
     if "coilsensitivity" in OUTPUT.keys():
         if OUTPUT["coilsensitivity"]:
-            savecoils="-coilsens"
+            savecoils="--coilsens"
         
     if "matlab" in OUTPUT.keys():
         if OUTPUT["matlab"]:
-            savematlab="-matlab"
+            savematlab="--matlab"
     if "gfactor" in OUTPUT.keys():
         if OUTPUT["gfactor"]:
-            savegfactor="-gfactor"
+            savegfactor="--gfactor"
     # output can have matlab, coilsensitivity and, gfactor
 
     T=J["task"]
@@ -85,7 +85,7 @@ def handler(event, context):
     #run mr optimum
     K=pn.BashIt()
     # -p is for parallel and is set to false because of the lambda number of cores
-    K.setCommand(f"python -m mroptimum.snr -j {JO.getPosition()} -o {OUT} -no-parallel {savematlab} {savecoils} {savegfactor} -no-verbose")
+    K.setCommand(f"python -m mroptimum.snr -j {JO.getPosition()} -o {OUT} --no-parallel {savematlab} {savecoils} {savegfactor} --no-verbose")
     print(K.getCommand())
     K.run()  
     Z=pn.createRandomTemporaryPathableFromFileName("a.zip")
