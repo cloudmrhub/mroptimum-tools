@@ -14,15 +14,15 @@ Parameters:
   JobsBucketPName:
     Type: String
     Description: jobs bucket
-    Default: 'mro-j'
+    Default: 'mroj'
   ResultsBucketPName:
     Type: String
     Description: results bucket
-    Default: 'mro-r'
+    Default: 'mror'
   DataBucketPName:
     Type: String
     Description: data bucket
-    Default: 'mro-d'
+    Default: 'mrod'
 
 Globals:
   Function:

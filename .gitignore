@@ -248,6 +248,9 @@ samconfig_.toml
 samconfig.toml
 samconfig.toml
 samconfig.toml
+<<<<<<< HEAD
 run-job-python/Dockerfile
 samconfig.toml
+=======
+>>>>>>> todelete
 samconfig.toml

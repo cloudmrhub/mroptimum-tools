@@ -46,15 +46,19 @@ def handler(event, context):
     OUTPUT=J["output"]
     # savecoils=OUTPUT["coilsensitivity"] if OUTPUT["coilsensitivity"] exists
     # if not savecoils=False
-    savecoils=False
-    savematlab=False
-    savegfactor=False
+    savecoils="-no-coilsens"
+    savematlab="-no-matlab"
+    savegfactor="-no-gfactor"
     if "coilsensitivity" in OUTPUT.keys():
-        savecoils=OUTPUT["coilsensitivity"]
+        if OUTPUT["coilsensitivity"]:
+            savecoils="-coilsens"
+        
     if "matlab" in OUTPUT.keys():
-        savematlab=OUTPUT["matlab"]
+        if OUTPUT["matlab"]:
+            savematlab="-matlab"
     if "gfactor" in OUTPUT.keys():
-        savegfactor=OUTPUT["gfactor"]
+        if OUTPUT["gfactor"]:
+            savegfactor="-gfactor"
     # output can have matlab, coilsensitivity and, gfactor
 
     T=J["task"]
@@ -81,7 +85,8 @@ def handler(event, context):
     #run mr optimum
     K=pn.BashIt()
     # -p is for parallel and is set to false because of the lambda number of cores
-    K.setCommand(f"python -m mroptimum.snr -j {JO.getPosition()} -o {OUT} -p False -m {savematlab} -c {savecoils} -g {savegfactor}")
+    K.setCommand(f"python -m mroptimum.snr -j {JO.getPosition()} -o {OUT} -no-parallel {savematlab} {savecoils} {savegfactor} -no-verbose")
+    print(K.getCommand())
     K.run()  
     Z=pn.createRandomTemporaryPathableFromFileName("a.zip")
     Z.ensureDirectoryExistence()
