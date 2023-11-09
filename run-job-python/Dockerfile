@@ -6,7 +6,11 @@ COPY requirements.txt ${LAMBDA_TASK_ROOT}
 
 # Install the specified packages
 RUN pip install -r requirements.txt
-COPY site-packages /var/lang/lib/python3.10/site-packages
+#install mroptimum from git repository pip install pip install git+https://github.com/cloudmrhub-com/mroptimum.git in case it has changed
+RUN pip install git+https://github.com/cloudmrhub-com/mroptimum.git
+
+# COPY site-packages /var/lang/lib/python3.10/site-packages
+
 # Copy function code
 COPY lambda_function.py ${LAMBDA_TASK_ROOT}
 ENV SSL_CERT_FILE /etc/ssl/certs/ca-bundle.crt
