@@ -127,7 +127,7 @@ if __name__=="__main__":
                     r.setGrappaKernel(R["options"]["kernelSize"])
                 else:
                     r.setGrappaKernel([5,4])
-                LOG.append(f'Grappa Kernel set to {r.getGrappaKernel()}' )
+                LOG.append(f'Grappa Kernel set to {r.GrappaKernel}' )
 
             if SID==0:
                 TASK.append(manalitical(r,counter))  
