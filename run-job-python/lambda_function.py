@@ -1,7 +1,5 @@
 import json
 import boto3
-import cloudmrhub
-import requests
 import os
 import shutil
 from pynico_eros_montin import pynico as pn
@@ -43,6 +41,22 @@ def handler(event, context):
     print("pipelineid")
     print(pipelineid)
 
+    print(J)
+
+    OUTPUT=J["output"]
+    # savecoils=OUTPUT["coilsensitivity"] if OUTPUT["coilsensitivity"] exists
+    # if not savecoils=False
+    savecoils=False
+    savematlab=False
+    savegfactor=False
+    if "coilsensitivity" in OUTPUT.keys():
+        savecoils=OUTPUT["coilsensitivity"]
+    if "matlab" in OUTPUT.keys():
+        savematlab=OUTPUT["matlab"]
+    if "gfactor" in OUTPUT.keys():
+        savegfactor=OUTPUT["gfactor"]
+    # output can have matlab, coilsensitivity and, gfactor
+
     T=J["task"]
     print(T)
     print(f'noise - file {T["options"]["reconstructor"]["options"]["noise"]}')
@@ -66,9 +80,11 @@ def handler(event, context):
     OUT=O.getPosition()
     #run mr optimum
     K=pn.BashIt()
-    K.setCommand(f"python -m mroptimum.snr -j {JO.getPosition()} -o {OUT} -p False -m True")
+    # -p is for parallel and is set to false because of the lambda number of cores
+    K.setCommand(f"python -m mroptimum.snr -j {JO.getPosition()} -o {OUT} -p False -m {savematlab} -c {savecoils} -g {savegfactor}")
     K.run()  
     Z=pn.createRandomTemporaryPathableFromFileName("a.zip")
+    Z.ensureDirectoryExistence()
     print(f"Zipping the file {Z.getPosition()[:-4]}")
     shutil.make_archive(Z.getPosition()[:-4], "zip", O.getPath())
     print("start uploading")
