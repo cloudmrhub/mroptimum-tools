@@ -109,9 +109,9 @@ const download_data = async (event) => {
             createdAt: pipeline.created_at,
             updatedAt: pipeline.updated_at,
             setup: undefined,
+            pipeline_id:pipeline.pipeline,
             files: [await createUploadedFile(`${pipeline.alias}_results`,pipeline.results,pipeline.created_at,pipeline.updated_at),
-                await createUploadedFile(`${pipeline.alias}_output`,pipeline.output,pipeline.created_at,pipeline.updated_at)],
-            pipeline_id: pipeline.pipeline
+                await createUploadedFile(`${pipeline.alias}_output`,pipeline.output,pipeline.created_at,pipeline.updated_at)]
         })
     }
 

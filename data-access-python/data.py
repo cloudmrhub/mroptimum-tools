@@ -90,15 +90,13 @@ def read_data(event, context):
         data_list = cmr_profile_data.json()
         file_list = []
         for data in data_list:
-            location = data['location']
-            alias = data['filename']
-            # Generate pre-signed URL for reading the object
-            url = s3_client.generate_presigned_url('get_object',
-                                                   Params={'Bucket': bucket_name, 'Key': location},
-                                                   ExpiresIn=3600)
-            data['filename'] = alias
-            data['location'] = location
-            data['link'] = url
+            if(data['location'][0]=='{'):
+                location = json.loads(data['location'])
+                # Generate pre-signed URL for reading the object
+                url = s3_client.generate_presigned_url('get_object',
+                                                       Params={'Bucket': location['Bucket'], 'Key': location['Key']},
+                                                       ExpiresIn=3600)
+                data['link'] = url
             data['database'] = 's3'
             # {'user_id':data['user_id'],'filename':alias,'size':data['size'],'location':location,'link':url}
             file_list.append(data)
