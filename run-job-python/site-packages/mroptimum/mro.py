@@ -25,9 +25,9 @@ SNR=["ac","mr","pmr","cr"]
 def undersample(K,recon):
     N=recon["name"].lower()
     if N=='sense':
-        return cm.undersample2DDataSENSE(K, frequencyacceleration=recon["options"]["accelerations"][0],phaseacceleration=recon["options"]["accelerations"][1]),False
-    if N=="msense":
-        return cm.undersample2DDatamSENSE(K, frequencyacceleration=recon["options"]["accelerations"][0],phaseacceleration=recon["options"]["accelerations"][1],phaseACL=recon["options"]["acl"][1]),True
+        return cm.undersample2DDataSENSE(K, frequencyacceleration=recon["options"]["accelerations"][0],phaseacceleration=recon["options"]["accelerations"][1]),True
+    # if N=="msense":
+    #     return cm.undersample2DDatamSENSE(K, frequencyacceleration=recon["options"]["accelerations"][0],phaseacceleration=recon["options"]["accelerations"][1],phaseACL=recon["options"]["acl"][1]),True
     if N=="grappa":
         return cm.undersample2DDatamGRAPPA(K, frequencyacceleration=recon["options"]["accelerations"][0],phaseacceleration=recon["options"]["accelerations"][1],frequencyACL=recon["options"]["acl"][0],phaseACL=recon["options"]["acl"][1]),True
 
@@ -215,4 +215,12 @@ def getKSpace(s,slice=0):
             return getSiemensKSpace2D(N.getPosition(),noise=False,slice=slice)
     else:
         raise Exception("I can't get the noise")
+
+
+
+def fixAccelratedKSpace2D(s):
+    if np.mod(s.shape[1],2)>0:
+        G=np.zeros((s.shape[0],1,s.shape[2]))
+        s=np.concatenate((s,G),axis=1)
+    return s
 

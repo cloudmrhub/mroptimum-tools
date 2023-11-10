@@ -14,20 +14,20 @@ Parameters:
   JobsBucketPName:
     Type: String
     Description: jobs bucket
-    Default: 'eros-c-j'
+    Default: 'mroj'
   ResultsBucketPName:
     Type: String
     Description: results bucket
-    Default: 'eros-c-r'
+    Default: 'mror'
   DataBucketPName:
     Type: String
     Description: data bucket
-    Default: 'eros-c-d'
+    Default: 'mrod'
 
 Globals:
   Function:
     Timeout: 60
-    MemorySize: 180
+    MemorySize: 512
     Architectures:
     - x86_64
     Environment:
