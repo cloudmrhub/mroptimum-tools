@@ -94,7 +94,8 @@ def read_data(event, context):
                 location = json.loads(data['location'])
                 # Generate pre-signed URL for reading the object
                 url = s3_client.generate_presigned_url('get_object',
-                                                       Params={'Bucket': location['Bucket'], 'Key': location['Key']},
+                                                       Params={'Bucket': location['Bucket'], 'Key': location['Key'], 'ResponseContentDisposition':
+                                                           f"attachment; filename ={data['filename']}"},
                                                        ExpiresIn=3600)
                 data['link'] = url
             data['database'] = 's3'
