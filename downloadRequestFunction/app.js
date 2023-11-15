@@ -68,11 +68,13 @@ const createUploadedFile = async (name, address, createdAt, updatedAt)=>{
     let paths = address.split('/');
     let Bucket = paths[2];
     let Key = paths[3];
+    let extension = address.split('.').pop();
 
     const params = {
         Bucket,
         Key,
-        Expires: 3600 // URL validity time in seconds (1 hour in this example)
+        Expires: 3600, // URL validity time in seconds (1 hour in this example)
+        ResponseContentDisposition: `attachment; filename =${name}.${extension}`
     };
     const link = await s3.getSignedUrlPromise('getObject', params);
     return {
