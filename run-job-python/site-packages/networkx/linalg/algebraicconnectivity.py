@@ -51,7 +51,6 @@ class _PCGSolver:
     def _solve(self, b, tol):
         import numpy as np
         import scipy as sp
-        import scipy.linalg.blas  # call as sp.linalg.blas
 
         A = self._A
         M = self._M
@@ -89,7 +88,6 @@ class _LUSolver:
 
     def __init__(self, A):
         import scipy as sp
-        import scipy.sparse.linalg  # call as sp.sparse.linalg
 
         self._LU = sp.sparse.linalg.splu(
             A,
@@ -185,9 +183,6 @@ def _tracemin_fiedler(L, X, normalized, tol, method):
     """
     import numpy as np
     import scipy as sp
-    import scipy.linalg  # call as sp.linalg
-    import scipy.linalg.blas  # call as sp.linalg.blas
-    import scipy.sparse  # call as sp.sparse
 
     n = X.shape[0]
 
@@ -278,8 +273,6 @@ def _get_fiedler_func(method):
 
         def find_fiedler(L, x, normalized, tol, seed):
             import scipy as sp
-            import scipy.sparse  # call as sp.sparse
-            import scipy.sparse.linalg  # call as sp.sparse.linalg
 
             L = sp.sparse.csc_array(L, dtype=float)
             n = L.shape[0]
@@ -317,8 +310,9 @@ def _get_fiedler_func(method):
     return find_fiedler
 
 
-@np_random_state(5)
 @not_implemented_for("directed")
+@np_random_state(5)
+@nx._dispatch(edge_attrs="weight")
 def algebraic_connectivity(
     G, weight="weight", normalized=False, tol=1e-8, method="tracemin_pcg", seed=None
 ):
@@ -412,8 +406,9 @@ def algebraic_connectivity(
     return sigma
 
 
-@np_random_state(5)
 @not_implemented_for("directed")
+@np_random_state(5)
+@nx._dispatch(edge_attrs="weight")
 def fiedler_vector(
     G, weight="weight", normalized=False, tol=1e-8, method="tracemin_pcg", seed=None
 ):
@@ -510,6 +505,7 @@ def fiedler_vector(
 
 
 @np_random_state(5)
+@nx._dispatch(edge_attrs="weight")
 def spectral_ordering(
     G, weight="weight", normalized=False, tol=1e-8, method="tracemin_pcg", seed=None
 ):
@@ -592,6 +588,7 @@ def spectral_ordering(
     return order
 
 
+@nx._dispatch(edge_attrs="weight")
 def spectral_bisection(
     G, weight="weight", normalized=False, tol=1e-8, method="tracemin_pcg", seed=None
 ):
@@ -635,7 +632,7 @@ def spectral_bisection(
         See :ref:`Randomness<randomness>`.
 
     Returns
-    --------
+    -------
     bisection : tuple of sets
         Sets with the bisection of nodes
 

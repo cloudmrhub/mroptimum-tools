@@ -15,11 +15,16 @@ from pygments.token import Keyword, Name, Comment, String, Error, \
      Number, Operator, Generic, Whitespace
 
 
+__all__ = ['PerldocStyle']
+
+
 class PerldocStyle(Style):
     """
     Style similar to the style used in the perldoc code blocks.
     """
 
+    name = 'perldoc'
+    
     background_color = '#eeeedd'
 
     styles = {
@@ -59,6 +64,7 @@ class PerldocStyle(Style):
         Generic.Error:          '#aa0000',
         Generic.Emph:           'italic',
         Generic.Strong:         'bold',
+        Generic.EmphStrong:     'bold italic',
         Generic.Prompt:         '#555555',
         Generic.Output:         '#888888',
         Generic.Traceback:      '#aa0000',

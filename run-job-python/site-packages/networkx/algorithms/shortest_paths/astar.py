@@ -9,6 +9,7 @@ from networkx.algorithms.shortest_paths.weighted import _weight_function
 __all__ = ["astar_path", "astar_path_length"]
 
 
+@nx._dispatch(edge_attrs="weight", preserve_node_attrs="heuristic")
 def astar_path(G, source, target, heuristic=None, weight="weight"):
     """Returns a list of nodes in a shortest path between source and target
     using the A* ("A-star") algorithm.
@@ -94,6 +95,8 @@ def astar_path(G, source, target, heuristic=None, weight="weight"):
     pop = heappop
     weight = _weight_function(G, weight)
 
+    G_succ = G._adj  # For speed-up (and works for both directed and undirected graphs)
+
     # The queue stores priority, node, cost to reach, and parent.
     # Uses Python heapq to keep in priority order.
     # Add a counter to the queue to prevent the underlying heap from
@@ -134,7 +137,7 @@ def astar_path(G, source, target, heuristic=None, weight="weight"):
 
         explored[curnode] = parent
 
-        for neighbor, w in G[curnode].items():
+        for neighbor, w in G_succ[curnode].items():
             cost = weight(curnode, neighbor, w)
             if cost is None:
                 continue
@@ -155,6 +158,7 @@ def astar_path(G, source, target, heuristic=None, weight="weight"):
     raise nx.NetworkXNoPath(f"Node {target} not reachable from {source}")
 
 
+@nx._dispatch(edge_attrs="weight", preserve_node_attrs="heuristic")
 def astar_path_length(G, source, target, heuristic=None, weight="weight"):
     """Returns the length of the shortest path between source and target using
     the A* ("A-star") algorithm.

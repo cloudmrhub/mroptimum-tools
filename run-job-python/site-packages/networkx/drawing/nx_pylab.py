@@ -228,8 +228,9 @@ def draw_networkx(G, pos=None, arrows=None, with_labels=True, **kwds):
     font_size : int (default=12 for nodes, 10 for edges)
         Font size for text labels
 
-    font_color : string (default='k' black)
-        Font color string
+    font_color : color (default='k' black)
+        Font color string. Color can be string or rgb (or rgba) tuple of
+        floats from 0-1.
 
     font_weight : string (default='normal')
         Font weight
@@ -373,7 +374,10 @@ def draw_networkx_nodes(
         Line width of symbol border
 
     edgecolors : [None | scalar | sequence] (default = node_color)
-        Colors of node borders
+        Colors of node borders. Can be a single color or a sequence of colors with the
+        same length as nodelist. Color can be string or rgb (or rgba) tuple of floats
+        from 0-1. If numeric values are specified they will be mapped to colors
+        using the cmap and vmin,vmax parameters. See `~matplotlib.pyplot.scatter` for more details.
 
     label : [None | string]
         Label for legend
@@ -721,7 +725,7 @@ def draw_networkx_edges(
     if (
         np.iterable(edge_color)
         and (len(edge_color) == len(edge_pos))
-        and np.alltrue([isinstance(c, Number) for c in edge_color])
+        and np.all([isinstance(c, Number) for c in edge_color])
     ):
         if edge_cmap is not None:
             assert isinstance(edge_cmap, mpl.colors.Colormap)
@@ -959,8 +963,9 @@ def draw_networkx_labels(
     font_size : int (default=12)
         Font size for text labels
 
-    font_color : string (default='k' black)
-        Font color string
+    font_color : color (default='k' black)
+        Font color string. Color can be string or rgb (or rgba) tuple of
+        floats from 0-1.
 
     font_weight : string (default='normal')
         Font weight
@@ -1087,8 +1092,9 @@ def draw_networkx_edge_labels(
     font_size : int (default=10)
         Font size for text labels
 
-    font_color : string (default='k' black)
-        Font color string
+    font_color : color (default='k' black)
+        Font color string. Color can be string or rgb (or rgba) tuple of
+        floats from 0-1.
 
     font_weight : string (default='normal')
         Font weight
@@ -1246,6 +1252,11 @@ def draw_circular(G, **kwargs):
         >>> # Draw a subgraph, reusing the same node positions
         >>> nx.draw(G.subgraph([0, 1, 2]), pos=pos, node_color="red")
 
+    Examples
+    --------
+    >>> G = nx.path_graph(5)
+    >>> nx.draw_circular(G)
+
     See Also
     --------
     :func:`~networkx.drawing.layout.circular_layout`
@@ -1281,6 +1292,11 @@ def draw_kamada_kawai(G, **kwargs):
         >>> # Draw a subgraph, reusing the same node positions
         >>> nx.draw(G.subgraph([0, 1, 2]), pos=pos, node_color="red")
 
+    Examples
+    --------
+    >>> G = nx.path_graph(5)
+    >>> nx.draw_kamada_kawai(G)
+
     See Also
     --------
     :func:`~networkx.drawing.layout.kamada_kawai_layout`
@@ -1314,6 +1330,11 @@ def draw_random(G, **kwargs):
         >>> nx.draw(G, pos=pos)  # Draw the original graph
         >>> # Draw a subgraph, reusing the same node positions
         >>> nx.draw(G.subgraph([0, 1, 2]), pos=pos, node_color="red")
+
+    Examples
+    --------
+    >>> G = nx.lollipop_graph(4, 3)
+    >>> nx.draw_random(G)
 
     See Also
     --------
@@ -1352,6 +1373,11 @@ def draw_spectral(G, **kwargs):
         >>> # Draw a subgraph, reusing the same node positions
         >>> nx.draw(G.subgraph([0, 1, 2]), pos=pos, node_color="red")
 
+    Examples
+    --------
+    >>> G = nx.path_graph(5)
+    >>> nx.draw_spectral(G)
+
     See Also
     --------
     :func:`~networkx.drawing.layout.spectral_layout`
@@ -1388,6 +1414,11 @@ def draw_spring(G, **kwargs):
         >>> nx.draw(G, pos=pos)  # Draw the original graph
         >>> # Draw a subgraph, reusing the same node positions
         >>> nx.draw(G.subgraph([0, 1, 2]), pos=pos, node_color="red")
+
+    Examples
+    --------
+    >>> G = nx.path_graph(20)
+    >>> nx.draw_spring(G)
 
     See Also
     --------
@@ -1429,6 +1460,12 @@ def draw_shell(G, nlist=None, **kwargs):
         >>> # Draw a subgraph, reusing the same node positions
         >>> nx.draw(G.subgraph([0, 1, 2]), pos=pos, node_color="red")
 
+    Examples
+    --------
+    >>> G = nx.path_graph(4)
+    >>> shells = [[0], [1, 2, 3]]
+    >>> nx.draw_shell(G, nlist=shells)
+
     See Also
     --------
     :func:`~networkx.drawing.layout.shell_layout`
@@ -1467,6 +1504,11 @@ def draw_planar(G, **kwargs):
         >>> nx.draw(G, pos=pos)  # Draw the original graph
         >>> # Draw a subgraph, reusing the same node positions
         >>> nx.draw(G.subgraph([0, 1, 2]), pos=pos, node_color="red")
+
+    Examples
+    --------
+    >>> G = nx.path_graph(4)
+    >>> nx.draw_planar(G)
 
     See Also
     --------

@@ -33,6 +33,7 @@ __all__ = [
 ]
 
 
+@nx._dispatch(graphs=None)
 def from_agraph(A, create_using=None):
     """Returns a NetworkX Graph or DiGraph from a PyGraphviz graph.
 
@@ -137,6 +138,13 @@ def to_agraph(N):
         ) from err
     directed = N.is_directed()
     strict = nx.number_of_selfloops(N) == 0 and not N.is_multigraph()
+
+    for node in N:
+        if "pos" in N.nodes[node]:
+            N.nodes[node]["pos"] = "{},{}!".format(
+                N.nodes[node]["pos"][0], N.nodes[node]["pos"][1]
+            )
+
     A = pygraphviz.AGraph(name=N.name, strict=strict, directed=directed)
 
     # default graph attributes
@@ -197,6 +205,7 @@ def write_dot(G, path):
     return
 
 
+@nx._dispatch(name="agraph_read_dot", graphs=None)
 def read_dot(path):
     """Returns a NetworkX graph from a dot file on path.
 

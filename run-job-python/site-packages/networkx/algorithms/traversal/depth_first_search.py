@@ -14,6 +14,7 @@ __all__ = [
 ]
 
 
+@nx._dispatch
 def dfs_edges(G, source=None, depth_limit=None):
     """Iterate over edges in a depth-first-search (DFS).
 
@@ -74,27 +75,32 @@ def dfs_edges(G, source=None, depth_limit=None):
     else:
         # edges for components with source
         nodes = [source]
-    visited = set()
     if depth_limit is None:
         depth_limit = len(G)
+
+    visited = set()
     for start in nodes:
         if start in visited:
             continue
         visited.add(start)
-        stack = [(start, depth_limit, iter(G[start]))]
+        stack = [(start, iter(G[start]))]
+        depth_now = 1
         while stack:
-            parent, depth_now, children = stack[-1]
-            try:
-                child = next(children)
+            parent, children = stack[-1]
+            for child in children:
                 if child not in visited:
                     yield parent, child
                     visited.add(child)
-                    if depth_now > 1:
-                        stack.append((child, depth_now - 1, iter(G[child])))
-            except StopIteration:
+                    if depth_now < depth_limit:
+                        stack.append((child, iter(G[child])))
+                        depth_now += 1
+                        break
+            else:
                 stack.pop()
+                depth_now -= 1
 
 
+@nx._dispatch
 def dfs_tree(G, source=None, depth_limit=None):
     """Returns oriented tree constructed from a depth-first-search from source.
 
@@ -140,6 +146,7 @@ def dfs_tree(G, source=None, depth_limit=None):
     return T
 
 
+@nx._dispatch
 def dfs_predecessors(G, source=None, depth_limit=None):
     """Returns dictionary of predecessors in depth-first-search from source.
 
@@ -149,6 +156,9 @@ def dfs_predecessors(G, source=None, depth_limit=None):
 
     source : node, optional
        Specify starting node for depth-first search.
+       Note that you will get predecessors for all nodes in the
+       component containing `source`. This input only specifies
+       where the DFS starts.
 
     depth_limit : int, optional (default=len(G))
        Specify the maximum search depth.
@@ -190,6 +200,7 @@ def dfs_predecessors(G, source=None, depth_limit=None):
     return {t: s for s, t in dfs_edges(G, source, depth_limit)}
 
 
+@nx._dispatch
 def dfs_successors(G, source=None, depth_limit=None):
     """Returns dictionary of successors in depth-first-search from source.
 
@@ -199,6 +210,9 @@ def dfs_successors(G, source=None, depth_limit=None):
 
     source : node, optional
        Specify starting node for depth-first search.
+       Note that you will get successors for all nodes in the
+       component containing `source`. This input only specifies
+       where the DFS starts.
 
     depth_limit : int, optional (default=len(G))
        Specify the maximum search depth.
@@ -243,6 +257,7 @@ def dfs_successors(G, source=None, depth_limit=None):
     return dict(d)
 
 
+@nx._dispatch
 def dfs_postorder_nodes(G, source=None, depth_limit=None):
     """Generate nodes in a depth-first-search post-ordering starting at source.
 
@@ -294,6 +309,7 @@ def dfs_postorder_nodes(G, source=None, depth_limit=None):
     return (v for u, v, d in edges if d == "reverse")
 
 
+@nx._dispatch
 def dfs_preorder_nodes(G, source=None, depth_limit=None):
     """Generate nodes in a depth-first-search pre-ordering starting at source.
 
@@ -345,6 +361,7 @@ def dfs_preorder_nodes(G, source=None, depth_limit=None):
     return (v for u, v, d in edges if d == "forward")
 
 
+@nx._dispatch
 def dfs_labeled_edges(G, source=None, depth_limit=None):
     """Iterate over edges in a depth-first-search (DFS) labeled by type.
 
@@ -419,30 +436,34 @@ def dfs_labeled_edges(G, source=None, depth_limit=None):
     else:
         # edges for components with source
         nodes = [source]
-    visited = set()
     if depth_limit is None:
         depth_limit = len(G)
+
+    visited = set()
     for start in nodes:
         if start in visited:
             continue
         yield start, start, "forward"
         visited.add(start)
-        stack = [(start, depth_limit, iter(G[start]))]
+        stack = [(start, iter(G[start]))]
+        depth_now = 1
         while stack:
-            parent, depth_now, children = stack[-1]
-            try:
-                child = next(children)
+            parent, children = stack[-1]
+            for child in children:
                 if child in visited:
                     yield parent, child, "nontree"
                 else:
                     yield parent, child, "forward"
                     visited.add(child)
-                    if depth_now > 1:
-                        stack.append((child, depth_now - 1, iter(G[child])))
+                    if depth_now < depth_limit:
+                        stack.append((child, iter(G[child])))
+                        depth_now += 1
+                        break
                     else:
                         yield parent, child, "reverse-depth_limit"
-            except StopIteration:
+            else:
                 stack.pop()
+                depth_now -= 1
                 if stack:
                     yield stack[-1][0], parent, "reverse"
         yield start, start, "reverse"

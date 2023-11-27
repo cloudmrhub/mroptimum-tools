@@ -21,10 +21,30 @@ from SimpleITK.SimpleITK import *
 from SimpleITK.SimpleITK import _GetMemoryViewFromImage
 from SimpleITK.SimpleITK import _SetImageFromArray
 
-from typing import Iterable, List, Optional, Type, Union
+from typing import Iterable, List, Optional, Type, Union, Tuple
 
 
 PathType = Union[str, Path, Iterable[str], Iterable[Path]]
+
+
+def MinimumMaximum(
+        image: Image
+) -> Tuple[float, float]:
+    """
+    Computes the minimum and the maximum intensity values of an image.
+
+    This is a custom overloaded python method, which returns the minimum and maximum measurements as a tuple.
+
+    Also See
+    --------
+      itk::simple::MinimumMaximumImageFilter for the object-oriented interface
+
+     :param image:
+     :return:
+     """
+    f = MinimumMaximumImageFilter()
+    f.Execute(image)
+    return f.GetMinimum(), f.GetMaximum()
 
 
 def Resample(
@@ -179,7 +199,7 @@ def _get_sitk_pixelid(numpy_array_type: Type["numpy.ndarray"]) -> int:
 
     np = numpy
 
-    # This is a Mapping from numpy dtypes to sitks pixel types.
+    # This is a Mapping from numpy dtypes to sitk's pixel types.
     _np_sitk = {np.dtype(np.uint8): sitkUInt8,
                 np.dtype(np.uint16): sitkUInt16,
                 np.dtype(np.uint32): sitkUInt32,
@@ -207,7 +227,7 @@ def _get_sitk_vector_pixelid(numpy_array_type: Type["numpy.ndarray"]) -> int:
 
     np = numpy
 
-    # This is a Mapping from numpy dtypes to sitks pixel types.
+    # This is a Mapping from numpy dtypes to sitk's pixel types.
     _np_sitk = {np.dtype(np.uint8): sitkVectorUInt8,
                 np.dtype(np.uint16): sitkVectorUInt16,
                 np.dtype(np.uint32): sitkVectorUInt32,
@@ -454,7 +474,8 @@ def DiscreteGaussian(
     return f.Execute(image1)
 
 
-__all__ = ["Resample",
+__all__ = ["MinimumMaximum",
+           "Resample",
            "GetArrayViewFromImage",
            "GetArrayFromImage",
            "GetImageFromArray",

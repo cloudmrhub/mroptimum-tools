@@ -13,10 +13,14 @@ from pygments.token import Keyword, Name, Comment, String, Error, \
      Number, Operator, Generic, Whitespace
 
 
+__all__ = ['AutumnStyle']
+
+
 class AutumnStyle(Style):
     """
     A colorful style, inspired by the terminal highlighting style.
     """
+    name = 'autumn'
 
     styles = {
         Whitespace:                 '#bbbbbb',
@@ -54,6 +58,7 @@ class AutumnStyle(Style):
         Generic.Error:              '#aa0000',
         Generic.Emph:               'italic',
         Generic.Strong:             'bold',
+        Generic.EmphStrong:         'bold italic',
         Generic.Prompt:             '#555555',
         Generic.Output:             '#888888',
         Generic.Traceback:          '#aa0000',

@@ -13,10 +13,14 @@ from pygments.token import Keyword, Name, Comment, String, Error, \
      Number, Operator, Generic, Whitespace
 
 
+__all__ = ['DefaultStyle']
+
+
 class DefaultStyle(Style):
     """
     The default style (inspired by Emacs 22).
     """
+    name = 'default'
 
     background_color = "#f8f8f8"
 
@@ -63,6 +67,7 @@ class DefaultStyle(Style):
         Generic.Error:             "#E40000",
         Generic.Emph:              "italic",
         Generic.Strong:            "bold",
+        Generic.EmphStrong:        "bold italic",
         Generic.Prompt:            "bold #000080",
         Generic.Output:            "#717171",
         Generic.Traceback:         "#04D",

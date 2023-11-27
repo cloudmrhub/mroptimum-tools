@@ -34,11 +34,16 @@ from io import BytesIO
 from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple, Union, cast
 
 import numpy as np
-from PIL import ExifTags, Image, ImageSequence, UnidentifiedImageError  # type: ignore
+from PIL import ExifTags, GifImagePlugin, Image, ImageSequence, UnidentifiedImageError
+from PIL import __version__ as pil_version  # type: ignore
 
 from ..core.request import URI_BYTES, InitializationError, IOMode, Request
 from ..core.v3_plugin_api import ImageProperties, PluginV3
 from ..typing import ArrayLike
+
+
+def pillow_version() -> Tuple[int]:
+    return tuple(int(x) for x in pil_version.split("."))
 
 
 def _exif_orientation_transform(orientation: int, mode: str) -> Callable:
@@ -74,6 +79,22 @@ class PillowPlugin(PluginV3):
         """
 
         super().__init__(request)
+
+        # Register HEIF opener for Pillow
+        try:
+            from pillow_heif import register_heif_opener
+        except ImportError:
+            pass
+        else:
+            register_heif_opener()
+
+        # Register AVIF opener for Pillow
+        try:
+            from pillow_heif import register_avif_opener
+        except ImportError:
+            pass
+        else:
+            register_avif_opener()
 
         self._image: Image = None
         self.images_to_write = []
@@ -210,6 +231,13 @@ class PillowPlugin(PluginV3):
                 " `mode='L'` for an integer-valued result."
             )
 
+        if self._image.format == "GIF":
+            # Converting GIF P frames to RGB
+            # https://github.com/python-pillow/Pillow/pull/6150
+            GifImagePlugin.LOADING_STRATEGY = (
+                GifImagePlugin.LoadingStrategy.RGB_AFTER_DIFFERENT_PALETTE_ONLY
+            )
+
         if index is None:
             if self._image.format == "GIF":
                 index = Ellipsis
@@ -280,10 +308,7 @@ class PillowPlugin(PluginV3):
             # see: https://github.com/python-pillow/Pillow/issues/5929
             image = image.convert(image.palette.mode)
         elif image.format == "PNG" and image.mode == "I":
-            # By default, pillows unpacks 16-bit grayscale PNG into 32-bit
-            # integers due to limited 16-bit support in pillow itself. However,
-            # recent versions can directly unpack into a 16-bit buffer, which is
-            # more correct (and more efficient) in our scenario.
+            major, minor, patch = pillow_version()
 
             if sys.byteorder == "little":
                 desired_mode = "I;16"
@@ -291,18 +316,19 @@ class PillowPlugin(PluginV3):
                 # can't test big-endian in GH-Actions
                 desired_mode = "I;16B"
 
-            try:
-                Image._getdecoder(desired_mode, "raw", "I;16B")
-            except ValueError:
+            if major < 10:  # pragma: no cover
                 warnings.warn(
                     "Loading 16-bit (uint16) PNG as int32 due to limitations "
                     "in pillow's PNG decoder. This will be fixed in a future "
                     "version of pillow which will make this warning dissapear.",
                     UserWarning,
                 )
-            else:  # pragma: no cover
-                # Let pillow know that it is okay to return 16-bit
+            elif minor < 1:  # pragma: no cover
+                # pillow<10.1.0 can directly decode into 16-bit grayscale
                 image.mode = desired_mode
+            else:
+                # pillow >= 10.1.0
+                image = image.convert(desired_mode)
 
         image = np.asarray(image)
 
@@ -380,10 +406,12 @@ class PillowPlugin(PluginV3):
 
         """
         if "fps" in kwargs:
-            raise TypeError(
+            warnings.warn(
                 "The keyword `fps` is no longer supported. Use `duration`"
-                "(in ms) instead, e.g. `fps=50` == `duration=20` (1000 * 1/50)."
+                "(in ms) instead, e.g. `fps=50` == `duration=20` (1000 * 1/50).",
+                DeprecationWarning,
             )
+            kwargs["duration"] = 1000 * 1 / kwargs.get("fps")
 
         if isinstance(ndimage, list):
             ndimage = np.stack(ndimage, axis=0)

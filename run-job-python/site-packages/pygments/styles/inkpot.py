@@ -13,8 +13,12 @@ from pygments.token import Text, Other, Keyword, Name, Comment, String, \
     Error, Number, Operator, Generic, Whitespace, Punctuation
 
 
-class InkPotStyle(Style):
+__all__ = ['InkPotStyle']
 
+
+class InkPotStyle(Style):
+    name = 'inkpot'
+    
     background_color = "#1e1e27"
 
     styles = {
@@ -59,6 +63,7 @@ class InkPotStyle(Style):
         Generic.Error:             "#FF0000",
         Generic.Emph:              "italic",
         Generic.Strong:            "bold",
+        Generic.EmphStrong:        "bold italic",
         Generic.Prompt:            "bold #000080",
         Generic.Output:            "#888",
         Generic.Traceback:         "#04D",

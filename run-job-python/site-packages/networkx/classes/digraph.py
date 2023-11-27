@@ -548,7 +548,7 @@ class DiGraph(Graph):
         """Remove node n.
 
         Removes the node n and all adjacent edges.
-        Attempting to remove a non-existent node will raise an exception.
+        Attempting to remove a nonexistent node will raise an exception.
 
         Parameters
         ----------
@@ -1320,4 +1320,4 @@ class DiGraph(Graph):
             H.add_nodes_from((n, deepcopy(d)) for n, d in self.nodes.items())
             H.add_edges_from((v, u, deepcopy(d)) for u, v, d in self.edges(data=True))
             return H
-        return nx.graphviews.reverse_view(self)
+        return nx.reverse_view(self)

@@ -14,8 +14,8 @@ parser = argparse.ArgumentParser(
                     description='Generates a json file for MR Optimum!\n eros.montin@gmail.com',
                     epilog='cloudmrhub.com')
 
-parser.add_argument('-j','--joptions', type=str, help='optionfile with the backbone of the calculation',default=None)
-parser.add_argument('-r','--run', type=bool, help='optionfile with the backbone of the calculation',default=False)
+parser.add_argument('-j','--joptions', type=str, help='option file directory with the backbone of the calculation',default=None)
+parser.add_argument('-r','--run', type=bool, help='optionfile with the backbone of the calculation',default=True, action=argparse.BooleanOptionalAction)
 
 args = parser.parse_args()
 
@@ -69,13 +69,16 @@ def finalize_choice():
 def set_snr():
     
     SID=SNR.index(snrtype.get())
+    O["SID"]   =SID
+
     O["snrtype"]=SF=generate.SNR_g[SID]
-    
+    #if is not ac or mr place how many replicas do you want though the panl
     if SID>1:
         nr_panel.grid()
 
     if SID>2:
         box_panel.grid()
+        #finally_start the reconstruction panel
     recon_panel.grid()
 
 
@@ -85,12 +88,22 @@ def set_recon():
     # reconstruction function
     RF=generate.RECON_g[RID]
     k=RECON_classes[RID]
+    
     O["reconClass"]=k()
     O["recon"]=RF
-    panel_mimic.grid()
-    print(RID)
-    if RID==4:
+    print(RID,O["SID"])
+    if RID==3:
+        
+        if O["SID"]==0:
+            raise ValueError("Grappa is not compatible with Kellman SNR")
+            root.quit()
         grappa_panel.grid()
+        
+    if O["reconClass"].HasAcceleration:
+        panel_mimic.grid()
+    else:
+        startsignalpanel()
+
    
 def set_accelerations():
     
@@ -123,6 +136,9 @@ def mimic():
             accelerations_panel.grid()
         if K.HasAutocalibration:
             acl_panel.grid()
+    startsignalpanel()
+
+def startsignalpanel():
     file_panel.grid()
 
 root = tk.Tk()
@@ -271,7 +287,7 @@ button.grid(row=0,column=1)
 
 root.mainloop()
 
-
+#generator for the calss
 SF=O['snrtype']
 RF=O["recon"]
 J=generate.start()

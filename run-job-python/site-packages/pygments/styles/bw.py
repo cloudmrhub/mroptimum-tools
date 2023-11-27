@@ -13,7 +13,11 @@ from pygments.token import Keyword, Name, Comment, String, Error, \
      Operator, Generic
 
 
+__all__ = ['BlackWhiteStyle']
+
+
 class BlackWhiteStyle(Style):
+    name = 'bw'
 
     background_color = "#ffffff"
 
@@ -41,6 +45,7 @@ class BlackWhiteStyle(Style):
         Generic.Subheading:        "bold",
         Generic.Emph:              "italic",
         Generic.Strong:            "bold",
+        Generic.EmphStrong:        "bold italic",
         Generic.Prompt:            "bold",
 
         Error:                     "border:#FF0000"
