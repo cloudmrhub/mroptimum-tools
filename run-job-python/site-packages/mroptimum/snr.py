@@ -262,19 +262,22 @@ if __name__=="__main__":
             for im in IMAOUT:
                 O.addBaseName(im["filename"])
                 O.ensureDirectoryExistence()
+                pixeltype='real'
+                if np.iscomplexobj(im["data"]):
+                    pixeltype='complex'
+                    im["data"]=im["data"].astype(np.singlecomplex)
+                    
                 if im["dim"]==3:
                     # saveImage(ima.numpyToImaginable(im["data"]),origin,spacing,direction,O.getPosition())
                     # set nan values to 0
                     im["data"][np.isnan(im["data"])]=0
                     saveImage(ima.numpyToImaginable(im["data"]),origin,spacing,direction,O.getPosition())
                 if im["dim"]==2:
-                    saveImage(ima.numpyToImaginable(np.expand_dims(np.abs(im["data"]),axis=-1)),fn=O.getPosition())
+                    saveImage(ima.numpyToImaginable(np.expand_dims(im["data"],axis=-1)),fn=O.getPosition())
 
                 O.undo()
-              
-                pixeltype='real'
-                if np.iscomplexobj(im["data"]):
-                    pixeltype='complex'
+
+
                 o={'filename':im["filename"],
                 'id':im["id"],
                 'dim':im["dim"],
