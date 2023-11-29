@@ -266,11 +266,13 @@ if __name__=="__main__":
                 if np.iscomplexobj(im["data"]):
                     pixeltype='complex'
                     im["data"]=im["data"].astype(np.singlecomplex)
-                    
+                im["data"][np.isnan(im["data"])]=0
+                im["data"][np.isinf(im["data"])]=0
+
                 if im["dim"]==3:
                     # saveImage(ima.numpyToImaginable(im["data"]),origin,spacing,direction,O.getPosition())
                     # set nan values to 0
-                    im["data"][np.isnan(im["data"])]=0
+                    
                     saveImage(ima.numpyToImaginable(im["data"]),origin,spacing,direction,O.getPosition())
                 if im["dim"]==2:
                     saveImage(ima.numpyToImaginable(np.expand_dims(im["data"],axis=-1)),fn=O.getPosition())
