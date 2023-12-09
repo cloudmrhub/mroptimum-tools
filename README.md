@@ -14,6 +14,10 @@
 | DataUploadFunction | /uploaddatad | Uploads in the cloudmrhubdata bucket |
 | ReadUploadFunction | /readdatad | Gets user data in the cloudmrhubdata |
 | UserAuthorizerFunction | APiGateway | Authorizes the users |
+DeleteFileFuction | /deletedata | (GET) delete file need file_id |
+updateFileFuction | /updatadata | (POST) update file{fileid:xx,filename:xxy}|
+
+
 |---|---|---|
 
 ## Version

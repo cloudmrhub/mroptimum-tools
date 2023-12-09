@@ -40,6 +40,9 @@ Globals:
         PipelineScheduler: !Sub https://${CortexHost}/api/pipeline/request
         PipelineCompleted: !Sub https://${CortexHost}/api/pipeline/completed
         PipelineFailed: !Sub https://${CortexHost}/api/pipeline/failed
+        deleteDataAPI: !Sub https://${CortexHost}/api/data/delete 
+        updateDataAPI: !Sub https://${CortexHost}/api/data/update 
+
 
 Resources:
 
@@ -348,6 +351,54 @@ Resources:
             Auth:
               Authorizer: UserAuthorizer
 
+  DeleteFileFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Zip
+      CodeUri: data-access-python/
+      Handler: app.deleteData
+      Runtime: python3.8
+      Events:
+        DataReadApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref CMAPI
+            Method: get
+            Path: /deletedata
+            Auth:
+              Authorizer: UserAuthorizer
+
+      Policies:
+        - S3FullAccessPolicy:
+            BucketName: !Ref DataBucketPName
+
+      Layers:
+        - arn:aws:lambda:us-east-1:469266894233:layer:Requests_Layer:1
+
+  UpdateFileFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Zip
+      CodeUri: data-access-python/
+      Handler: app.updateData
+      Runtime: python3.8
+      Events:
+        DataReadApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref CMAPI
+            Method: post
+            Path: /updatedata
+            Auth:
+              Authorizer: UserAuthorizer
+
+      Policies:
+        - S3FullAccessPolicy:
+            BucketName: !Ref DataBucketPName
+
+      Layers:
+        - arn:aws:lambda:us-east-1:469266894233:layer:Requests_Layer:1
+
 
   UploadRequestFunctionLayer:
     Type: AWS::Serverless::LayerVersion
@@ -382,6 +433,7 @@ Resources:
 #       AutoDeploy:
 #         Enabled: True
 
+
 Outputs:
   QueueJobApi:
     Description: API Gateway endpoint URL for Prod stage for Queue function
@@ -398,3 +450,9 @@ Outputs:
   UnzipResult:
     Description: "HTTP API endpoint files for Nii direct access"
     Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/Prod/unzip"
+  DeleteData:
+    Description: "HTTP API endpoint files to delete file"
+    Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/Prod/delete"
+  UpdateData:
+    Description: "HTTP API endpoint files for update filename in database"
+    Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/Prod/delete"
