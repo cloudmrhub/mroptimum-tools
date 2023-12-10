@@ -10,7 +10,7 @@ Parameters:
   CortexHost: 
     Type: String
     Description: cm cortex
-    Default: 'cancelit-env.eba-pmamcuv5.us-east-1.elasticbeanstalk.com'
+    Default: 'cancelit-env-1.eba-pmamcuv5.us-east-1.elasticbeanstalk.com'
   JobsBucketPName:
     Type: String
     Description: jobs bucket
@@ -455,4 +455,4 @@ Outputs:
     Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/Prod/delete"
   UpdateData:
     Description: "HTTP API endpoint files for update filename in database"
-    Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/Prod/delete"
+    Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/Prod/update"
