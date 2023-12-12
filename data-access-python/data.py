@@ -9,9 +9,10 @@ deleteDataAPI=os.getenv('deleteDataAPI')
 updateDataAPI=os.getenv('updateDataAPI')
 
 def fixCORS(response):
-    response.headers['Access-Control-Allow-Origin']='*' # This is required to allow CORS
-    response.headers['Access-Control-Allow-Headers']='*' # This is required to allow CORS
-    response.headers['Access-Control-Allow-Methods']='*' # This is required to allow CORS
+    response['headers'] = {}
+    response['headers']['Access-Control-Allow-Origin']='*' # This is required to allow CORS
+    response['headers']['Access-Control-Allow-Headers']='*' # This is required to allow CORS
+    response['headers']['Access-Control-Allow-Methods']='*' # This is required to allow CORS
     return response
 
 def createResponse(body):
@@ -89,7 +90,7 @@ def upload_data(event, context):
                 'Access-Control-Allow-Origin': '*'
             }, "body":"Upload failed for user"}
 
-    
+
 def read_data(event, context):
     s3_client = boto3.client('s3')
     bucket_name = os.environ.get('DataBucketName')
@@ -123,17 +124,17 @@ def read_data(event, context):
             "headers": {
                 'Access-Control-Allow-Origin': '*',
             }, "body":"access failed"}
-    
+
 
 def deleteData(event, context):
     # get data_id from aws api gateway event get
     print("event")
     print(event['queryStringParameters'])
     s3_client = boto3.client('s3')
-    
+
     file_id = event['queryStringParameters'][0]
     if file_id is None:
-        # return "pipeline_id is required" in a json format with anerror code status 
+        # return "pipeline_id is required" in a json format with anerror code status
         return fixCORS({
             'statusCode':405 ,
             'body': json.dumps('data id is required')
@@ -159,15 +160,15 @@ def deleteData(event, context):
 
 def updateData(event, context):
     # get data_id from aws api gateway event get
-    
-    
-    
+
+
+
     body = json.loads(event['body'])
     file_id = body['fileid']
     file_name = body['filename']
-    
+
     if file_id is None:
-        # return "pipeline_id is required" in a json format with anerror code status 
+        # return "pipeline_id is required" in a json format with anerror code status
         return fixCORS({
             'statusCode':405 ,
             'body': json.dumps('data id is required')
@@ -176,11 +177,12 @@ def updateData(event, context):
     headers = event['headers']
     # Get the authorization header.
     print(headers)
-    authorization_header = headers['authorization']
+    authorization_header = headers['Authorization']
     # Get the application and pipeline names.
     url=f'{updateDataAPI}/{file_id}'
     print(url)
     r2=requests.post(url,verify=False, data=json.dumps({"filename":file_name}), headers=getHeadersForRequestsWithToken(event['headers']['Authorization']))
+    print(r2)
     # if the response is not 200, return the error message
     try:
         OUT=json.dumps(r2.json())
