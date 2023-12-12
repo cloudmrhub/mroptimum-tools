@@ -356,7 +356,7 @@ Resources:
     Properties:
       PackageType: Zip
       CodeUri: data-access-python/
-      Handler: app.deleteData
+      Handler: data.deleteData
       Runtime: python3.8
       Events:
         DataReadApiEvent:
@@ -380,7 +380,7 @@ Resources:
     Properties:
       PackageType: Zip
       CodeUri: data-access-python/
-      Handler: app.updateData
+      Handler: data.updateData
       Runtime: python3.8
       Events:
         DataReadApiEvent:
@@ -452,7 +452,7 @@ Outputs:
     Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/Prod/unzip"
   DeleteData:
     Description: "HTTP API endpoint files to delete file"
-    Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/Prod/delete"
+    Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/Prod/deletedata"
   UpdateData:
     Description: "HTTP API endpoint files for update filename in database"
-    Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/Prod/update"
+    Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/Prod/updatedata"
