@@ -132,7 +132,7 @@ def deleteData(event, context):
     print(event['queryStringParameters'])
     s3_client = boto3.client('s3')
 
-    file_id = event['queryStringParameters'][0]
+    file_id = event['queryStringParameters']['fileid']
     if file_id is None:
         # return "pipeline_id is required" in a json format with anerror code status
         return fixCORS({
@@ -143,11 +143,11 @@ def deleteData(event, context):
     headers = event['headers']
     # Get the authorization header.
     print(headers)
-    authorization_header = headers['authorization']
+    authorization_header = headers['Authorization']
     # Get the application and pipeline names.
     url=f'{deleteDataAPI}/{file_id}'
     print(url)
-    r2=requests.get(url,headers=getHeadersForRequestsWithToken(authorization_header))
+    r2=requests.get(url,verify=False,headers=getHeadersForRequestsWithToken(authorization_header))
     # if the response is not 200, return the error message
     try:
         OUT=json.dumps(r2.json())
