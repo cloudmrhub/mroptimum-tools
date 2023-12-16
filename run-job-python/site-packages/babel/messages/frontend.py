@@ -40,22 +40,17 @@ from babel.util import LOCALTZ
 
 log = logging.getLogger('babel')
 
-try:
-    # See: https://setuptools.pypa.io/en/latest/deprecated/distutils-legacy.html
-    from setuptools import Command as _Command
-    distutils_log = log  # "distutils.log → (no replacement yet)"
 
-    try:
-        from setuptools.errors import BaseError, OptionError, SetupError
-    except ImportError:  # Error aliases only added in setuptools 59 (2021-11).
-        OptionError = SetupError = BaseError = Exception
+class BaseError(Exception):
+    pass
 
-except ImportError:
-    from distutils import log as distutils_log
-    from distutils.cmd import Command as _Command
-    from distutils.errors import DistutilsError as BaseError
-    from distutils.errors import DistutilsOptionError as OptionError
-    from distutils.errors import DistutilsSetupError as SetupError
+
+class OptionError(BaseError):
+    pass
+
+
+class SetupError(BaseError):
+    pass
 
 
 def listify_value(arg, split=None):
@@ -100,7 +95,7 @@ def listify_value(arg, split=None):
     return out
 
 
-class Command(_Command):
+class CommandMixin:
     # This class is a small shim between Distutils commands and
     # optparse option parsing in the frontend command line.
 
@@ -128,7 +123,7 @@ class Command(_Command):
     option_choices = {}
 
     #: Log object. To allow replacement in the script command line runner.
-    log = distutils_log
+    log = log
 
     def __init__(self, dist=None):
         # A less strict version of distutils' `__init__`.
@@ -140,24 +135,21 @@ class Command(_Command):
         self.help = 0
         self.finalized = 0
 
+    def initialize_options(self):
+        pass
 
-class compile_catalog(Command):
-    """Catalog compilation command for use in ``setup.py`` scripts.
+    def ensure_finalized(self):
+        if not self.finalized:
+            self.finalize_options()
+        self.finalized = 1
 
-    If correctly installed, this command is available to Setuptools-using
-    setup scripts automatically. For projects using plain old ``distutils``,
-    the command needs to be registered explicitly in ``setup.py``::
-
-        from babel.messages.frontend import compile_catalog
-
-        setup(
-            ...
-            cmdclass = {'compile_catalog': compile_catalog}
+    def finalize_options(self):
+        raise RuntimeError(
+            f"abstract method -- subclass {self.__class__} must override",
         )
 
-    .. versionadded:: 0.9
-    """
 
+class CompileCatalog(CommandMixin):
     description = 'compile message catalogs to binary MO files'
     user_options = [
         ('domain=', 'D',
@@ -174,7 +166,7 @@ class compile_catalog(Command):
         ('use-fuzzy', 'f',
          'also include fuzzy translations'),
         ('statistics', None,
-         'print statistics about translations')
+         'print statistics about translations'),
     ]
     boolean_options = ['use-fuzzy', 'statistics']
 
@@ -254,7 +246,7 @@ class compile_catalog(Command):
                     percentage = translated * 100 // len(catalog)
                 self.log.info(
                     '%d of %d messages (%d%%) translated in %s',
-                    translated, len(catalog), percentage, po_file
+                    translated, len(catalog), percentage, po_file,
                 )
 
             if catalog.fuzzy and not self.use_fuzzy:
@@ -265,7 +257,7 @@ class compile_catalog(Command):
             for message, errors in catalog_errors:
                 for error in errors:
                     self.log.error(
-                        'error: %s:%d: %s', po_file, message.lineno, error
+                        'error: %s:%d: %s', po_file, message.lineno, error,
                     )
 
             self.log.info('compiling catalog %s to %s', po_file, mo_file)
@@ -280,6 +272,7 @@ def _make_directory_filter(ignore_patterns):
     """
     Build a directory_filter function based on a list of ignore patterns.
     """
+
     def cli_directory_filter(dirname):
         basename = os.path.basename(dirname)
         return not any(
@@ -287,24 +280,11 @@ def _make_directory_filter(ignore_patterns):
             for ignore_pattern
             in ignore_patterns
         )
+
     return cli_directory_filter
 
 
-class extract_messages(Command):
-    """Message extraction command for use in ``setup.py`` scripts.
-
-    If correctly installed, this command is available to Setuptools-using
-    setup scripts automatically. For projects using plain old ``distutils``,
-    the command needs to be registered explicitly in ``setup.py``::
-
-        from babel.messages.frontend import extract_messages
-
-        setup(
-            ...
-            cmdclass = {'extract_messages': extract_messages}
-        )
-    """
-
+class ExtractMessages(CommandMixin):
     description = 'extract localizable strings from the project code'
     user_options = [
         ('charset=', None,
@@ -359,10 +339,12 @@ class extract_messages(Command):
          'Separate multiple patterns with spaces (default ".* ._")'),
         ('header-comment=', None,
          'header comment for the catalog'),
+        ('last-translator=', None,
+         'set the name and email of the last translator in output'),
     ]
     boolean_options = [
         'no-default-keywords', 'no-location', 'omit-header', 'no-wrap',
-        'sort-output', 'sort-by-file', 'strip-comments'
+        'sort-output', 'sort-by-file', 'strip-comments',
     ]
     as_args = 'input-paths'
     multiple_value_options = (
@@ -375,9 +357,10 @@ class extract_messages(Command):
         'mapping-file': ('--mapping',),
         'output-file': ('--output',),
         'strip-comments': ('--strip-comment-tags',),
+        'last-translator': ('--last-translator',),
     }
     option_choices = {
-        'add-location': ('full', 'file', 'never',),
+        'add-location': ('full', 'file', 'never'),
     }
 
     def initialize_options(self):
@@ -404,6 +387,7 @@ class extract_messages(Command):
         self.include_lineno = True
         self.ignore_dirs = None
         self.header_comment = None
+        self.last_translator = None
 
     def finalize_options(self):
         if self.input_dirs:
@@ -411,7 +395,7 @@ class extract_messages(Command):
                 self.input_paths = self.input_dirs
             else:
                 raise OptionError(
-                    'input-dirs and input-paths are mutually exclusive'
+                    'input-dirs and input-paths are mutually exclusive',
                 )
 
         keywords = {} if self.no_default_keywords else DEFAULT_KEYWORDS.copy()
@@ -422,14 +406,14 @@ class extract_messages(Command):
 
         if not self.keywords:
             raise OptionError(
-                'you must specify new keywords if you disable the default ones'
+                'you must specify new keywords if you disable the default ones',
             )
 
         if not self.output_file:
             raise OptionError('no output file specified')
         if self.no_wrap and self.width:
             raise OptionError(
-                "'--no-wrap' and '--width' are mutually exclusive"
+                "'--no-wrap' and '--width' are mutually exclusive",
             )
         if not self.no_wrap and not self.width:
             self.width = 76
@@ -438,7 +422,7 @@ class extract_messages(Command):
 
         if self.sort_output and self.sort_by_file:
             raise OptionError(
-                "'--sort-output' and '--sort-by-file' are mutually exclusive"
+                "'--sort-output' and '--sort-by-file' are mutually exclusive",
             )
 
         if self.input_paths:
@@ -497,6 +481,7 @@ class extract_messages(Command):
                 opt_values = ", ".join(f'{k}="{v}"' for k, v in options.items())
                 optstr = f" ({opt_values})"
             self.log.info('extracting messages from %s%s', filepath, optstr)
+
         return callback
 
     def run(self):
@@ -507,7 +492,8 @@ class extract_messages(Command):
                               msgid_bugs_address=self.msgid_bugs_address,
                               copyright_holder=self.copyright_holder,
                               charset=self.charset,
-                              header_comment=(self.header_comment or DEFAULT_HEADER))
+                              header_comment=(self.header_comment or DEFAULT_HEADER),
+                              last_translator=self.last_translator)
 
             for path, method_map, options_map in mappings:
                 callback = self._build_callback(path)
@@ -516,7 +502,7 @@ class extract_messages(Command):
                     extracted = check_and_call_extract_file(
                         path, method_map, options_map,
                         callback, self.keywords, self.add_comments,
-                        self.strip_comments, current_dir
+                        self.strip_comments, current_dir,
                     )
                 else:
                     extracted = extract_from_dir(
@@ -572,38 +558,7 @@ class extract_messages(Command):
         return mappings
 
 
-def check_message_extractors(dist, name, value):
-    """Validate the ``message_extractors`` keyword argument to ``setup()``.
-
-    :param dist: the distutils/setuptools ``Distribution`` object
-    :param name: the name of the keyword argument (should always be
-                 "message_extractors")
-    :param value: the value of the keyword argument
-    :raise `DistutilsSetupError`: if the value is not valid
-    """
-    assert name == 'message_extractors'
-    if not isinstance(value, dict):
-        raise SetupError(
-            'the value of the "message_extractors" '
-            'parameter must be a dictionary'
-        )
-
-
-class init_catalog(Command):
-    """New catalog initialization command for use in ``setup.py`` scripts.
-
-    If correctly installed, this command is available to Setuptools-using
-    setup scripts automatically. For projects using plain old ``distutils``,
-    the command needs to be registered explicitly in ``setup.py``::
-
-        from babel.messages.frontend import init_catalog
-
-        setup(
-            ...
-            cmdclass = {'init_catalog': init_catalog}
-        )
-    """
-
+class InitCatalog(CommandMixin):
     description = 'create a new catalog based on a POT file'
     user_options = [
         ('domain=', 'D',
@@ -662,7 +617,7 @@ class init_catalog(Command):
 
     def run(self):
         self.log.info(
-            'creating catalog %s based on %s', self.output_file, self.input_file
+            'creating catalog %s based on %s', self.output_file, self.input_file,
         )
 
         with open(self.input_file, 'rb') as infile:
@@ -678,23 +633,7 @@ class init_catalog(Command):
             write_po(outfile, catalog, width=self.width)
 
 
-class update_catalog(Command):
-    """Catalog merging command for use in ``setup.py`` scripts.
-
-    If correctly installed, this command is available to Setuptools-using
-    setup scripts automatically. For projects using plain old ``distutils``,
-    the command needs to be registered explicitly in ``setup.py``::
-
-        from babel.messages.frontend import update_catalog
-
-        setup(
-            ...
-            cmdclass = {'update_catalog': update_catalog}
-        )
-
-    .. versionadded:: 0.9
-    """
-
+class UpdateCatalog(CommandMixin):
     description = 'update message catalogs from a POT file'
     user_options = [
         ('domain=', 'D',
@@ -767,7 +706,7 @@ class update_catalog(Command):
             if not self.locale:
                 raise OptionError(
                     'you must specify the locale for '
-                    'the init-missing option to work'
+                    'the init-missing option to work',
                 )
 
             try:
@@ -821,7 +760,7 @@ class update_catalog(Command):
                     check_status[filename] = False
                     continue
                 self.log.info(
-                    'creating catalog %s based on %s', filename, self.input_file
+                    'creating catalog %s based on %s', filename, self.input_file,
                 )
 
                 with open(self.input_file, 'rb') as infile:
@@ -907,14 +846,14 @@ class CommandLineInterface:
         'compile': 'compile message catalogs to MO files',
         'extract': 'extract messages from source files and generate a POT file',
         'init': 'create new message catalogs from a POT file',
-        'update': 'update existing message catalogs from a POT file'
+        'update': 'update existing message catalogs from a POT file',
     }
 
     command_classes = {
-        'compile': compile_catalog,
-        'extract': extract_messages,
-        'init': init_catalog,
-        'update': update_catalog,
+        'compile': CompileCatalog,
+        'extract': ExtractMessages,
+        'init': InitCatalog,
+        'update': UpdateCatalog,
     }
 
     log = None  # Replaced on instance level
@@ -996,12 +935,12 @@ class CommandLineInterface:
         cmdinst = cmdclass()
         if self.log:
             cmdinst.log = self.log  # Use our logger, not distutils'.
-        assert isinstance(cmdinst, Command)
+        assert isinstance(cmdinst, CommandMixin)
         cmdinst.initialize_options()
 
         parser = optparse.OptionParser(
             usage=self.usage % (cmdname, ''),
-            description=self.commands[cmdname]
+            description=self.commands[cmdname],
         )
         as_args = getattr(cmdclass, "as_args", ())
         for long, short, help in cmdclass.user_options:
@@ -1113,7 +1052,8 @@ def parse_mapping(fileobj, filename=None):
 
     return method_map, options_map
 
-def _parse_spec(s: str) -> tuple[int | None, tuple[int|tuple[int, str], ...]]:
+
+def _parse_spec(s: str) -> tuple[int | None, tuple[int | tuple[int, str], ...]]:
     inds = []
     number = None
     for x in s.split(','):
@@ -1124,6 +1064,7 @@ def _parse_spec(s: str) -> tuple[int | None, tuple[int|tuple[int, str], ...]]:
         else:
             inds.append(int(x))
     return number, tuple(inds)
+
 
 def parse_keywords(strings: Iterable[str] = ()):
     """Parse keywords specifications from the given list of strings.
@@ -1171,6 +1112,17 @@ def parse_keywords(strings: Iterable[str] = ()):
             keywords[k] = v[None]
 
     return keywords
+
+
+def __getattr__(name: str):
+    # Re-exports for backwards compatibility;
+    # `setuptools_frontend` is the canonical import location.
+    if name in {'check_message_extractors', 'compile_catalog', 'extract_messages', 'init_catalog', 'update_catalog'}:
+        from babel.messages import setuptools_frontend
+
+        return getattr(setuptools_frontend, name)
+
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 if __name__ == '__main__':

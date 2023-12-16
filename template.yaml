@@ -432,6 +432,57 @@ Resources:
 #
 #       AutoDeploy:
 #         Enabled: True
+  UploadInitiateFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: getSignedURL/
+      Handler: app.handler
+      Runtime: nodejs16.x
+      Environment:
+        Variables:
+          UploadBucket: !Ref DataBucketPName
+      Policies:
+        - S3FullAccessPolicy:
+            BucketName: !Ref DataBucketPName
+        # This permission allows the Lambda function to request signed URLs
+        # for objects that will be publicly readable. Uncomment if you want this ACL.
+      Layers:
+        - !Ref UploadRequestFunctionLayer
+      Events:
+        UploadAssetAPI:
+          Type: Api
+          Properties:
+            Path: /uploadinitiate
+            Method: post
+            RestApiId: !Ref CMAPI
+            Auth:
+              Authorizer: UserAuthorizer
+
+  UploadFinalizeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: getSignedURL/
+      Handler: app.handler
+      Runtime: nodejs16.x
+      Environment:
+        Variables:
+          UploadBucket: !Ref DataBucketPName
+      Policies:
+        - S3FullAccessPolicy:
+            BucketName: !Ref DataBucketPName
+        # This permission allows the Lambda function to request signed URLs
+        # for objects that will be publicly readable. Uncomment if you want this ACL.
+      Layers:
+        - !Ref UploadRequestFunctionLayer
+      Events:
+        UploadAssetAPI:
+          Type: Api
+          Properties:
+            Path: /uploadfinalize
+            Method: post
+            RestApiId: !Ref CMAPI
+            Auth:
+              Authorizer: UserAuthorizer
 
 
 Outputs:
@@ -456,3 +507,9 @@ Outputs:
   UpdateData:
     Description: "HTTP API endpoint files for update filename in database"
     Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/Prod/updatedata"
+  UploadDataInitiate:
+    Description: "HTTP API endpoint files to delete file"
+    Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/Prod/uploadinitiate"
+  UploadDataFinalize:
+    Description: "HTTP API endpoint files for update filename in database"
+    Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/Prod/uploadfinalize"

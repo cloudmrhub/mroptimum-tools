@@ -135,7 +135,7 @@ def sensitivityMapsInner(fn=None,f='/youtpath/to/the/file.dat'):
         "name":"inner",
         "options":{
             "sensitivityMapSource":theK(fn=fn,f=f),
-            "sensitivityMapMethod":"innner",
+            "sensitivityMapMethod":"inner",
             }
         }
 

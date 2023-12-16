@@ -156,7 +156,6 @@ def readMultiRaidNoise(filename,raid=0,avgrep=False,avgave=False,knoise_dwelltim
     if isinstance(slice,str):
         K=[]
         if slice.lower()=='all':
-            K=[]
             for sl in range(L.shape[SL]):
                 print(sl)
                 K.append(np.transpose(L[0,0,0,0,0,0,0,0,0,0,0,sl,0,:,:,:],[2,0,1])*correction_factor   )    
@@ -173,5 +172,5 @@ def exportNoiseFromRaid(filename,outputname,resolution=[1,1,1]):
 
 
 if __name__=="__main__":
-     K=readMultiRaidNoise('/data/MYDATA/SNR_rawdata_examples/2018-07-31_BRAINO_scan/MULTI-RAID-FILE/meas_MID02317_FID373207_AXIAL_2D_GRE_1SL.dat',0,False,False)
+    K=readMultiRaidNoise('tests/meas_MID02317_FID373207_AXIAL_2D_GRE_1SL.dat',slice='all')
     
