@@ -435,7 +435,7 @@ Resources:
   UploadInitiateFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: getSignedURL/
+      CodeUri: uploadInit/
       Handler: app.handler
       Runtime: nodejs16.x
       Environment:
@@ -461,7 +461,7 @@ Resources:
   UploadFinalizeFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: getSignedURL/
+      CodeUri: uploadFinalize/
       Handler: app.handler
       Runtime: nodejs16.x
       Environment:
