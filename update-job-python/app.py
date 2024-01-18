@@ -6,6 +6,11 @@ import os
 os.environ['CURL_CA_BUNDLE'] = ''
 import zipfile
 pipelineAPI =os.getenv('PipelineCompleted')
+pipelineAPIFailed =os.getenv('PipelineFailed')
+
+mroptimum_result=os.getenv("ResultsBucketName","mroptimum-result")
+mroptimum_failed=os.getenv("FailedBucketName","mroptimum-failed")
+
 def getHeadersForRequests():
     return {"Content-Type": "application/json","User-Agent": "My User Agent 1.0","From": "theweblogin@iam.com","Host":os.getenv("Host")}
 
@@ -38,8 +43,19 @@ def lambda_handler(event, context):
     "options":"None",
     "input":"None"
     }
-    url=f'{pipelineAPI}/{pipelineid}'
 
-    r2=requests.post(url, data=json.dumps(data2), headers=getHeadersForRequestsWithToken(token))
+    print(bucket_name)
+    print(mroptimum_result)
+    print(mroptimum_failed)
+
+    if bucket_name==mroptimum_result:
+        url=f'{pipelineAPI}/{pipelineid}'
+        r2=requests.post(url, data=json.dumps(data2), headers=getHeadersForRequestsWithToken(token))
+        print("ok")
+    elif bucket_name==mroptimum_failed:
+        url=f'{pipelineAPIFailed}/{pipelineid}'
+        r2=requests.post(url, data=json.dumps(data2), headers=getHeadersForRequestsWithToken(token))
+        print("failed")
+    print (url)
     R=r2.json()
     print(R)

@@ -23,6 +23,10 @@ Parameters:
     Type: String
     Description: data bucket
     Default: 'mrod'
+  FailedBucketPName:
+    Type: String
+    Description: failed bucket
+    Default: 'mrof'
 
 Globals:
   Function:
@@ -35,6 +39,7 @@ Globals:
         JobBucketName: !Ref JobsBucketPName
         DataBucketName: !Ref DataBucketPName
         ResultsBucketName: !Ref ResultsBucketPName
+        FailedBucketName: !Ref FailedBucketPName
         Host: !Ref CortexHost
         CloudMRApiUrl: !Sub https://${CortexHost}/api
         PipelineScheduler: !Sub https://${CortexHost}/api/pipeline/request
@@ -49,6 +54,11 @@ Resources:
   CMAPI:
     Type: 'AWS::Serverless::Api'
     Properties:
+      Tags:
+        owner: "montie01"
+        mantainer: "montie01"
+        project: "mroptimum"
+        team: "cloudmrhub"
       StageName: Prod
       CacheClusterEnabled: false
       Cors:
@@ -152,6 +162,24 @@ Resources:
       OwnershipControls:
         Rules:
         - ObjectOwnership: BucketOwnerPreferred
+  
+  FailedBucket:
+    Type: 'AWS::S3::Bucket'
+    DeletionPolicy: Delete
+    Properties:
+      BucketName: !Ref FailedBucketPName
+      CorsConfiguration:
+        CorsRules:
+        - AllowedHeaders:
+            - "*"
+          AllowedMethods:
+            - GET
+            - PUT
+            - HEAD
+            - POST
+            - DELETE
+          AllowedOrigins:
+            - "*"
 
   UserAuthorizerFunction:
     Type: AWS::Serverless::Function
@@ -214,6 +242,8 @@ Resources:
             BucketName: !Ref ResultsBucketPName
         - S3FullAccessPolicy:
             BucketName: mytestcmr
+        - S3FullAccessPolicy:
+            BucketName: !Ref FailedBucketPName
 
       Events:
         S3Event:
@@ -240,11 +270,18 @@ Resources:
       Policies:
       - S3FullAccessPolicy:
             BucketName: !Ref ResultsBucketPName
+      - S3FullAccessPolicy:
+            BucketName: !Ref FailedBucketPName
       Events:
         S3ResultsEvent:
           Type: S3
           Properties:
             Bucket: !Ref ResultsBucket
+            Events: s3:ObjectCreated:*
+        S3ResultsEventFailed:
+          Type: S3
+          Properties:
+            Bucket: !Ref FailedBucket
             Events: s3:ObjectCreated:*
 
       Layers:
