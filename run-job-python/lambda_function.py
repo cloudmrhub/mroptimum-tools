@@ -27,7 +27,7 @@ def s3FileTolocal(J, s3=None, pt="/tmp"):
 
 def handler(event, context):
     # connect to the s3
-    L = pn.Log()
+    L = pn.Log("mroptimum lambda function",{ "event": event, "context": context})
     # create a directory for the calculation to be zippedin the end
     O = pn.createRandomTemporaryPathableFromFileName("a.json")
     O.appendPath("OUT")
