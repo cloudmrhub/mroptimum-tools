@@ -57,7 +57,7 @@ Resources:
       Tags:
         owner: "montie01"
         mantainer: "montie01"
-        project: "mroptimum"
+        project: "mroptimum-v1"
         team: "cloudmrhub"
       StageName: Prod
       CacheClusterEnabled: false
@@ -184,6 +184,12 @@ Resources:
   UserAuthorizerFunction:
     Type: AWS::Serverless::Function
     Properties:
+      Tags:
+        owner: "montie01"
+        mantainer: "montie01"
+        project: "mroptimum"
+        version: "v1"
+        team: "cloudmrhub"
       PackageType: Zip
       CodeUri: user-authorizer-python/  # Change this to point to your Python code directory
       Handler: authorizer.lambda_handler  # Assuming your python file is named 'your_python_filename.py'
@@ -205,6 +211,13 @@ Resources:
       Description: >
         This function creates an object defining the job configuration (<pipeline-id>.json) 
         in the jobs bucket. It is triggered by POST /pipeline.
+        
+      Tags:
+        owner: "montie01"
+        mantainer: "montie01"
+        project: "mroptimum"
+        version: "v1"
+        team: "cloudmrhub"
       PackageType: Zip
       CodeUri: queue-job-python/
       Handler: app.lambda_handler
@@ -232,7 +245,16 @@ Resources:
         It should be triggered when an object is created in the jobs bucket.
       PackageType: Image
       Timeout: 900
-      MemorySize: 4096
+      MemorySize: 10240
+      ReservedConcurrentExecutions: 1
+      EphemeralStorage:
+        Size: 10240
+      Tags:
+        owner: "montie01"
+        mantainer: "montie01"
+        project: "mroptimum"
+        version: "v1"
+        team: "cloudmrhub"
       Policies:
         - S3FullAccessPolicy:
             BucketName: !Ref JobsBucketPName

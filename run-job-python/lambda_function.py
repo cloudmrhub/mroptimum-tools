@@ -102,16 +102,17 @@ def handler(event, context):
 
         OUT = O.getPosition()
         L.append(f"output dir set to {OUT}")
-
+        log=pn.createRandomTemporaryPathableFromFileName("a.json").getPosition()
         # run mr optimum
         K = pn.BashIt()
         # -p is for parallel and is set to false because of the lambda number of cores
         K.setCommand(
-            f"python -m mroptimum.snr -j {JO.getPosition()} -o {OUT} --no-parallel {savematlab} {savecoils} {savegfactor} --no-verbose")
+            f"python -m mroptimum.snr -j {JO.getPosition()} -o {OUT} --no-parallel {savematlab} {savecoils} {savegfactor} --no-verbose -l {log}")
         print(K.getCommand())
         K.run()
+        
+        L.appendFullLog(log)
         L.append("the command ran")
-
         Z = pn.createRandomTemporaryPathableFromFileName("a.zip")
         Z.ensureDirectoryExistence()
         print(f"Zipping the file {Z.getPosition()[:-4]}")
