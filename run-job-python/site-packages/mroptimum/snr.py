@@ -204,12 +204,31 @@ if __name__=="__main__":
                 LOG.append(f'sensitivity method is {sensitivitymethod}')
 
             #decimate area
-            mask =False
+            mask =[False]*len(SL)
             if reconstructor().HasSensitivity:
                 SENSOPTIONS=reconstructor_dictionary["options"]["sensitivityMap"]["options"]
+                
                 if "mask" in SENSOPTIONS.keys():
-                    mask=SENSOPTIONS["mask"]
-                LOG.append(f'mask is {mask}')
+                    mask=[SENSOPTIONS["mask"]]*len(SL)
+                    if not isinstance(mask[0],str):
+                        if 'method' in mask[0].keys():
+                            if mask[0]["method"]=='upload':
+                                F=getFile(mask[0]["file"]["options"])
+                                if (pn.Pathable(F).getExtension()=="nii") or (pn.Pathable(F).getExtension()=="nii.gz") or (pn.Pathable(F).getExtension()=="mha") or (pn.Pathable(F).getExtension()=="mhd")  or (pn.Pathable(F).getExtension()=="mat")  or (pn.Pathable(F).getExtension()=="json"): 
+                                    # in this case i am going to read the mask and creating a multi slice 2d mask
+                                    m=ima.Imaginable(F)
+                                    mask=m.getImageAsNumpy()
+                                    mask=mask>0
+                                    mask=mask.astype(np.uint8)
+                                    if len(mask.shape)==2:
+                                        mask=[mask for i in range(len(SL))]
+                                    if len(mask.shape)==3:
+                                        if mask.shape[2]==len(SL):
+                                            mask=[mask[...,i] for i in range(mask.shape[2])]
+                                        elif mask.shape[2]==1:
+                                            mask=[mask for i in range(len(SL))]
+                                
+            LOG.append(f'mask is {mask}')
 
             LOG.append('start the calculation')
         
@@ -223,7 +242,7 @@ if __name__=="__main__":
                     O["reference"]=reference[counter]
                 else:
                     O["reference"]=None
-                O["mask"]=mask
+                O["mask"]=mask[counter]
                 O["mimic"]=mimic
                 if reconstructor().HasAcceleration:
                     O["acceleration"]=acceleration

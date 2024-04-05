@@ -55,11 +55,12 @@ def customizerecontructor(reconstructor,O={}):
     if reconstructor.HasSensitivity or reconstructor.HasAcceleration:
         reconstructor.setReferenceKSpace(reference)
         if "mask" in O.keys():
-            if O["mask"] == False or O["mask"]=="no":
-                reconstructor.setNoMask()
-                LOG.append(f'No mask will be used' )
-            else:
-                reconstructor.setMaskCoilSensitivityMatrix(O["mask"])
+            # if O["mask"] == False or O["mask"]=="no":
+            #     reconstructor.setNoMask()
+            #     LOG.append(f'No mask will be used' )
+            # else:
+                # reconstructor.setMaskCoilSensitivityMatrix(O["mask"])
+            reconstructor.setMaskCoilSensitivityMatrix(O["mask"])
     #noise
     if noise is not None:
         reconstructor.setNoiseKSpace(noise)
@@ -102,8 +103,9 @@ def calcPseudoMultipleReplicasSNR(O):
         M=reconstructor.outputMask.get()
         for a in range(CS.shape[-1]):
             OUT["images"][f"SENSITIVITY_{a:02d}"]={"id":10+a,"dim":3,"name":f"Coils Sensitivity {a:02d}","data":CS[:,:,a],"filename":f'data/sensitivity_{a:02d}.nii.gz',"type":'accessory',"numpyPixelType":CS.dtype.name}
-            if not reconstructor.outputMask.isEmpty():
-                OUT["images"][f"MASK_{a:02d}"]={"id":100+a,"dim":3,"name":f"Coil Sensitivity Mask {a:02d}","data":M[:,:,a],"filename":f'data/mask_{a:02d}.nii.gz',"type":'mask',"numpyPixelType":M.dtype.name}
+        if not reconstructor.outputMask.isEmpty():
+            a=0
+            OUT["images"][f"MASK_{a:02d}"]={"id":100+a,"dim":3,"name":f"Coil Sensitivity Mask {a:02d}","data":M[:,:,a],"filename":f'data/mask_{a:02d}.nii.gz',"type":'mask',"numpyPixelType":M.dtype.name}
         
     if isinstance(reconstructor,cm2DReconSENSE) and O["savegfactor"]:
         reconstructor.__class__=cm2DGFactorSENSE
@@ -139,8 +141,9 @@ def calcPseudoMultipleReplicasSNRWien(O):
         M=reconstructor.outputMask.get()
         for a in range(CS.shape[-1]):
             OUT["images"][f"SENSITIVITY_{a:02d}"]={"id":10+a,"dim":3,"name":f"Coils Sensitivity {a:02d}","data":CS[:,:,a],"filename":f'data/sensitivity_{a:02d}.nii.gz',"type":'accessory',"numpyPixelType":CS.dtype.name}
-            if not reconstructor.outputMask.isEmpty():
-                OUT["images"][f"MASK_{a:02d}"]={"id":100+a,"dim":3,"name":f"Coil Sensitivity Mask {a:02d}","data":M[:,:,a],"filename":f'data/mask_{a:02d}.nii.gz',"type":'mask',"numpyPixelType":M.dtype.name}
+        if not reconstructor.outputMask.isEmpty():
+            a=0
+            OUT["images"][f"MASK_{a:02d}"]={"id":100+a,"dim":3,"name":f"Coil Sensitivity Mask {a:02d}","data":M[:,:,a],"filename":f'data/mask_{a:02d}.nii.gz',"type":'mask',"numpyPixelType":M.dtype.name}
 
     if isinstance(reconstructor,cm2DReconSENSE) and O["savegfactor"]:
         reconstructor.__class__=cm2DGFactorSENSE
@@ -166,8 +169,9 @@ def calcKellmanSNR(O):
         M=reconstructor.outputMask.get()    
         for a in range(CS.shape[-1]):
             OUT["images"][f"SENSITIVITY_{a:02d}"]={"id":10+a,"dim":3,"name":f"Coils Sensitivity {a:02d}","data":CS[:,:,a],"filename":f'data/sensitivity_{a:02d}.nii.gz',"type":'accessory',"numpyPixelType":CS.dtype.name} 
-            if not reconstructor.outputMask.isEmpty():
-                OUT["images"][f"MASK_{a:02d}"]={"id":100+a,"dim":3,"name":f"Coil Sensitivity Mask {a:02d}","data":M[:,:,a],"filename":f'data/mask_{a:02d}.nii.gz',"type":'mask',"numpyPixelType":M.dtype.name}
+        if not reconstructor.outputMask.isEmpty():
+            a=0
+            OUT["images"][f"MASK_{a:02d}"]={"id":100+a,"dim":3,"name":f"Coil Sensitivity Mask {a:02d}","data":M[:,:,a],"filename":f'data/mask_{a:02d}.nii.gz',"type":'mask',"numpyPixelType":M.dtype.name}
 
         
     if isinstance(reconstructor,cm2DReconSENSE) and O["savegfactor"]:
@@ -220,10 +224,11 @@ def calcMultipleReplicasSNR(O):
         # mask
         if reconstructor.HasSensitivity or reconstructor.HasAcceleration:
             if "mask" in O.keys():
-                if O["mask"] == False or O["mask"]=="no":
-                    reconstructor.setNoMask()
-                else:
-                    reconstructor.setMaskCoilSensitivityMatrix(O["mask"])
+                # if O["mask"] == False or O["mask"]=="no":
+                #     reconstructor.setNoMask()
+                # else:
+                    # reconstructor.setMaskCoilSensitivityMatrix(O["mask"])
+                reconstructor.setMaskCoilSensitivityMatrix(O["mask"])
  
         L2.add2DImage(L2.reconstructor.getOutput())
     
@@ -235,8 +240,9 @@ def calcMultipleReplicasSNR(O):
         M=reconstructor.outputMask.get()
         for a in range(CS.shape[-1]):
             OUT["images"][f"SENSITIVITY_{a:02d}"]={"id":10+a,"dim":3,"name":f"Coils Sensitivity {a:02d}","data":CS[:,:,a],"filename":f'data/sensitivity_{a:02d}.nii.gz',"type":'accessory',"numpyPixelType":CS.dtype.name}
-            if not reconstructor.outputMask.isEmpty():
-                OUT["images"][f"MASK_{a:02d}"]={"id":100+a,"dim":3,"name":f"Coil Sensitivity Mask {a:02d}","data":M[:,:,a],"filename":f'data/mask_{a:02d}.nii.gz',"type":'mask',"numpyPixelType":M.dtype.name}
+        if not reconstructor.outputMask.isEmpty():
+            a=0
+            OUT["images"][f"MASK_{a:02d}"]={"id":100+a,"dim":3,"name":f"Coil Sensitivity Mask {a:02d}","data":M[:,:,a],"filename":f'data/mask_{a:02d}.nii.gz',"type":'mask',"numpyPixelType":M.dtype.name}
     
     if isinstance(reconstructor,cm2DReconSENSE) and O["savegfactor"]:
         reconstructor.__class__=cm2DGFactorSENSE
@@ -313,7 +319,7 @@ def getFile(s):
     if (s["type"].lower()=='local'):
         return s["filename"]
     elif (s["type"].lower()=='s3'):
-        T=pn.createRandomTemporaryPathableFromFileName(s["filename"])
+        T=pn.createRandomTemporaryPathableFromFileName(s["filename"]).getPosition()
         with open(T, 'wb') as f:
             s3.download_fileobj(s["bucket"],s["key"], f)
         return T

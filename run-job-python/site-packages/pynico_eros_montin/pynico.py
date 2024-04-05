@@ -154,6 +154,7 @@ class Log:
         if settings is None:
             settings={"author":"Eros Montin","mail":"eros.montin@gmail.com","motto":"Forty-six and two are just ahead of me"}
         self.log=[{"when":self.getFormattedDatetime(self.now),"what":firstmessage,"type":"start","settings":settings,"version":self.version}]
+        self.fn=createRandomTemporaryPathableFromFileName('log.json').getPosition()
     def setTimeFormat(self,f):
         self.format=f
         #  should validate this at some point TODO
@@ -234,7 +235,10 @@ class Log:
     
     def saveLogAs(self,fn):
         return self.writeLogAs(fn)
-    
+    def dump(self,fn=None):
+        if fn is None:
+            fn=self.fn
+        return self.writeLogAs(fn)
 
 
 
