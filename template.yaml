@@ -547,13 +547,68 @@ Resources:
               Authorizer: UserAuthorizer
 
 
+
+  UploadResultsInitiateFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: uploadInit/
+      Handler: app.handler
+      Runtime: nodejs16.x
+      Environment:
+        Variables:
+          UploadBucket: !Ref ResultsBucketPName
+      Policies:
+        - S3FullAccessPolicy:
+            BucketName: !Ref ResultsBucketPName
+        # This permission allows the Lambda function to request signed URLs
+        # for objects that will be publicly readable. Uncomment if you want this ACL.
+      Layers:
+        - !Ref UploadRequestFunctionLayer
+      Events:
+        UploadAssetAPI:
+          Type: Api
+          Properties:
+            Path: /uploadresultsinitiate
+            Method: post
+            RestApiId: !Ref CMAPI
+            Auth:
+              Authorizer: UserAuthorizer
+
+  UploadResultsFinalizeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: uploadFinalize/
+      Handler: app.handler
+      Runtime: nodejs16.x
+      Environment:
+        Variables:
+          UploadBucket: !Ref ResultsBucketPName
+      Policies:
+        - S3FullAccessPolicy:
+            BucketName: !Ref ResultsBucketPName
+        # This permission allows the Lambda function to request signed URLs
+        # for objects that will be publicly readable. Uncomment if you want this ACL.
+      Layers:
+        - !Ref UploadRequestFunctionLayer
+      Events:
+        UploadAssetAPI:
+          Type: Api
+          Properties:
+            Path: /uploadresultsfinalize
+            Method: post
+            RestApiId: !Ref CMAPI
+            Auth:
+              Authorizer: UserAuthorizer
+
+
+
 Outputs:
   QueueJobApi:
     Description: API Gateway endpoint URL for Prod stage for Queue function
-    Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/Prod/pipeline"
+    Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/Prod/pipeline/"
   ReadDataApi:
     Description: API Gateway endpoint URL for Prod stage for ReadData function
-    Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/Prod/readdata"
+    Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/Prod/readdata/"
   UploadData:
     Description: "HTTP API endpoint URL to upload data"
     Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/Prod/uploads"
@@ -575,3 +630,9 @@ Outputs:
   UploadDataFinalize:
     Description: "HTTP API endpoint files for update filename in database"
     Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/Prod/uploadfinalize"
+  UploadResultsInitiate:
+    Description: "HTTP API endpoint files to delete file"
+    Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/Prod/uploadresultsinitiate"
+  UploadResultsFinalize:
+    Description: "HTTP API endpoint files for update filename in database"
+    Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/Prod/uploadresultsfinalize"

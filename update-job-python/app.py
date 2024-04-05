@@ -7,6 +7,7 @@ os.environ['CURL_CA_BUNDLE'] = ''
 import zipfile
 pipelineAPI =os.getenv('PipelineCompleted')
 pipelineAPIFailed =os.getenv('PipelineFailed')
+pipelinescheduleAPI = os.getenv("PipelineScheduler")
 
 mroptimum_result=os.getenv("ResultsBucketName","mroptimum-result")
 mroptimum_failed=os.getenv("FailedBucketName","mroptimum-failed")
@@ -35,7 +36,19 @@ def lambda_handler(event, context):
     J=archive.read('info.json')
     J=json.loads(J)
     token=J["headers"]["options"]["token"]
+    
+    
     pipelineid=J["headers"]["options"]["pipelineid"]
+    
+    if pipelineid==None:
+        application = 'MR Optimum'
+        alias=J["headers"]["options"]["alias"]
+        data2={"application":application,"alias":alias}
+        r2=requests.post(pipelinescheduleAPI, data=json.dumps(data2), headers=getHeadersForRequestsWithToken(token))
+        R=r2.json()
+        pipelineid = R["pipeline"]
+        
+        #write into to the info.json
     data2={
     "results":f"s3://{bucket_name}/{file_key}",
     "output":f"s3://{bucket_name}/{file_key}",
@@ -44,9 +57,7 @@ def lambda_handler(event, context):
     "input":"None"
     }
 
-    print(bucket_name)
-    print(mroptimum_result)
-    print(mroptimum_failed)
+
 
     if bucket_name==mroptimum_result:
         url=f'{pipelineAPI}/{pipelineid}'
