@@ -636,3 +636,7 @@ Outputs:
   UploadResultsFinalize:
     Description: "HTTP API endpoint files for update filename in database"
     Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/Prod/uploadresultsfinalize"
+  MROApi:
+    Description: "HTTP API endpoint files for update filename in database"
+    Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/Prod"
+

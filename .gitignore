@@ -245,12 +245,11 @@ $RECYCLE.BIN/
 
 */node_modules/
 samconfig_.toml
-samconfig.toml
-samconfig.toml
-samconfig.toml
-<<<<<<< HEAD
-run-job-python/Dockerfile
-samconfig.toml
-=======
->>>>>>> todelete
-samconfig.toml
+Frontend/node_modules/
+Frontend/build/
+Frontend/.serverless/
+Frontend/.next/
+Frontend/.env
+Frontend/*.toml
+
+Backend/samconfig.toml
