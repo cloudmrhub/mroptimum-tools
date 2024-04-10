@@ -472,28 +472,6 @@ Resources:
     Metadata:
       BuildMethod: nodejs16.x
 
-#  AmplifyApp:
-#     Type: AWS::Amplify::App
-#     Properties:
-#       Name: AmplifyApp
-#       Description: Amplify deployment for a React frontend on Git.
-#       Repository: https://github.com/cloudmrhub-com/MROptimum-frontend.git
-#       Environment:
-#        Variables:
-#           SIGNIN : 'https://cancelit-env.eba-pmamcuv5.us-east-1.elasticbeanstalk.com/api/auth/login'
-#           SIGNOUT: 'https://cancelit-env.eba-pmamcuv5.us-east-1.elasticbeanstalk.com/api/auth/logout'
-#           DATAAPI: !Ref ReadDataJobApi
-#           DATAUPLODAAPI : !Ref UploadAPIendpointNode
-#            DATA_RENAME_API : ''
-#            DATA_DELETE_API :  ''
-#            JOBS_API : !Ref QueueJobApi
-#            JOBS_RETRIEVE_API : !Ref DownloadAPIendpointNode
-#            JOBS_RENAME_API : ''
-#            JOBS_DELETE_API :  ''
-#            HOST : 'cancelit-env.eba-pmamcuv5.us-east-1.elasticbeanstalk.com'
-#
-#       AutoDeploy:
-#         Enabled: True
   UploadInitiateFunction:
     Type: AWS::Serverless::Function
     Properties:
