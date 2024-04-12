@@ -63,8 +63,8 @@ Resources:
       Description: "Your App Description Here"
       EnableBranchAutoDeletion: false
       EnvironmentVariables:
-        - Name: "API-TOKEN"
-          Value: !Ref ApiToken # REQUEST, POST {"type": (array or string)["mroptimum","upload",'tess'],"token":""}, RESULTS {"api-token":"dedddd"} you want to check if if the results 
+        - Name: "TOKEN-URL"
+          Value: !Ref ApiUrl # REQUEST, POST {"type": (array or string)["mr optimum","upload",'tess'],"token":""}, RESULTS {"api-token":"dedddd"} you want to check if if the results 
         - Name: "CLOUDMR_SERVER"
           Value: !Ref CloudmrServer 
         - Name: "MRO_SERVER"
@@ -112,6 +112,7 @@ Resources:
                 - export const MRO_SERVER = '$MRO_SERVER';
                 - export const PROFILE_SERVER = '$PROFILE_SERVER';
                 - export const API_TOKEN = '$API_TOKEN';
+                - export const API_URL = 'XXXXXXXXXXXXXXXXXXXXXXXXX';
                 - EOF
                 - yarn build
           artifacts:

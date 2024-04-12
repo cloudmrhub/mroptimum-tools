@@ -12,3 +12,7 @@ AWS SAM
 - dev nighly version
 - v1.1 backend and frontend spin from setup.sh
 - v1 backend separated from front end, only backend
+
+
+
+remove queue job from the bakcend template and create as a separate stack so thta api can be easily conrtolled with the token

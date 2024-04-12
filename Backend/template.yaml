@@ -207,6 +207,35 @@ Resources:
 #   # cloudmrhub-jobs bucket.
 #   # The request is authorized using the Authorization header which expects
 #   # a Bearer JWT token. This should get validated with the user db.
+  
+  MrOptmumAPIKey:
+    Type: 'AWS::ApiGateway::ApiKey'
+    Properties:
+      Name: 'mroptimum-api-key'
+      Description: 'API Key for my API'
+      Enabled: true
+
+  MyUsagePlan:
+    Type: 'AWS::ApiGateway::UsagePlan'
+    Properties:
+      ApiStages:
+        - ApiId: !Ref CMAPI
+          Stage: Prod
+      Description: 'Usage plan for my API'
+      Quota:
+        Limit: 5000
+        Period: MONTH
+      Throttle:
+        BurstLimit: 200
+        RateLimit: 100
+
+  MyUsagePlanKey:
+    Type: 'AWS::ApiGateway::UsagePlanKey'
+    Properties:
+      KeyId: !Ref MrOptmumAPIKey
+      KeyType: API_KEY
+      UsagePlanId: !Ref MyUsagePlan
+  
 
   QueueJobFunction:
     Type: AWS::Serverless::Function
@@ -237,6 +266,8 @@ Resources:
             Method: post
             Auth:
               Authorizer: UserAuthorizer
+              ApiKeyRequired: true
+              
       Layers:
         - arn:aws:lambda:us-east-1:469266894233:layer:Requests_Layer:1
 
@@ -617,4 +648,9 @@ Outputs:
   MROApi:
     Description: "HTTP API endpoint files for update filename in database"
     Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/Prod"
+  ApiKey:
+    Description: "API Key"
+    Value: !Ref MrOptmumAPIKey
+    Export:
+      Name: !Sub "${AWS::StackName}-ApiKey"
 
