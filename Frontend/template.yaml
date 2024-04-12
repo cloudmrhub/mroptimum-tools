@@ -18,6 +18,9 @@ Parameters:
   ProfileServer:
     Type: String
     Description: "PROFILE_SERVER" 
+  ApiUrl:
+    Type: String
+    Description: "API_URL"
 
 
 

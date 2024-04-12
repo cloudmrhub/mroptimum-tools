@@ -27,6 +27,17 @@ Parameters:
     Type: String
     Description: failed bucket
     Default: 'mrof'
+  RequestsLayerARN:
+    Type: String
+    Description: ARN of the Lambda layer containing the requests library
+  StageName:
+    Type: String
+    Description: Stage name for the API Gateway
+    Default: Prod
+    AllowedValues:
+      - Prod
+      - Dev
+      - Test
 
 Globals:
   Function:
@@ -62,12 +73,13 @@ Resources:
         status: "dev" # dev/test/prod
         deletabale: "yes" # yes/maybe/check/no
 
-      StageName: Prod
+      StageName: !Ref StageName
       CacheClusterEnabled: false
       Cors:
         AllowMethods: "'POST,GET,PUT,DELETE,OPTIONS'"
         AllowOrigin: "'*'"
         AllowHeaders: "'*'"
+
 
       Auth:
         AddDefaultAuthorizerToCorsPreflight: false
@@ -90,6 +102,7 @@ Resources:
       ResourceGroupName:
         Ref: ApplicationResourceGroup
       AutoConfigurationEnabled: true
+
 
   JobsBucket:
     Type: 'AWS::S3::Bucket'
@@ -197,9 +210,8 @@ Resources:
       CodeUri: user-authorizer-python/  # Change this to point to your Python code directory
       Handler: authorizer.lambda_handler  # Assuming your python file is named 'your_python_filename.py'
       Runtime: python3.8  # Adjust based on your desired Python runtime version
-
       Layers:
-        - arn:aws:lambda:us-east-1:469266894233:layer:Requests_Layer:1
+        - !Ref RequestsLayerARN
 
 #   # This is the function which queues (or schedules) jobs on the pipeline.
 #   #
@@ -207,34 +219,6 @@ Resources:
 #   # cloudmrhub-jobs bucket.
 #   # The request is authorized using the Authorization header which expects
 #   # a Bearer JWT token. This should get validated with the user db.
-  
-  MrOptmumAPIKey:
-    Type: 'AWS::ApiGateway::ApiKey'
-    Properties:
-      Name: 'mroptimum-api-key'
-      Description: 'API Key for my API'
-      Enabled: true
-
-  MyUsagePlan:
-    Type: 'AWS::ApiGateway::UsagePlan'
-    Properties:
-      ApiStages:
-        - ApiId: !Ref CMAPI
-          Stage: Prod
-      Description: 'Usage plan for my API'
-      Quota:
-        Limit: 5000
-        Period: MONTH
-      Throttle:
-        BurstLimit: 200
-        RateLimit: 100
-
-  MyUsagePlanKey:
-    Type: 'AWS::ApiGateway::UsagePlanKey'
-    Properties:
-      KeyId: !Ref MrOptmumAPIKey
-      KeyType: API_KEY
-      UsagePlanId: !Ref MyUsagePlan
   
 
   QueueJobFunction:
@@ -269,7 +253,7 @@ Resources:
               ApiKeyRequired: true
               
       Layers:
-        - arn:aws:lambda:us-east-1:469266894233:layer:Requests_Layer:1
+        - !Ref RequestsLayerARN
 
   RunJobFunction:
     Type: AWS::Serverless::Function
@@ -341,7 +325,7 @@ Resources:
             Events: s3:ObjectCreated:*
 
       Layers:
-        - arn:aws:lambda:us-east-1:469266894233:layer:Requests_Layer:1
+        - !Ref RequestsLayerARN
 
   GetNIIFunction:
     Type: AWS::Serverless::Function
@@ -366,7 +350,7 @@ Resources:
             Auth:
               Authorizer: UserAuthorizer
       Layers:
-        - arn:aws:lambda:us-east-1:469266894233:layer:Requests_Layer:1
+        - !Ref RequestsLayerARN
 
   DataReadFunction:
     Type: AWS::Serverless::Function
@@ -392,7 +376,7 @@ Resources:
         # for objects that will be publicly readable. Uncomment if you want this ACL.
 
       Layers:
-        - arn:aws:lambda:us-east-1:469266894233:layer:Requests_Layer:1
+        - !Ref RequestsLayerARN
 
   UploadRequestFunction:
     Type: AWS::Serverless::Function
@@ -466,7 +450,7 @@ Resources:
             BucketName: !Ref DataBucketPName
 
       Layers:
-        - arn:aws:lambda:us-east-1:469266894233:layer:Requests_Layer:1
+        - !Ref RequestsLayerARN
 
   UpdateFileFunction:
     Type: AWS::Serverless::Function
@@ -490,7 +474,7 @@ Resources:
             BucketName: !Ref DataBucketPName
 
       Layers:
-        - arn:aws:lambda:us-east-1:469266894233:layer:Requests_Layer:1
+        - !Ref RequestsLayerARN
 
 
   UploadRequestFunctionLayer:
@@ -614,43 +598,50 @@ Resources:
 Outputs:
   QueueJobApi:
     Description: API Gateway endpoint URL for Prod stage for Queue function
-    Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/Prod/pipeline"
+    Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/${StageName}/pipeline"
+    
   ReadDataApi:
     Description: API Gateway endpoint URL for Prod stage for ReadData function
-    Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/Prod/readdata"
+    Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/${StageName}/readdata"
   UploadData:
     Description: "HTTP API endpoint URL to upload data"
-    Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/Prod/uploads"
+    Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/${StageName}/uploads"
   DownloadData:
     Description: "HTTP API endpoint URL to download data"
-    Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/Prod/downloads"
+    Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/${StageName}/downloads"
   UnzipResult:
     Description: "HTTP API endpoint files for Nii direct access"
-    Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/Prod/unzip"
+    Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/${StageName}/unzip"
   DeleteData:
     Description: "HTTP API endpoint files to delete file"
-    Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/Prod/deletedata"
+    Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/${StageName}/deletedata"
   UpdateData:
     Description: "HTTP API endpoint files for update filename in database"
-    Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/Prod/updatedata"
+    Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/${StageName}/updatedata"
   UploadDataInitiate:
     Description: "HTTP API endpoint files to delete file"
-    Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/Prod/uploadinitiate"
+    Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/${StageName}/uploadinitiate"
   UploadDataFinalize:
     Description: "HTTP API endpoint files for update filename in database"
-    Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/Prod/uploadfinalize"
+    Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/${StageName}/uploadfinalize"
   UploadResultsInitiate:
     Description: "HTTP API endpoint files to delete file"
-    Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/Prod/uploadresultsinitiate"
+    Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/${StageName}/uploadresultsinitiate"
   UploadResultsFinalize:
     Description: "HTTP API endpoint files for update filename in database"
-    Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/Prod/uploadresultsfinalize"
+    Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/${StageName}/uploadresultsfinalize"
   MROApi:
     Description: "HTTP API endpoint files for update filename in database"
-    Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/Prod"
-  ApiKey:
-    Description: "API Key"
-    Value: !Ref MrOptmumAPIKey
+    Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/${StageName}"
+  ApiId:
+    Description: "API ID"
+    Value: !Ref CMAPI
     Export:
-      Name: !Sub "${AWS::StackName}-ApiKey"
+      Name: !Sub "${AWS::StackName}-ApiId"
+  StageName:
+    Description: "Stage Name"
+    Value: !Ref StageName
+    Export:
+      Name: !Sub "${AWS::StackName}-StageName"
+
 

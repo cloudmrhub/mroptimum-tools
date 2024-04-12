@@ -1,0 +1,89 @@
+
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: An API Gateway usage plan with a rate limit of 100 requests per second
+
+Parameters:
+  StageName:
+    Type: String
+    Default: dev
+    Description: The name of the stage to associate with the usage pla
+  ApiGatewayApi:
+    Type: String
+    Description: The ID of the API Gateway REST API to associate with the usage plan
+
+Resources:
+  ApiGatewayUsagePlan:
+    Type: AWS::ApiGateway::UsagePlan
+    Properties:
+      ApiStages:
+        - ApiId: !Ref ApiGatewayApi
+          Stage: !Ref StageName
+      UsagePlanName: MROPtmumQuota
+      Quota:
+        Limit: 1000
+        Period: MONTH
+      Throttle:
+        BurstLimit: 200
+        RateLimit: 100
+
+
+
+
+  MrOptmumAPIKey:
+    Type: 'AWS::ApiGateway::ApiKey'
+    Properties:
+      Name: 'mroptimum-api-key'
+      Description: 'API Key for my API'
+      Enabled: true
+      GenerateDistinctId: true
+
+          
+
+
+
+
+  MyUsagePlanKey:
+    Type: 'AWS::ApiGateway::UsagePlanKey'
+    Properties:
+      KeyId: !Ref MrOptmumAPIKey
+      KeyType: API_KEY
+      UsagePlanId: !Ref ApiGatewayUsagePlan
+  
+
+Outputs:
+  ApiKey:
+    Description: "API Key"
+    Value: !Ref MrOptmumAPIKey
+  # APiValue:
+  #   Description: "API Value"
+  #   Value: !GetAtt MrOptmumAPIKey.Value
+  # UsagePlanId:
+  #   Description: "Usage Plan ID"
+  #   Value: !Ref ApiGatewayUsagePlan
+  #   Export:
+  #     Name: !Sub ${AWS::StackName}-UsagePlanId
+  # UsagePlanKey:
+
+  #   Description: "Usage Plan Key"
+  #   Value: !Ref MyUsagePlanKey
+  #   Export:
+  #     Name: !Sub ${AWS::StackName}-UsagePlanKey
+
+  # UsagePlanKeyId:
+  #   Description: "Usage Plan Key ID"
+  #   Value: !GetAtt MyUsagePlanKey.Id
+  #   Export:
+  #     Name: !Sub ${AWS::StackName}-UsagePlanKeyId
+
+  # UsagePlanKeyKey:
+  #   Description: "Usage Plan Key Key"
+  #   Value: !GetAtt MyUsagePlanKey.Key
+  #   Export:
+  #     Name: !Sub ${AWS::StackName}-UsagePlanKeyKey
+
+  # UsagePlanKeyKeyType:
+  #   Description: "Usage Plan Key Key Type"
+  #   Value: !GetAtt MyUsagePlanKey.KeyType
+  #   Export:
+  #     Name: !Sub ${AWS::StackName}-UsagePlanKeyKeyType
