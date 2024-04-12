@@ -55,7 +55,7 @@ Resources:
         EnableAutoBranchCreation: true
         EnableAutoBuild: true
         AutoBranchCreationPatterns:
-          - "publish"
+          - "main"
       CustomRules:
         - Source: "/websignin/"
           Status: "200"
@@ -76,7 +76,7 @@ Resources:
           Value: !Ref ProfileServer
         - Name: "API_TOKEN"
           Value: !Ref ApiToken
-      Name: "MROptimum-Frontend-$RANDOM"
+      Name: "MR Optimum"
       Platform: "WEB"
       Repository: "https://github.com/cloudmrhub-com/MROptimum-frontend"
       Tags:
