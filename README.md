@@ -7,6 +7,7 @@
 # Requirements
 AWS cli
 AWS SAM
+jq
 
 # Versions
 - dev nighly version
