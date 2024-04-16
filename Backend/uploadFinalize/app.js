@@ -18,7 +18,7 @@ const HOST = process.env.Host;
 // Main Lambda entry point
 exports.handler = async (event) => {
     const { uploadId, parts, Key } = JSON.parse(event.body);
-    const bucketName = process.env.DataBucketName; // Replace with your bucket name
+    const bucketName = process.env.UploadBucket; // Replace with your bucket name
 
     console.log(bucketName);
     console.log(event.body);
