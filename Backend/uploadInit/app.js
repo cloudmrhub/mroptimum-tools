@@ -63,7 +63,7 @@ async function postMetaData(fileName, fileSize,fileMd5,Key,event){
     const headers = getHeadersForRequestsWithToken(event.headers['Authorization']);
     const payload = {
         filename: fileName,
-        location: JSON.stringify({ Key, Bucket: process.env.DataBucketName }),
+        location: JSON.stringify({ Key, Bucket: process.env.UploadBucket }),
         size: fileSize,
         md5: fileMd5
     };
@@ -95,7 +95,7 @@ const upload_data_init = async (event) => {
          * Core logic of multipart upload initialization starts here
          */
 
-        const bucketName = process.env.DataBucketName;
+        const bucketName = process.env.UploadBucket;
         const partSize = 10 * 1024 * 1024; // 20MB, adjust as needed
         const partCount = Math.ceil(fileSize / partSize);
 
