@@ -129,6 +129,8 @@ Resources:
         CorsRules:
         - AllowedHeaders:
             - "*"
+            - "ETag"  # for large data uploader
+
           AllowedMethods:
             - GET
             - PUT
@@ -162,6 +164,7 @@ Resources:
         CorsRules:
         - AllowedHeaders:
             - "*"
+            - "ETag"  # for large data uploader
           AllowedMethods:
             - GET
             - PUT

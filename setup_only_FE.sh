@@ -72,3 +72,4 @@ sam deploy --template-file build/front/template.yaml --stack-name $FRONTSTACKNAM
 
 FRONTEND_URL=$(aws cloudformation describe-stacks --stack-name $FRONTSTACKNAME --query "Stacks[0].Outputs[?OutputKey=='AmplifyAppDomain'].OutputValue" --output text)
 
+aws amplify update-branch --app-id $APP_ID --branch-name main --environment-variables TOKEN-URL=$API_URL,CLOUDMR_SERVER=$CLOUDMR_SERVER,MRO_SERVER=$MRO_SERVER,PROFILE_SERVER=$PROFILE_SERVER,API_TOKEN=$API_TOKEN
