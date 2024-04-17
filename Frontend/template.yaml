@@ -57,6 +57,7 @@ Resources:
         AutoBranchCreationPatterns:
           - "main"
           - "publish"
+          - "dev"
       CustomRules:
         - Source: "/websignin/"
           Status: "200"
