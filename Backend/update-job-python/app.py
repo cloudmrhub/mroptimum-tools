@@ -57,7 +57,8 @@ def lambda_handler(event, context):
     "input":"None"
     }
 
-
+    
+    
 
     if bucket_name==mroptimum_result:
         url=f'{pipelineAPI}/{pipelineid}'
