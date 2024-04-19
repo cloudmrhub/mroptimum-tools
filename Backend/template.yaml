@@ -496,6 +496,7 @@ Resources:
       Environment:
         Variables:
           UploadBucket: !Ref DataBucketPName
+          PushCortex: True
       Policies:
         - S3FullAccessPolicy:
             BucketName: !Ref DataBucketPName
@@ -550,6 +551,7 @@ Resources:
       Environment:
         Variables:
           UploadBucket: !Ref ResultsBucketPName
+          PushCortex: False
       Policies:
         - S3FullAccessPolicy:
             BucketName: !Ref ResultsBucketPName

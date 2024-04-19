@@ -85,16 +85,17 @@ const upload_data_init = async (event) => {
         const fileSize = body.filesize;
         const fileMd5 = body.filemd5;
         const Key = `${uuidv4()}_${fileName}`;
-
-        let response = await postMetaData(fileName,fileSize, fileMd5,Key,event);
-        if (response.status !== 200) {
-            throw new Error("Failed to save file metadata to cloudmrhub.com");
+        const pushCortex = process.env.PushCortex==='True';
+        let response = undefined;
+        if(pushCortex){
+            response = await postMetaData(fileName,fileSize, fileMd5,Key,event);
+            if (response.status !== 200) {
+                throw new Error("Failed to save file metadata to cloudmrhub.com");
+            }
         }
-
         /**
          * Core logic of multipart upload initialization starts here
          */
-
         const bucketName = process.env.UploadBucket;
         const partSize = 10 * 1024 * 1024; // 20MB, adjust as needed
         const partCount = Math.ceil(fileSize / partSize);
@@ -132,7 +133,7 @@ const upload_data_init = async (event) => {
                 'Access-Control-Allow-Origin': '*'
             },
             body: JSON.stringify({
-                response: response.data,
+                response: response?.data,
                 uploadId,
                 partUrls,
                 Key
