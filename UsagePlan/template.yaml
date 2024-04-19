@@ -27,9 +27,6 @@ Resources:
         BurstLimit: 200
         RateLimit: 100
 
-
-
-
   MrOptmumAPIKey:
     Type: 'AWS::ApiGateway::ApiKey'
     Properties:

@@ -57,6 +57,7 @@ Resources:
         AutoBranchCreationPatterns:
           - "main"
           - "publish"
+          - "dev"
       CustomRules:
         - Source: "/websignin/"
           Status: "200"
@@ -139,3 +140,12 @@ Resources:
 Outputs:
   AmplifyAppDomain:
     Value: !Sub "${PublishBranch.BranchName}.${MROFrontend.DefaultDomain}"
+    Description: "Amplify App Domain"
+    Export:
+      Name: "AmplifyAppDomain"
+
+  AmplifyAppId:
+    Value: !GetAtt MROFrontend.AppId
+    Description: "Amplify App Id"
+    Export:
+      Name: "AmplifyAppId"

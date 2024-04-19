@@ -137,6 +137,8 @@ Resources:
             - DELETE
           AllowedOrigins:
             - "*"
+          ExposedHeaders:
+            - "ETag"
       PublicAccessBlockConfiguration:
         BlockPublicAcls: false
         BlockPublicPolicy: false
@@ -170,6 +172,9 @@ Resources:
             - DELETE
           AllowedOrigins:
             - "*"
+          ExposedHeaders:
+            - "ETag"
+
       PublicAccessBlockConfiguration:
         BlockPublicAcls: false
         BlockPublicPolicy: false
@@ -196,6 +201,8 @@ Resources:
             - DELETE
           AllowedOrigins:
             - "*"
+          ExposedHeaders:
+            - "ETag"
 
   UserAuthorizerFunction:
     Type: AWS::Serverless::Function
@@ -601,6 +608,8 @@ Outputs:
   QueueJobApi:
     Description: API Gateway endpoint URL for Prod stage for Queue function
     Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/${StageName}/pipeline"
+    Export:
+      Name: !Sub "${AWS::StackName}-QueueJobApi"
     
   ReadDataApi:
     Description: API Gateway endpoint URL for Prod stage for ReadData function
