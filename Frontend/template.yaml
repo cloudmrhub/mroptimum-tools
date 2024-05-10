@@ -1,14 +1,11 @@
 AWSTemplateFormatVersion: '2010-09-09'
 
+
 Parameters:
-  GithubToken: 
+  GithubToken:
     Type: String
     Description: access token to github
     Default: xxxx # should be read from the main stack template parameter
-
-  ApiToken:
-    Type: String
-    Description: "API-TOKEN"
   CloudmrServer:
     Type: String
     Description: "CLOUDMR_SERVER"
@@ -17,10 +14,13 @@ Parameters:
     Description: "MRO_SERVER"
   ProfileServer:
     Type: String
-    Description: "PROFILE_SERVER" 
+    Description: "PROFILE_SERVER"
   ApiUrl:
     Type: String
     Description: "API_URL"
+  ApiToken:
+    Type: String
+    Description: "API_TOKEN"
 
 
 
@@ -55,8 +55,7 @@ Resources:
         EnableAutoBranchCreation: true
         EnableAutoBuild: true
         AutoBranchCreationPatterns:
-          - "main"
-          - "publish"
+          - "stable"
           - "dev"
       CustomRules:
         - Source: "/websignin/"
@@ -68,14 +67,14 @@ Resources:
       Description: "Your App Description Here"
       EnableBranchAutoDeletion: false
       EnvironmentVariables:
-        - Name: "TOKEN-URL"
-          Value: !Ref ApiUrl # REQUEST, POST {"type": (array or string)["mr optimum","upload",'tess'],"token":""}, RESULTS {"api-token":"dedddd"} you want to check if if the results 
         - Name: "CLOUDMR_SERVER"
-          Value: !Ref CloudmrServer 
+          Value: !Ref CloudmrServer
         - Name: "MRO_SERVER"
           Value: !Ref MroServer
         - Name: "PROFILE_SERVER"
           Value: !Ref ProfileServer
+        - Name: "API_URL"
+          Value: !Ref ApiUrl # REQUEST, POST {"type": (array or string)["mr optimum","upload",'tess'],"token":""}, RESULTS {"api-token":"dedddd"} you want to check if if the results
         - Name: "API_TOKEN"
           Value: !Ref ApiToken
       Name: "MR Optimum"
@@ -95,14 +94,15 @@ Resources:
         - Key: "deletable"
           Value: "check"
 
-  PublishBranch:
+
+  StableBranch:
     Type: AWS::Amplify::Branch
     Properties:
       AppId: !GetAtt MROFrontend.AppId
-      BranchName: "publish"
+      BranchName: "stable"
       EnableAutoBuild: true
       EnablePullRequestPreview: true
-  
+
       BuildSpec: |
         version: 1
         frontend:
@@ -117,7 +117,7 @@ Resources:
                 - export const MRO_SERVER = '$MRO_SERVER';
                 - export const PROFILE_SERVER = '$PROFILE_SERVER';
                 - export const API_TOKEN = '$API_TOKEN';
-                - export const API_URL = 'XXXXXXXXXXXXXXXXXXXXXXXXX';
+                - export const API_URL = '$API_URL';
                 - EOF
                 - yarn build
           artifacts:
@@ -129,17 +129,20 @@ Resources:
               - node_modules/**/*
       Framework: "WEB"
       Stage: "PRODUCTION"
-      EnvironmentVariables:
-        - Name: "CLOUDMR_SERVER"
-          Value: !Ref CloudmrServer #read from cmr output
-        - Name: "MRO_SERVER"
-          Value: !Ref MroServer 
-        - Name: "PROFILE_SERVER"
-          Value: !Ref ProfileServer
+
+  DevBranch:
+    Type: AWS::Amplify::Branch
+    Properties:
+      AppId: !GetAtt MROFrontend.AppId
+      BranchName: "dev"
+      EnableAutoBuild: true
+      EnablePullRequestPreview: false
+      # Omit API loading for dev branch to allow testing of new server rotues
+      Framework: "WEB"
 
 Outputs:
   AmplifyAppDomain:
-    Value: !Sub "${PublishBranch.BranchName}.${MROFrontend.DefaultDomain}"
+    Value: !Sub "${StableBranch.BranchName}.${MROFrontend.DefaultDomain}"
     Description: "Amplify App Domain"
     Export:
       Name: "AmplifyAppDomain"
