@@ -271,7 +271,7 @@ Resources:
       PackageType: Image
       Timeout: 900
       MemorySize: 10240
-      ReservedConcurrentExecutions: 1
+      ReservedConcurrentExecutions: 300
       EphemeralStorage:
         Size: 10240
       Tags:

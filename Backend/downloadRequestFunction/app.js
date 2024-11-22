@@ -113,7 +113,10 @@ const download_data = async (event) => {
             setup: undefined,
             pipeline_id:pipeline.pipeline,
             files: [await createUploadedFile(`${pipeline.alias}_results`,pipeline.results,pipeline.created_at,pipeline.updated_at),
-                await createUploadedFile(`${pipeline.alias}_output`,pipeline.output,pipeline.created_at,pipeline.updated_at)]
+                // await createUploadedFile(`${pipeline.alias}_output`,pipeline.output,pipeline.created_at,pipeline.updated_at)]
+                await createUploadedFile( `${pipeline.alias.replace(/\s/g, "")}_output`,pipeline.output,pipeline.created_at,pipeline.updated_at)]
+               
+
         })
     }
 

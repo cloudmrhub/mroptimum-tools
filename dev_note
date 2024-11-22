@@ -1,0 +1,6 @@
+
+remove queue job from the bakcend template and create as a separate stack so that api can be easily conrtolled with the token
+
+
+TOKEN_URL
+request: {'app':'MR Optimum', activities:['queue','upload']} --> {'activities':['token','token2']}
