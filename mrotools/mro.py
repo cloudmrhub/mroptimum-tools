@@ -1,7 +1,17 @@
-from cmrtools.cm2D import *
-import cmrtools.cm as cm
+from cmtools.cm2D import *
+import cmtools.cm as cm
 import multiprocessing as mlp
 from pynico_eros_montin import pynico as pn
+
+
+from cmtools.cm2D import cm2DKellmanRSS as mroArrayCombiningRSS
+from cmtools.cm2D import cm2DKellmanB1 as mroArrayCombiningB1
+from cmtools.cm2D import cm2DKellmanSENSE as mroArrayCombiningSENSE
+
+from cmtools.cm2D import cm2DSignalToNoiseRatioMultipleReplicas as mroMultipleReplicas
+from cmtools.cm2D import cm2DSignalToNoiseRatioPseudoMultipleReplicas as mroPseudoMultipleReplicas
+from cmtools.cm2D import cm2DSignalToNoiseRatioPseudoMultipleReplicasWein as mroPseudoMultipleReplicasWein
+
 
 
 def saveImage(x,origin=None,spacing=None,direction=None,fn=None):
@@ -475,7 +485,7 @@ def getKSpace(s,slice=0):
 
 
 
-import cloudmrhub.cm2D as cm2D    
+import cmtools.cm2D as cm2D    
 def calculteNoiseCovariance(NOISE,verbose=False):
     # N is an array of 2d slices f,p,c
     NN=cm2D.cm2DRecon()
