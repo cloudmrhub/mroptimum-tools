@@ -61,6 +61,9 @@ pip install git+https://github.com/cloudmrhub/mroptimum-tools.git
 
 ---
 
+# Live Example
+https://colab.research.google.com/drive/1-8wcaS9IBZ5aCcLvwY6D3mhwcNxlJr4y?usp=sharing
+
 # **Versioning**
 
 The **MR Optimum** package has two versions:
