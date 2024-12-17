@@ -15,7 +15,7 @@ def saveImage(x,origin=None,spacing=None,direction=None,fn=None):
 
 
 
-PKG=['mroptimum-tools','cloudmr-tools','pynico_eros_montin','cmrawspy','pygrappa','twixtools','numpy','scipy','matplotlib','pydicom','SimpleITK','PIL','pyable_eros_montin','multiprocessing']
+PKG=['mroptimum-tools','cloudmr-tools','pynico_eros_montin','pygrappa','twixtools','numpy','scipy','matplotlib','pydicom','SimpleITK','PIL','pyable_eros_montin','multiprocessing']
 
 def getPackagesVersion():
     return pn.getPackagesVersion(PKG)

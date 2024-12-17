@@ -8,23 +8,14 @@ try:
 except:
     from mroptimum.mro import *
     V="pip"
-import cloudmrhub.cm2D as cm2D
+import cmrtools.cm2D as cm2D
 
 
-import cloudmrhub.cm as cm
+import cmrtools.cm as cm
 import os
 
 #read debug from environment and put it to false if not present
 debug=os.getenv('DEBUG',False)
-
-
-
-
-def saveMatlab(fn,vars):
-    J=dict()
-    for k in vars:
-        J[k["name"].replace(" ","")]=k["data"]
-    scipy.io.savemat(fn,J)
    
 def getAccellerationInfo2D(s,raid=1):
     N=pn.Pathable(getFile(s["options"]))
