@@ -23,7 +23,7 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
-dependencies = ["matplotlib","scipy","Pillow","cloudmr-tools @ git+https://github.com/cloudmrhub/cloudmr-tools.git","raider_eros_montin @ git+https://github.com/erosmontin/raider.git","pynico_eros_montin @ git+https://github.com/erosmontin/pynico.git","pyable_eros_montin @ git+https://github.com/erosmontin/pyable.git"]
+dependencies = ["matplotlib","scipy","Pillow","cmtools @ git+https://github.com/cloudmrhub/cloudmr-tools.git","raider_eros_montin @ git+https://github.com/erosmontin/raider.git","pynico_eros_montin @ git+https://github.com/erosmontin/pynico.git","pyable_eros_montin @ git+https://github.com/erosmontin/pyable.git"]
 
 [project.urls]
 "Homepage" = "https://github.com/cloudmrhub/mroptimum-tools"
