@@ -9,7 +9,7 @@ mrotools/dev*
 mrotools/link_rawdata_examples
 mrotools/t.py
 _data/
-__pycache__/
+__pycache__
 *.egg-info
 *.egg
 *.log
@@ -17,8 +17,7 @@ __pycache__/
 *.nii.gz
 *.npz
 *.pyc
-.vscode/
-__pycache__/
 
 
+.vscode
 mrotools/link_rawdata_examples

@@ -1,5 +1,5 @@
-from cloudmrhub.cm2D import *
-import cloudmrhub.cm as cm
+from cmrtools.cm2D import *
+import cmrtools.cm as cm
 import multiprocessing as mlp
 from pynico_eros_montin import pynico as pn
 
@@ -15,7 +15,7 @@ def saveImage(x,origin=None,spacing=None,direction=None,fn=None):
 
 
 
-PKG=['mroptimum','cloudmrhub','pynico_eros_montin','cmrawspy','pygrappa','twixtools','numpy','scipy','matplotlib','pydicom','SimpleITK','PIL','pyable_eros_montin','multiprocessing']
+PKG=['mroptimum-tools','cloudmr-tools','pynico_eros_montin','cmrawspy','pygrappa','twixtools','numpy','scipy','matplotlib','pydicom','SimpleITK','PIL','pyable_eros_montin','multiprocessing']
 
 def getPackagesVersion():
     return pn.getPackagesVersion(PKG)

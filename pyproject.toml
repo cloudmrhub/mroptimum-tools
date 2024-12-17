@@ -6,13 +6,13 @@ build-backend = "hatchling.build"
 allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
-include = ["**/*.py"]
+include = ["**/*.py","**/*.pkl"]
 
 [project]
-name = "mroptimum"
-version = "0.9.9.5"
+name = "mrotools"
+version = "2.0.0.0"
 license = "MIT"
-description = "SNR and Recon"
+description = "SNR Tools"
 authors = [
   { name="Dr. Eros Montin, PhD", email="eros.montin@gmail.com" },
 ]
@@ -23,8 +23,8 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
-dependencies = ["boto3","matplotlib","scipy","Pillow","cloudmrhub @ git+https://github.com/cloudmrhub-com/cloudmrhub.git","raider_eros_montin @ git+https://github.com/erosmontin/raider.git","pynico_eros_montin @ git+https://github.com/erosmontin/pynico.git","pyable_eros_montin @ git+https://github.com/erosmontin/pyable.git"]
+dependencies = ["boto3","matplotlib","scipy","Pillow","cloudmrhub-tools @ git+https://github.com/cloudmrhub/cloudmr-tools.git","raider_eros_montin @ git+https://github.com/erosmontin/raider.git","pynico_eros_montin @ git+https://github.com/erosmontin/pynico.git","pyable_eros_montin @ git+https://github.com/erosmontin/pyable.git"]
 
 [project.urls]
-"Homepage" = "https://github.com/cloudmrhub-com/mroptimum"
-"Bug Tracker" = "https://github.com/cloudmrhub-com/mroptimum/issues"
+"Homepage" = "https://github.com/cloudmrhub/mroptimum-tools"
+"Bug Tracker" = "https://github.com/cloudmrhub/mroptimum-tools/issues"

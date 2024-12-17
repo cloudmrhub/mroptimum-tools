@@ -1,43 +1,29 @@
 # MR Optimum
+![License](https://img.shields.io/github/license/cloudmrhub/mroptimum-tools)
+![GitHub last commit](https://img.shields.io/github/last-commit/cloudmrhub/mroptimum-tools)
+![GitHub issues](https://img.shields.io/github/issues/cloudmrhub/mroptimum-tools)
+![GitHub forks](https://img.shields.io/github/forks/cloudmrhub/mroptimum-tools)
+![GitHub stars](https://img.shields.io/github/stars/cloudmrhub/mroptimum-tools)
 
+**MR Optimum** provides tools for advanced signal-to-noise ratio (SNR) estimation and image reconstruction methods for Magnetic Resonance Imaging (MRI). It is designed for researchers and developers to efficiently perform SNR calculations, reconstructions, and custom pipeline configurations.
 
+## Quickstart
+Run an SNR calculation using a JSON configuration:
 
-# Cite Us
-
-Montin E, Lattanzi R. Seeking a Widely Adoptable Practical Standard to Estimate Signal-to-Noise Ratio in Magnetic Resonance Imaging for Multiple-Coil Reconstructions. J Magn Reson Imaging. 2021 Dec;54(6):1952-1964. doi: 10.1002/jmri.27816. Epub 2021 Jul 4. PMID: 34219312; PMCID: PMC8633048.
-
-# Installation
-```
-pip install git+https://github.com/cloudmrhub-com/mroptimum.git
-
-```
-
-# Suggestions
-```
-#create an environment 
-python3 -m venv MRO
-source MRO/bin/activate
-pip install git+https://github.com/cloudmrhub-com/mroptimum.git
-```
-# Example
-
-
-## Run an snr calculation
-```
-python -m mroptimum.snr -j /g/as.json -o /g/_MR/ -c True -g True -v True -m True
+```bash
+python -m mroptimum.snr -j /path/to/config.json -o /output/path/ -c True -g True -v True -m True
 ```
 
-# Json configuraiton file
+### Example JSON Configuration
 ```json
 {
-    {
     "version": "v0",
     "acquisition": 2,
     "type": "SNR",
     "id": 2,
     "name": "PMR",
     "options": {
-        "NR":20,
+        "NR": 20,
         "reconstructor": {
             "type": "recon",
             "name": "GRAPPA",
@@ -46,134 +32,79 @@ python -m mroptimum.snr -j /g/as.json -o /g/_MR/ -c True -g True -v True -m True
                 "noise": {
                     "type": "file",
                     "options": {
-                        "type": "local",
                         "filename": "/data/PROJECTS/mroptimum/_data/noise.dat",
-                        "options": {},
-                        "multiraid": false,
                         "vendor": "Siemens"
                     }
                 },
                 "signal": {
                     "type": "file",
                     "options": {
-                        "type": "local",
                         "filename": "/data/PROJECTS/mroptimum/_data/signal.dat",
-                        "options": {},
-                        "multiraid": false,
                         "vendor": "Siemens"
                     }
-                },
-                "sensitivityMap": {
-                    
-                    }
-                },
-                "decimate": true,
-                "accelerations": [
-                    1,
-                    2
-                ],
-                "acl": [
-                    20,
-                    20
-                ],
-                
-                "kernelSize" : [4,4]
+                }
             }
         }
     }
 }
-
-}
-
 ```
-## MASK FIELD
 
-1. "mask":"no"
+---
 
-1. "mask":{"method":"reference"} recon>(mean(recon)-sts)
-
-1. no field "mask" => no 
-
-1. "mask":{
-    "method":'espirit',
-    "k":8,
-    "r":24,
-    "t":0.01,
-    "c":0.995
-}
-
-1. "mask":{
-    "method":'threshold',
-    "value": 0.0001
-} 
-Sensititvity Mask = Sum Of Squres Reconstruction > mask["value"]
-
-1. "mask":{
-    "method":'percentagemean',
-    "value":
-} 
-Sensitivity Mask = Sum Of Squres Reconstruction> (np.mean(Sum OfSqures Reconstruction)*mask["value"])
-
-1. "mask":{
-    "method":'percentage',
-    "value":20
-} 
-Sensitivity Mask = Sum Of Squres Reconstruction> > (np.max(Sum Of Squres Reconstruction>)*float(mask["value"])/100.0)
-
-## Create a Json Options file
-
+# Installation
 ```
-python -m mroptimum.generate -d 2 -s pmr -r sense -o /g/as.json
+#create an environment 
+python3 -m venv MRO
+source MRO/bin/activate
+pip install git+https://github.com/cloudmrhub/mroptimum-tools.git
 ```
-a collection of json customization file can be found [here](https://github.com/cloudmrhub-com/mroptimum/tree/main/mroptimum/collections)
 
+---
 
-## IDS
+# **Versioning**
 
-### Image Reconstructions
-| ID | Reconstruction Name |
-|---|---|
-| 0 | RSS|
-|1 | B1|
-|2| SENSE|
-| 3 | GRAPPA |
+The **MR Optimum** package has two versions:
 
+### **V1 (Deprecated)**
+- **Name:** `mroptimum`
+- **Status:** Deprecated, but still functional for backward compatibility. (v1 branch)
+- **Details:** This version is no longer actively maintained and will not receive updates or bug fixes.
+- **Installation:**
+  ```bash
+  pip install git+https://github.com/cloudmrhub/mroptimum-tools.git@v1
+  ```
 
-### SNR Reconstructions
-| ID | SNR Methods |
-|---|---|
-| 0 | Analytical (AC)|
-|1 | Multiple Replicas (MR)|
-|2| Pseudo Multiple Replicas (PMR)|
-| 3 | Pseudo Multiple Replicas Wien (CR) |
+### **Version 2 (Current)**
+- **Name:** `mroptimum-tools`
+- **Status:** Actively maintained (main branch).
+- **Details:** This is the recommended version for new projects. It includes updated functionality, GUI tools, and expanded features.
+- **Installation:**
+  ```bash
+  pip install git+https://github.com/cloudmrhub/mroptimum-tools.git
+  ```
 
+---
 
-### Output
-| ID | Name |
-|---|---|
-|0 | SNR|
-| 1 | Noise Covariance Matrix|
-| 2 | Noise Coefficient Matrix|
-| 3 | Inverse G Factor|
-| 4 | G Factor|
-| >=10 |Coil Sensitivities Maps |
-| >=100 |Coil Sensitivities Mask |
+## **Key Differences**
+| Feature                 | Version 1 (`v1`)             | Version 2 (`main`)          |
+|-------------------------|------------------------------|-----------------------------|
+| Maintenance             | Deprecated                  | Actively maintained         |
+| Compatibility           | Legacy projects             | New and legacy projects     |
+| Features                | Limited                     | GUI tools, expanded options |
+---
 
+## **Migration**
+If you're currently using **Version 1**, consider migrating to **Version 2** to take advantage of the latest features and updates.
 
+---
 
-# Roadmap
-- v1.2:
-    - ismrmrd
-- [] v1:
-    - [x] matlab save
-    - [x] coilsens out
-    - [x] generate-gui
-    - [x] multislice
-    - [x] single slice evaluation
+# Contributors
+[*Dr. Eros Montin, PhD*](http://me.biodimensional.com)\
+[![GitHub](https://img.shields.io/badge/GitHub-erosmontin-blue)](https://github.com/erosmontin)\
+[![ORCID](https://img.shields.io/badge/ORCID-0000--0002--1773--0064-green)](https://orcid.org/0000-0002-1773-0064)\
+[![Scopus](https://img.shields.io/badge/Scopus-35604121500-orange)](https://www.scopus.com/authid/detail.uri?authorId=35604121500)
 
-
-
-
-[*Dr. Eros Montin, PhD*](http://me.biodimensional.com)
-
-**46&2 just ahead of me!**
+[*Prof. Riccardo Lattanzi*](https://med.nyu.edu/faculty/riccardo-lattanzi)\
+[![GitHub](https://img.shields.io/badge/GitHub-rlattanzi-blue)](https://github.com/rlattanzi)\
+[![ORCID](https://img.shields.io/badge/ORCID-0000--0002--8240--5903-green)](https://orcid.org/0000-0002-8240-5903)\
+[![Scopus](https://img.shields.io/badge/Scopus-6701330033-orange)](https://www.scopus.com/authid/detail.uri?authorId=6701330033)
