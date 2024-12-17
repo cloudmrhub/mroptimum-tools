@@ -5,8 +5,17 @@
 MRO/
 docs/
 dist/
-mroptimum/dev*
-mroptimum/link_rawdata_examples
-mroptimum/t.py
-_data
+mroptimum-tools/dev*
+mroptimum-tools/link_rawdata_examples
+mroptimum-tools/t.py
+_data/
+__pycache__/
+*.egg-info
+*.egg
+*.log
+*.nii
+*.nii.gz
+*.npz
+*.pyc
+
 
