@@ -301,30 +301,10 @@ def rT(t,counter=None):
     return t.getOutput()
 
 
-import boto3
 
-s3 = boto3.client('s3')
-
-
-def getFile(s):
-    """
-    
-    Args:
-        s (_type_): _description_
-    
-    Returns:
-      fn (str): position of the file in the local filesystem
-
-    """
-    if (s["type"].lower()=='local'):
-        return s["filename"]
-    elif (s["type"].lower()=='s3'):
-        T=pn.createRandomTemporaryPathableFromFileName(s["filename"]).getPosition()
-        with open(T, 'wb') as f:
-            s3.download_fileobj(s["bucket"],s["key"], f)
-        return T
-    else:
-        raise Exception("I can't get this file modality")
+import cmtools as cm
+def getFile(s,s3=None):
+    return cm.getCMFile(s,s3)
 
 import twixtools
 import numpy as np
