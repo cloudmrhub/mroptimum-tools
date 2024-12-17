@@ -8,7 +8,7 @@ dist/
 mroptimum-tools/dev*
 mroptimum-tools/link_rawdata_examples
 mroptimum-tools/t.py
-_data/
+_data
 __pycache__/
 *.egg-info
 *.egg
@@ -17,5 +17,6 @@ __pycache__/
 *.nii.gz
 *.npz
 *.pyc
+.vscode/
 
 
