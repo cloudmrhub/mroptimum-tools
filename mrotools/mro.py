@@ -10,7 +10,7 @@ from cmtools.cm2D import cm2DKellmanSENSE as mroArrayCombiningSENSE
 
 from cmtools.cm2D import cm2DSignalToNoiseRatioMultipleReplicas as mroMultipleReplicas
 from cmtools.cm2D import cm2DSignalToNoiseRatioPseudoMultipleReplicas as mroPseudoMultipleReplicas
-from cmtools.cm2D import cm2DSignalToNoiseRatioPseudoMultipleReplicasWein as mroPseudoMultipleReplicasWein
+from cmtools.cm2D import cm2DSignalToNoiseRatioPseudoMultipleReplicasWein as mroGeneralizedPseudoMultipleReplicas
 
 
 
