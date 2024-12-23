@@ -4,14 +4,6 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-
-        
-
-        
-
-
-
-
         {
             "name": "RYAN",
             "type": "python",
@@ -55,7 +47,7 @@
             "justMyCode": true,
             "args": [
                 "-j",
-                "mroptimum/collections/AC/rss_settings.json",
+                "mrotools/collections/AC/rss_settings.json",
                 "-o",
                 "/g/SNR/AC/RSS/",
                 "--no-coilsens",
@@ -74,7 +66,7 @@
             "justMyCode": true,
             "args": [
                 "-j",
-                "mroptimum/collections/AC/b1_settings.json",
+                "mrotools/collections/AC/b1_settings.json",
                 "-o",
                 "/g/SNR/AC/B1/",
                 "--coilsens",
@@ -93,7 +85,7 @@
             "justMyCode": true,
             "args": [
                 "-j",
-                "mroptimum/collections/AC/sense_settings.json",
+                "mrotools/collections/AC/sense_settings.json",
                 "-o",
                 "/g/SNR/AC/senseACL/",
                 "--coilsens",
@@ -112,7 +104,7 @@
             "justMyCode": true,
             "args": [
                 "-j",
-                "mroptimum/collections/AC/sense_real_settings.json",
+                "mrotools/collections/AC/sense_real_settings.json",
                 "-o",
                 "/g/SNR/AC/senseRealdataACL/",
                 "--coilsens",
@@ -131,7 +123,7 @@
             "justMyCode": true,
             "args": [
                 "-j",
-                "mroptimum/collections/PMR/rss_settings.json",
+                "mrotools/collections/PMR/rss_settings.json",
                 "-o",
                 "/g/SNR/PMR/RSS/",
                 "--no-coilsens",
@@ -150,7 +142,7 @@
             "justMyCode": true,
             "args": [
                 "-j",
-                "mroptimum/collections/PMR/b1_settings.json",
+                "mrotools/collections/PMR/b1_settings.json",
                 "-o",
                 "/g/SNR/PMR/B1/",
                 "--coilsens",
@@ -169,7 +161,7 @@
             "justMyCode": true,
             "args": [
                 "-j",
-                "mroptimum/collections/PMR/sense_settings.json",
+                "mrotools/collections/PMR/sense_settings.json",
                 "-o",
                 "/g/SNR/PMR/senseACL/",
                 "--coilsens",
@@ -188,7 +180,7 @@
             "justMyCode": true,
             "args": [
                 "-j",
-                "mroptimum/collections/PMR/sense_real_settings.json",
+                "mrotools/collections/PMR/sense_real_settings.json",
                 "-o",
                 "/g/SNR/PMR/senserealData/",
                 "--coilsens",
@@ -207,7 +199,7 @@
             "justMyCode": true,
             "args": [
                 "-j",
-                "mroptimum/collections/PMR/grappa_settings.json",
+                "mrotools/collections/PMR/grappa_settings.json",
                 "-o",
                 "/g/SNR/PMR/grappa/",
                 "--coilsens",
@@ -226,7 +218,7 @@
             "justMyCode": true,
             "args": [
                 "-j",
-                "mroptimum/collections/CR/rss_settings.json",
+                "mrotools/collections/CR/rss_settings.json",
                 "-o",
                 "/g/SNR/CR/rss/",
                 "--no-coilsens",
@@ -245,7 +237,7 @@
             "justMyCode": true,
             "args": [
                 "-j",
-                "mroptimum/collections/CR/b1_settings.json",
+                "mrotools/collections/CR/b1_settings.json",
                 "-o",
                 "/g/SNR/CR/B1/",
                 "--coilsens",
@@ -264,7 +256,7 @@
             "justMyCode": true,
             "args": [
                 "-j",
-                "mroptimum/collections/CR/sense_settings.json",
+                "mrotools/collections/CR/sense_settings.json",
                 "-o",
                 "/g/SNR/CR/sense/",
                 "--coilsens",
@@ -283,7 +275,7 @@
             "justMyCode": true,
             "args": [
                 "-j",
-                "mroptimum/collections/CR/sense_real_settings.json",
+                "mrotools/collections/CR/sense_real_settings.json",
                 "-o",
                 "/g/SNR/CR/sensereal/",
                 "--coilsens",
@@ -302,7 +294,7 @@
             "justMyCode": true,
             "args": [
                 "-j",
-                "mroptimum/collections/CR/grappa_settings.json",
+                "mrotools/collections/CR/grappa_settings.json",
                 "-o",
                 "/g/SNR/CR/grappa/",
                 "--no-coilsens",
@@ -321,9 +313,28 @@
             "justMyCode": true,
             "args": [
                 "-j",
-                "mroptimum/collections/MR/rss_settings.json",
+                "mrotools/collections/MR/rss_settings.json",
                 "-o",
                 "/g/SNR/MR/rss/",
+                "--no-coilsens",
+                "--no-gfactor",
+                "--no-verbose",
+                "--matlab",
+                "--parallel"
+            ]
+        },
+        {
+            "name": "MR RSS no multiplereplcias",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "-j",
+                "mrotools/collections/MR/rss_no_multiple_replicas.json",
+                "-o",
+                "/g/SNR/MR/norss/",
                 "--no-coilsens",
                 "--no-gfactor",
                 "--no-verbose",
@@ -340,7 +351,7 @@
             "justMyCode": true,
             "args": [
                 "-j",
-                "mroptimum/collections/MR/b1_settings.json",
+                "mrotools/collections/MR/b1_settings.json",
                 "-o",
                 "/g/SNR/MR/B1/",
                 "--coilsens",
@@ -359,7 +370,7 @@
             "justMyCode": true,
             "args": [
                 "-j",
-                "mroptimum/collections/MR/sense_settings.json",
+                "mrotools/collections/MR/sense_settings.json",
                 "-o",
                 "/g/SNR/MR/senseACL/",
                 "--coilsens",
@@ -378,7 +389,7 @@
             "justMyCode": true,
             "args": [
                 "-j",
-                "mroptimum/collections/MR/grappa_settings.json",
+                "mrotools/collections/MR/grappa_settings.json",
                 "-o",
                 "/g/SNR/MR/grappa/",
                 "--coilsens",
@@ -397,7 +408,7 @@
             "justMyCode": true,
             "args": [
                 "-j",
-                "mroptimum/collections/MR/rss_no_noise_settings.json",
+                "mrotools/collections/MR/rss_no_noise_settings.json",
                 "-o",
                 "/g/SNR/MR/RSSNONOISE/",
                 "--coilsens",
@@ -416,7 +427,7 @@
             "justMyCode": true,
             "args": [
                 "-j",
-                "mroptimum/collections/misc/b1_settings.json",
+                "mrotools/collections/misc/b1_settings.json",
                 "-o",
                 "/g/SNR/misc/B1/",
                 "--coilsens",

@@ -25,7 +25,7 @@ def saveImage(x,origin=None,spacing=None,direction=None,fn=None):
 
 
 
-PKG=['mroptimum-tools','cloudmr-tools','pynico_eros_montin','pygrappa','twixtools','numpy','scipy','matplotlib','pydicom','SimpleITK','PIL','pyable_eros_montin','multiprocessing']
+PKG=['mrotools','cmtools','pynico_eros_montin','pygrappa','twixtools','numpy','scipy','matplotlib','pydicom','SimpleITK','PIL','pyable_eros_montin','multiprocessing']
 
 def getPackagesVersion():
     return pn.getPackagesVersion(PKG)
@@ -46,7 +46,7 @@ def customizerecontructor(reconstructor,O={}):
         LOG=[]
 
 
-    reconstructor.complexType=np.singlecomplex
+    reconstructor.complexType=np.complex64
     #signal
     if reconstructor.HasAcceleration:
         if mimic:
@@ -310,18 +310,17 @@ def replicas(reconstructor,snrmethod,NR=None,boxsize=None):
 def rT(t,counter=None):
     return t.getOutput()
 
-
-
-import cmtools as cm
+import cmtools.cm as cm
+import cmtools.cmaws as cmaws
 def getFile(s,s3=None):
-    return cm.getCMFile(s,s3)
+    return cmaws.getCMRFile(s,s3)
 
 import twixtools
 import numpy as np
 from raider_eros_montin import raider
-
+import copy
 def getSiemensKSpace2DInformation(s,signal=True,MR=False):
-    N=pn.Pathable(getFile(s["options"]))
+    N=pn.Pathable(getFile(s))
     n=N.getPosition()
     twix=twixtools.map_twix(n)
     if signal:
@@ -335,6 +334,10 @@ def getSiemensKSpace2DInformation(s,signal=True,MR=False):
     SL=SA["asSlice"]
 
     K=getSiemensKSpace2D(N.getPosition(),noise=False,slice='all',raid=raid,MR=MR)
+    
+    # theoutput is a list of 2d slices, if is MR but without replicas the output will be no MR data
+    if isinstance(K,str):
+        return K
     try:
         SLORDER=[int(a) for a in C["relSliceNumber"].replace('-1','').replace(' ','')]
     except:
@@ -343,7 +346,8 @@ def getSiemensKSpace2DInformation(s,signal=True,MR=False):
         CC=[0]
     else:
         CC=SLORDER
-    for t in CC:
+    for j,ft in enumerate(CC):
+        t=SLORDER.index(j)
         sl=SL[t]
         slp=SL[t]['sPosition']
         try:
@@ -379,7 +383,7 @@ def fixReferenceSiemens(ref_,signal_acceleration_realsize):
     return ref
 
 def getSiemensReferenceKSpace2D(s,signal_acceleration_realsize,slice=0,raid=1):
-    N=pn.Pathable(getFile(s["options"]))
+    N=pn.Pathable(getFile(s))
     n=N.getPosition()
     twix=twixtools.map_twix(n)
     r_array = twix[raid]['refscan']
@@ -405,17 +409,19 @@ def getSiemensKSpace2D(n,noise=False,aveRepetition=True,slice=0,raid=0,MR=False)
     twix=twixtools.map_twix(n)
     im_array = twix[raid]['image']
     im_array.flags['remove_os'] = not noise  # activate automatic os removal
-
+    _MR=7
     if noise:
         im_array.flags['average']['Rep'] = False  # average all repetitions
         im_array.flags['average']['Ave'] = False # average all repetitions
     else:
         if not MR:
-            #if it' not mr
+            #if it's not mr
             im_array.flags['average']['Rep'] = aveRepetition  # average all repetitions
             im_array.flags['average']['Ave'] = True # average all repetitions
         else:
             #if it's mr
+            if not im_array.shape[_MR]>1:
+                return "No Multiple Replicas Data"
             im_array.flags['average']['Rep'] = False
             im_array.flags['average']['Ave'] = True
     SL=11
@@ -448,7 +454,7 @@ def getNoiseKSpace(s,slice=0):
       fn (str): position of the file in the local filesystem
 
     """
-    N=pn.Pathable(getFile(s["options"]))
+    N=pn.Pathable(getFile(s))
 
     if N.getExtension() == 'dat':
         if (s["options"]["multiraid"]):

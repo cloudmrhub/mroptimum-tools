@@ -14,7 +14,7 @@
                     "type": "file",
                     "options": {
                         "type": "local",
-                        "filename": "/data/MYDATA/siemensrawdataexamples/15042019_MR/15042019_meas_MID00036_FID188190_Multislice_100_REPLICAS.dat",
+                        "filename": "/data/MYDATA/siemensrawdataexamples/15042019_MR/15042019_meas_MID00024_FID188178_Multislice.dat",
                         "options": {},
                         "multiraid": false,
                         "vendor": "Siemens"

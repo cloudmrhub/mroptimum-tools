@@ -6,19 +6,20 @@ try:
     from mro import *
     V='local'
 except:
-    from mroptimum.mro import *
+    from mrotools.mro import *
     V="pip"
-import cmrtools.cm2D as cm2D
+import cmtools.cm2D as cm2D
 
 
-import cmrtools.cm as cm
+import cmtools.cm as cm
 import os
 
+
 #read debug from environment and put it to false if not present
-debug=os.getenv('DEBUG',False)
+debug=os.getenv('DEBUG',True)
    
 def getAccellerationInfo2D(s,raid=1):
-    N=pn.Pathable(getFile(s["options"]))
+    N=pn.Pathable(getFile(s))
     n=N.getPosition()
     twix=twixtools.map_twix(n)
     H=twix[raid]["hdr"]
@@ -27,15 +28,11 @@ def getAccellerationInfo2D(s,raid=1):
 
 
 
-
-
-
 if __name__=="__main__":
     parser = argparse.ArgumentParser(
-                        prog='Mroptimum',
+                        prog='Mr Optimum',
                         description='Calculates SNR as it should be done!\n eros.montin@gmail.com',
                         epilog='cloudmrhub.com')
-
     T=pn.Timer()
     parser.add_argument('-j','--joptions', type=str, help='optionfile with the backbone of the calculation')
     parser.add_argument('-o','--output', type=str, help='output path')
@@ -63,11 +60,12 @@ if __name__=="__main__":
         logfn=args.loutput
         M=[]
         IMAOUT=[]
+        #check version of the option json file
         if J["version"]!="v0":
             LOG.appendError(f"wrong json options ({J['version']})")
             LOG.writeLogAs(logfn)
             raise Exception("options file is not v0")
-        LOG.append('options file validated')
+        LOG.append("options json file validated it's v0")
 
         #this version only works with 2D K-Space
         if J["acquisition"]!=2:
@@ -89,8 +87,10 @@ if __name__=="__main__":
             #reconstruction classes
             reconstructor=RECON_classes[RID]
             #if the snr is analytical
+            # SID= SNR ID, RID = RECONSTRUCTOR ID
             if SID==0:
                 reconstructor=KELLMAN_classes[RID]
+            LOG.append(f'Reconstructor class is {reconstructor.__name__}')
             NR=None
             if SID>1:
                 NR=J["options"]["NR"]
@@ -109,6 +109,10 @@ if __name__=="__main__":
             if reconstructor_dictionary["options"]["signal"]["options"]["vendor"].lower()=='siemens':
                 MR=(SID==1)
                 SL=getSiemensKSpace2DInformation(reconstructor_dictionary["options"]["signal"],signal=True,MR=MR)
+                if isinstance(SL,str):
+                    LOG.appendError(SL)
+                    LOG.writeLogAs(logfn)
+                    raise Exception(SL)
             else:
                 LOG.appendError('filetype unknown')
                 LOG.appendError('this version of SNR tool only works with siemens file at the moment')
@@ -204,7 +208,7 @@ if __name__=="__main__":
                     if not isinstance(mask[0],str):
                         if 'method' in mask[0].keys():
                             if mask[0]["method"]=='upload':
-                                F=getFile(mask[0]["file"]["options"])
+                                F=getFile(mask[0]["file"])
                                 if (pn.Pathable(F).getExtension()=="nii") or (pn.Pathable(F).getExtension()=="nii.gz") or (pn.Pathable(F).getExtension()=="mha") or (pn.Pathable(F).getExtension()=="mhd")  or (pn.Pathable(F).getExtension()=="mat")  or (pn.Pathable(F).getExtension()=="json"): 
                                     # in this case i am going to read the mask and creating a multi slice 2d mask
                                     m=ima.Imaginable(F)
@@ -319,7 +323,7 @@ if __name__=="__main__":
                         im["data"]=np.abs(im["data"])
                     if np.iscomplexobj(im["data"]):
                         pixeltype='complex'
-                        im["data"]=im["data"].astype(np.singlecomplex)
+                        im["data"]=im["data"].astype(np.complex64)
                     im["data"][np.isnan(im["data"])]=0
                     im["data"][np.isinf(im["data"])]=0
                   
@@ -349,7 +353,7 @@ if __name__=="__main__":
 
             if args.matlab:
                 O2=pn.Pathable(args.output)
-                saveMatlab(O2.addBaseName('matlab.mat').getPosition(),IMAOUT)
+                cm.saveMatlab(O2.addBaseName('matlab.mat').getPosition(),IMAOUT)
                 LOG.append('matlab file saved')
             
             

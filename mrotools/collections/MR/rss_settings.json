@@ -1,4 +1,36 @@
-{"version": "v0", "acquisition": 2, "type": "SNR",     "id": 1,
+{
+    "version": "v0",
+    "acquisition": 2,
+    "type": "SNR",
+    "id": 1,
     "name": "MR",
-
- "options":  {  "reconstructor": {"type": "recon", "id": 1, "name": "RSS", "options": {"noise": {"type": "file", "options": {"type": "local", "filename": "/data/MYDATA/siemensrawdataexamples/15042019_MR/meas_MID00027_FID188181_Multislice_no_RF.dat", "options": {}, "multiraid": false, "vendor": "Siemens"}}, "signal": {"type": "file", "options": {"type": "local", "filename": "/data/MYDATA/siemensrawdataexamples/15042019_MR/meas_MID00036_FID188190_Multislice_100_REPLICAS.dat", "options": {}, "multiraid": false, "vendor": "Siemens"}}}}}}
+    "options": {
+        "reconstructor": {
+            "type": "recon",
+            "id": 1,
+            "name": "RSS",
+            "options": {
+                "noise": {
+                    "type": "file",
+                    "options": {
+                        "type": "local",
+                        "filename": "/data/MYDATA/siemensrawdataexamples/15042019_MR/15042019_meas_MID00027_FID188181_Multislice_no_RF.dat",
+                        "options": {},
+                        "multiraid": false,
+                        "vendor": "Siemens"
+                    }
+                },
+                "signal": {
+                    "type": "file",
+                    "options": {
+                        "type": "local",
+                        "filename": "/data/MYDATA/siemensrawdataexamples/15042019_MR/15042019_meas_MID00036_FID188190_Multislice_100_REPLICAS.dat",
+                        "options": {},
+                        "multiraid": false,
+                        "vendor": "Siemens"
+                    }
+                }
+            }
+        }
+    }
+}

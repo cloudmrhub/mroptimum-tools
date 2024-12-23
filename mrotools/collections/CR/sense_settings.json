@@ -16,7 +16,7 @@
                     "type": "file",
                     "options": {
                         "type": "local",
-                        "filename": "/data/PROJECTS/mroptimum/_data/noise.dat",
+                        "filename": "/data/MYDATA/mroptimumtestData/noise.dat",
                         "options": {},
                         "multiraid": false,
                         "vendor": "Siemens"
@@ -26,7 +26,7 @@
                     "type": "file",
                     "options": {
                         "type": "local",
-                        "filename": "/data/PROJECTS/mroptimum/_data/signal.dat",
+                        "filename": "/data/MYDATA/mroptimumtestData/signal.dat",
                         "options": {},
                         "multiraid": false,
                         "vendor": "Siemens"

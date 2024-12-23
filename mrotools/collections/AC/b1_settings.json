@@ -1,1 +1,53 @@
-{"version": "v0", "acquisition": 2, "type": "SNR", "id": 0, "name": "AC", "options": {"reconstructor": {"type": "recon", "name": "B1", "id": 2, "options": {"type": "B1", "noise": {"type": "file", "options": {"type": "local", "filename": "/data/PROJECTS/mroptimum/_data/noise.dat", "options": {}, "multiraid": false, "vendor": "Siemens"}}, "signal": {"type": "file", "options": {"type": "local", "filename": "/data/PROJECTS/mroptimum/_data/signal.dat", "options": {}, "multiraid": false, "vendor": "Siemens"}}, "sensitivityMap": {"type": "sensitivityMap", "id": 1, "name": "inner", "options": {"sensitivityMapSource": {"type": "file", "options": {"type": "local", "filename": null, "options": {}}}, "sensitivityMapMethod": "inner"}}}}}}
+{
+    "version": "v0",
+    "acquisition": 2,
+    "type": "SNR",
+    "id": 0,
+    "name": "AC",
+    "options": {
+        "reconstructor": {
+            "type": "recon",
+            "name": "B1",
+            "id": 2,
+            "options": {
+                "type": "B1",
+                "noise": {
+                    "type": "file",
+                    "options": {
+                        "type": "local",
+                        "filename": "/data/MYDATA/mroptimumtestData/noise.dat",
+                        "options": {},
+                        "multiraid": false,
+                        "vendor": "Siemens"
+                    }
+                },
+                "signal": {
+                    "type": "file",
+                    "options": {
+                        "type": "local",
+                        "filename": "/data/MYDATA/mroptimumtestData/signal.dat",
+                        "options": {},
+                        "multiraid": false,
+                        "vendor": "Siemens"
+                    }
+                },
+                "sensitivityMap": {
+                    "type": "sensitivityMap",
+                    "id": 1,
+                    "name": "inner",
+                    "options": {
+                        "sensitivityMapSource": {
+                            "type": "file",
+                            "options": {
+                                "type": "local",
+                                "filename": null,
+                                "options": {}
+                            }
+                        },
+                        "sensitivityMapMethod": "inner"
+                    }
+                }
+            }
+        }
+    }
+}
