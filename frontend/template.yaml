@@ -18,9 +18,11 @@ Parameters:
   ApiUrl:
     Type: String
     Description: "API_URL"
+    Default: "XXXXXXXXXXXXXXXXXXXXXXX"
   ApiToken:
     Type: String
     Description: "API_TOKEN"
+
 
 
 
@@ -77,9 +79,9 @@ Resources:
           Value: !Ref ApiUrl # REQUEST, POST {"type": (array or string)["mr optimum","upload",'tess'],"token":""}, RESULTS {"api-token":"dedddd"} you want to check if if the results
         - Name: "API_TOKEN"
           Value: !Ref ApiToken
-      Name: "MR Optimum"
+      Name: !Sub "MR Optimum${AWS::StackName}"  # Use StackName parameter
       Platform: "WEB"
-      Repository: "https://github.com/cloudmrhub-com/MROptimum-frontend"
+      Repository: "https://github.com/cloudmrhub/mroptimum-webgui"
       Tags:
         - Key: "owner"
           Value: "cloudmrhub"
@@ -145,10 +147,10 @@ Outputs:
     Value: !Sub "${StableBranch.BranchName}.${MROFrontend.DefaultDomain}"
     Description: "Amplify App Domain"
     Export:
-      Name: "AmplifyAppDomain"
+      Name: !Sub "AmplifyAppDomain${AWS::StackName}"  # Use StackName parameter
 
   AmplifyAppId:
     Value: !GetAtt MROFrontend.AppId
     Description: "Amplify App Id"
     Export:
-      Name: "AmplifyAppId"
+      Name: !Sub "AmplifyAppId${AWS::StackName}"  # Use StackName parameter
