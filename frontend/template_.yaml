@@ -114,8 +114,15 @@ Resources:
                 - yarn install
             build:
               commands:
-                - node setup/generate-env.js 
-                - cat src/env.ts
+                - |
+                  cat <<EOF > src/env.ts
+                  export const CLOUDMR_SERVER = '${CLOUDMR_SERVER}';
+                  export const MRO_SERVER = '${MRO_SERVER}';
+                  export const PROFILE_SERVER = '${PROFILE_SERVER}';
+                  export const API_TOKEN = '${API_TOKEN}';
+                  export const API_URL = '${API_URL}';
+                  EOF
+                - cat src/env.ts  # Print the contents of src/env.ts
                 - yarn build
           artifacts:
             baseDirectory: build
@@ -124,16 +131,9 @@ Resources:
           cache:
             paths:
               - node_modules/**/*
-        env:
-          variables:
-            CLOUDMR_SERVER: $CLOUDMR_SERVER
-            MRO_SERVER: $MRO_SERVER
-            PROFILE_SERVER: $PROFILE_SERVER
-            API_URL: $API_URL
-            API_TOKEN: $API_TOKEN
       Framework: "WEB"
       Stage: "PRODUCTION"
-    
+
   DevBranch:
     Type: AWS::Amplify::Branch
     Properties:
@@ -141,35 +141,8 @@ Resources:
       BranchName: "dev"
       EnableAutoBuild: true
       EnablePullRequestPreview: false
-      BuildSpec: |
-        version: 1
-        frontend:
-          phases:
-            preBuild:
-              commands:
-                - yarn install
-            build:
-              commands:
-                - node setup/generate-env.js 
-                - cat src/env.ts
-                - yarn build
-          artifacts:
-            baseDirectory: build
-            files:
-              - '**/*'
-          cache:
-            paths:
-              - node_modules/**/*
-        env:
-          variables:
-            CLOUDMR_SERVER: $CLOUDMR_SERVER
-            MRO_SERVER: $MRO_SERVER
-            PROFILE_SERVER: $PROFILE_SERVER
-            API_URL: $API_URL
-            API_TOKEN: $API_TOKEN
-
+      # Omit API loading for dev branch to allow testing of new server rotues
       Framework: "WEB"
-      Stage: "DEVELOPMENT"
 
 Outputs:
   AmplifyAppDomain:

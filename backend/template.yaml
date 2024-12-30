@@ -379,6 +379,9 @@ Resources:
       Policies:
         - S3FullAccessPolicy:
             BucketName: !Ref DataBucketPName
+        - S3FullAccessPolicy:
+            BucketName: mytestcmr
+
         # This permission allows the Lambda function to request signed URLs
         # for objects that will be publicly readable. Uncomment if you want this ACL.
 
@@ -397,6 +400,9 @@ Resources:
       Policies:
         - S3FullAccessPolicy:
             BucketName: !Ref DataBucketPName
+        - S3FullAccessPolicy:
+            BucketName: mytestcmr
+
         # This permission allows the Lambda function to request signed URLs
         # for objects that will be publicly readable. Uncomment if you want this ACL.
       Layers:
@@ -455,6 +461,9 @@ Resources:
       Policies:
         - S3FullAccessPolicy:
             BucketName: !Ref DataBucketPName
+        - S3FullAccessPolicy:
+            BucketName: mytestcmr
+
 
       Layers:
         - !Ref RequestsLayerARN
@@ -479,6 +488,9 @@ Resources:
       Policies:
         - S3FullAccessPolicy:
             BucketName: !Ref DataBucketPName
+        - S3FullAccessPolicy:
+            BucketName: mytestcmr
+
 
       Layers:
         - !Ref RequestsLayerARN
@@ -507,6 +519,9 @@ Resources:
       Policies:
         - S3FullAccessPolicy:
             BucketName: !Ref DataBucketPName
+        - S3FullAccessPolicy:
+            BucketName: mytestcmr
+
         # This permission allows the Lambda function to request signed URLs
         # for objects that will be publicly readable. Uncomment if you want this ACL.
       Layers:
@@ -533,6 +548,9 @@ Resources:
       Policies:
         - S3FullAccessPolicy:
             BucketName: !Ref DataBucketPName
+        - S3FullAccessPolicy:
+            BucketName: mytestcmr
+
         # This permission allows the Lambda function to request signed URLs
         # for objects that will be publicly readable. Uncomment if you want this ACL.
       Layers:

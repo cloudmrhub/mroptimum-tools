@@ -16,7 +16,7 @@ else
 fi
 
 #random part in the stack name
-_NN_=00
+_NN_=v2
 
 # to be filled by cmr
 
@@ -168,12 +168,15 @@ MRO_SERVER=$(aws cloudformation describe-stacks --stack-name $BACKSTACKNAME --qu
 PARAMS="GithubToken=$GITTOKENS ApiToken=$APITOKEN CloudmrServer=$CLOUDMR_SERVER MroServer=$MRO_SERVER ProfileServer=$PROFILE_SERVER StackName=$BACKSTACKNAME"
 
 
-FRONTEND_URL=$(aws cloudformation describe-stacks --stack-name $FRONTSTACKNAME --query "Stacks[0].Outputs[?OutputKey=='AmplifyAppDomain'].OutputValue" --output text)
+echo $PARAMS
+
+# FRONTEND_URL=$(aws cloudformation describe-stacks --stack-name $FRONTSTACKNAME --query "Stacks[0].Outputs[?OutputKey=='AmplifyAppDomain'].OutputValue" --output text)
+FRONTEND_URL=""
 if [ -z "$FRONTEND_URL" ]; then
     echo "Frontend does not exist"  
 sam build -t frontend/template.yaml --use-container --build-dir build/front
 # sam deploy --template-file build/front/template.yaml --stack-name $FRONTSTACKNAME --capabilities CAPABILITY_AUTO_EXPAND CAPABILITY_IAM --resolve-image-repos --s3-bucket $BUCKET_NAME --parameter-overrides $PARAMS
-sam deploy --template-file build/front/template.yaml --stack-name $FRONTSTACKNAME --capabilities CAPABILITY_AUTO_EXPAND CAPABILITY_IAM --resolve-image-repos --s3-bucket $BUCKET_NAME --parameter-overrides $(echo $PARAMS)
+sam deploy --template-file build/front/template.yaml --stack-name $FRONTSTACKNAME --capabilities CAPABILITY_AUTO_EXPAND CAPABILITY_IAM --resolve-image-repos --s3-bucket $BUCKET_NAME --parameter-overrides $PARAMS
 aws cloudformation wait stack-create-complete --stack-name $FRONTSTACKNAME
 FRONTEND_URL=$(aws cloudformation describe-stacks --stack-name $FRONTSTACKNAME --query "Stacks[0].Outputs[?OutputKey=='AmplifyAppDomain'].OutputValue" --output text)
 
@@ -184,9 +187,18 @@ fi
 echo $FRONTSTACKNAME
 echo "Frontend URL is $FRONTEND_URL"
 
-APP_ID=$(aws amplify list-apps --query "apps[?name=='MR Optimum$FRONTENDSTACKNAME'].appId" --output text)
+APP_ID=$(aws amplify list-apps --query "apps[?name=='MR Optimum${FRONTSTACKNAME}'].appId" --output text)
+
+
+
 BRANCH_NAME="dev"
 echo "App ID is $APP_ID"
+
+
+aws amplify update-branch --app-id $APP_ID --branch-name stable --environment-variables TOKEN-URL=$API_URL,CLOUDMR_SERVER=$CLOUDMR_SERVER,MRO_SERVER=$MRO_SERVER,PROFILE_SERVER=$PROFILE_SERVER,API_TOKEN=$API_TOKEN --no-cli-pager
+aws amplify update-branch --app-id $APP_ID --branch-name dev --environment-variables TOKEN-URL=$API_URL,CLOUDMR_SERVER=$CLOUDMR_SERVER,MRO_SERVER=$MRO_SERVER,PROFILE_SERVER=$PROFILE_SERVER,API_TOKEN=$API_TOKEN --no-cli-pager
+
+
 aws amplify start-job --app-id $APP_ID --branch-name $BRANCH_NAME --job-type RELEASE
 echo "Waiting for job to be created"
 

@@ -1,0 +1,4 @@
+
+An error occurred (ValidationError) when calling the DescribeStacks operation: Stack with id MROFrontstackv2 does not exist
+Frontend does not exist
+Starting Build inside a container        
