@@ -10,14 +10,13 @@ const URL_EXPIRATION_SECONDS = 300
 
 const { v4: uuidv4 } = require('uuid');
 
-// process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
+process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
 // process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 1;
 const HOST = process.env.Host;
 // const axios = require('axios');
 
 // Main Lambda entry point
 exports.handler = async (event) => {
-    console.log(event)
     const { uploadId, parts, Key } = JSON.parse(event.body);
     const bucketName = process.env.UploadBucket; // Replace with your bucket name
 
@@ -41,7 +40,7 @@ exports.handler = async (event) => {
     try {
         // Complete the multipart upload
         const completeMultipartUploadResponse = await s3.completeMultipartUpload(completeMultipartUploadParams).promise();
-        console.log('completeMultipartUploadResponse', completeMultipartUploadResponse);
+
         return {
             statusCode: 200,
             headers: {

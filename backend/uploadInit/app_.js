@@ -29,9 +29,9 @@ process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
 const HOST = process.env.Host;
 const axios = require('axios');
 
-console.log(HOST);
 // Main Lambda entry point
 exports.handler = async (event) => {
+    console.log(event);
     return await upload_data_init(event);
 }
 const getHeadersForRequests = () => {
@@ -51,7 +51,7 @@ const getHeadersForRequests = () => {
 const getHeadersForRequestsWithToken = (token) => {
     const headers = getHeadersForRequests();
     headers["Authorization"] = token;
-    console.log(token)
+    // console.log(token)
     return headers;
 }
 
@@ -85,14 +85,10 @@ const upload_data_init = async (event) => {
         const fileSize = body.filesize;
         const fileMd5 = body.filemd5;
         const Key = `${uuidv4()}_${fileName}`;
-        // const pushCortex = process.env.PushCortex==='True';
-        const pushCortex = true;
-        console.log("PushCortex: " + pushCortex);
-        console.log(pushCortex);
+        const pushCortex = process.env.PushCortex==='True';
         let response = undefined;
         if(pushCortex){
             response = await postMetaData(fileName,fileSize, fileMd5,Key,event);
-            console.log(response);
             if (response.status !== 200) {
                 throw new Error("Failed to save file metadata to cloudmrhub.com");
             }
