@@ -111,6 +111,16 @@ def handler(event, context):
         print(K.getCommand())
         K.run()
         
+        
+        g=pn.Log()
+        g.appendFullLog(log)
+        g.getWhatHappened()
+        
+        if g.log[-1]["what"] == "ERROR":
+            L.append("ERROR in the computation")
+            L.appendFullLog(log)
+            raise Exception("ERROR in the computation")            
+        
         L.appendFullLog(log)
         L.append("the command ran")
         Z = pn.createRandomTemporaryPathableFromFileName("a.zip")

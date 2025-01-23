@@ -1,6 +1,7 @@
 
 
 #aws configure
+FORCEBACK=1
 
 
 #check if theres a parameter passed
@@ -79,7 +80,7 @@ echo "common resources deployed"
 # check if API_ID exists
 API_ID=$(aws cloudformation describe-stacks --stack-name $BACKSTACKNAME --query "Stacks[0].Outputs[?OutputKey=='ApiId'].OutputValue" --output text)
 
-if [ -z "$API_ID" ]; then
+if if [ -z "$API_ID" ] || [ "$FORCEBAKEND" -eq 1 ]; then
     echo "Building backend resources"
     sam build -t backend/template.yaml --use-container --build-dir build/back 
     # sam package --template-file build/back/template.yaml --s3-bucket $BUCKET_NAME --output-template-file build/back/packaged-template.yaml
