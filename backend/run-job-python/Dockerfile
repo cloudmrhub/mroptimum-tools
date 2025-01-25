@@ -9,6 +9,7 @@ RUN yum install -y git
 # Install the specified packages
 RUN pip install -r requirements.txt
 # 
+# Install the mroptimum-tools package
 RUN pip install git+https://github.com/cloudmrhub/mroptimum-tools.git
 
 

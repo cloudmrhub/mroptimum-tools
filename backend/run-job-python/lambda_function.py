@@ -25,7 +25,7 @@ def s3FileTolocal(J, s3=None, pt="/tmp"):
     return J
 
 
-def handler(event, context):
+def handler(event, context,s3=None):
     # connect to the s3
     L = pn.Log("mroptimum lambda function",{ "event": event, "context": context})
     # create a directory for the calculation to be zippedin the end
@@ -33,7 +33,10 @@ def handler(event, context):
     O.appendPath("OUT")
     O.ensureDirectoryExistence()
     try:
-        s3 = boto3.client("s3")
+        if s3 == None:
+            # s3 = boto3.client("s3")
+            s3 = boto3.resource("s3")
+            
         # Get the bucket name and file key
         bucket_name = event["Records"][0]["s3"]["bucket"]["name"]
         file_key = event["Records"][0]["s3"]["object"]["key"]
@@ -42,7 +45,7 @@ def handler(event, context):
         L.append(f"mroptimum_result {mroptimum_result}")
         # save json file to local
         fj = pn.createRandomTemporaryPathableFromFileName("a.json")
-        s3 = boto3.resource("s3")
+        
         s3.Bucket(bucket_name).download_file(file_key, fj.getPosition())
         L.append(f"file downloaded {fj.getPosition()}")
         J = pn.Pathable(fj.getPosition()).readJson()
@@ -109,9 +112,7 @@ def handler(event, context):
         K.setCommand(
             f"python -m mrotools.snr -j {JO.getPosition()} -o {OUT} --no-parallel {savematlab} {savecoils} {savegfactor} --no-verbose -l {log}")
         print(K.getCommand())
-        K.run()
-        
-        
+        K.run()        
         g=pn.Log()
         g.appendFullLog(log)
         g.getWhatHappened()

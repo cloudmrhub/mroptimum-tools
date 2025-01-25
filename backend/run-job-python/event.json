@@ -1,0 +1,38 @@
+{
+  "Records": [
+    {
+      "eventVersion": "2.1",
+      "eventSource": "aws:s3",
+      "awsRegion": "us-east-1",
+      "eventTime": "2025-01-24T22:38:06.278Z",
+      "eventName": "ObjectCreated:Put",
+      "userIdentity": {
+        "principalId": "AWS:AROAW2QT4RWM5VD33KNK7:MROBackstackv2-QueueJobFunction-A4grJ5sSUb7z"
+      },
+      "requestParameters": {
+        "sourceIPAddress": "3.231.212.6"
+      },
+      "responseElements": {
+        "x-amz-request-id": "ZC6MEHV6YQKVKXET",
+        "x-amz-id-2": "lB0GvKzIoKxw4glPhom2w3yKz9gn0sPKBwV93nbhHjQabVSmOLQQEoTDVA/NhnjgHe3zqi8qz7h8tpJQMazZ8cqc8PclFshh0Jl4s+mmZ9g="
+      },
+      "s3": {
+        "s3SchemaVersion": "1.0",
+        "configurationId": "MzgzNDJlNDItYmQ2My00YzY2LWEyOTEtZjUxNzE2MDQ1MDRj",
+        "bucket": {
+          "name": "mrojv2",
+          "ownerIdentity": {
+            "principalId": "A3MJ0EXDKKHTKU"
+          },
+          "arn": "arn:aws:s3:::mrojv2"
+        },
+        "object": {
+          "key": "9ca13672-4129-3797-be8c-1dbd430a3d54.json",
+          "size": 1623,
+          "eTag": "c5947b40c715e4f9171232a41a3073f0",
+          "sequencer": "006794164E3F27C504"
+        }
+      }
+    }
+  ]
+}
