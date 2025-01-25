@@ -369,13 +369,13 @@ def getSiemensKSpace2DInformation(s,signal=True,MR=False):
 
         # Update specific components based on the scalar values in sl['sNormal']
         if "dTra" in sl['sNormal']:
-            o["direction"][2, 2] = -sl['sNormal']["dTra"]  # Update the z-axis (axial) direction
+            o["direction"][2, 2] = sl['sNormal']["dTra"]  # Update the z-axis (axial) direction
 
         if "dSag" in sl['sNormal']:
-            o["direction"][0, 0] = -sl['sNormal']["dSag"]  # Update the x-axis (sagittal) direction
+            o["direction"][0, 0] = sl['sNormal']["dSag"]  # Update the x-axis (sagittal) direction
 
         if "dCor" in sl['sNormal']:
-            o["direction"][1, 1] = -sl['sNormal']["dCor"]  # Update the y-axis (coronal) direction
+            o["direction"][1, 1] = sl['sNormal']["dCor"]  # Update the y-axis (coronal) direction
 
            
         slices.append(o)
