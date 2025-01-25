@@ -363,9 +363,21 @@ def getSiemensKSpace2DInformation(s,signal=True,MR=False):
             "size":[*KS,1],
             "KSpace":K[t]
         }
-        if sl['sNormal']["dTra"]:
-            o["direction"]=-np.eye(3)
-            o["direction"][-1:-1]=-sl['sNormal']["dTra"]
+        
+
+        o["direction"] = np.eye(3)  # Initialize with default identity matrix flipped.
+
+        # Update specific components based on the scalar values in sl['sNormal']
+        if "dTra" in sl['sNormal']:
+            o["direction"][2, 2] = -sl['sNormal']["dTra"]  # Update the z-axis (axial) direction
+
+        if "dSag" in sl['sNormal']:
+            o["direction"][0, 0] = -sl['sNormal']["dSag"]  # Update the x-axis (sagittal) direction
+
+        if "dCor" in sl['sNormal']:
+            o["direction"][1, 1] = -sl['sNormal']["dCor"]  # Update the y-axis (coronal) direction
+
+           
         slices.append(o)
     return slices
 

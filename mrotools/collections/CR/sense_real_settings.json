@@ -22,6 +22,16 @@
                         "vendor": "Siemens"
                     }
                 },
+                "noise": {
+                    "type": "file",
+                    "options": {
+                        "type": "local",
+                        "filename": "/data/MYDATA/siemensrawdataexamples/Sebastian/raw/meas_MID02695_FID183823_gre_noPI.dat",
+                        "options": {},
+                        "multiraid": false,
+                        "vendor": "Siemens"
+                    }
+                },
                 "sensitivityMap": {
                     "type": "sensitivityMap",
                     "id": 1,

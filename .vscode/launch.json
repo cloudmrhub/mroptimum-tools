@@ -5,6 +5,28 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "TESTXA",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+"args": [
+    "-j",
+    "/tmp/75fd629e-8f66-451d-beea-6db572eae122.json",
+    "-o",
+    "/tmp/OUT/fb74da55-2c5f-49a1-a6e5-15d9c2a08089.json",
+    "--no-parallel",
+    "--matlab",
+    "--no-coilsens",
+    "--no-gfactor",
+    "--no-verbose",
+    "-l",
+    "/tmp/38f0dea5-06c2-415d-b965-113b3b1d13ca.json"
+]
+        },
+        
+        {
             "name": "RYAN",
             "type": "python",
             "request": "launch",
