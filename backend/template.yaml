@@ -291,7 +291,9 @@ Resources:
             BucketName: mytestcmr
         - S3FullAccessPolicy:
             BucketName: !Ref FailedBucketPName
-
+      Environment:
+        Variables:
+         DEBUG: "False"
       Events:
         S3Event:
           Type: S3
