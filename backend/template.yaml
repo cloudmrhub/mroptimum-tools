@@ -58,6 +58,7 @@ Globals:
         PipelineFailed: !Sub https://${CortexHost}/api/pipeline/failed
         deleteDataAPI: !Sub https://${CortexHost}/api/data/delete 
         updateDataAPI: !Sub https://${CortexHost}/api/data/update 
+        PipelineDeleteAPI: !Sub https://${CortexHost}/api/pipeline/delete
 
 
 Resources:
@@ -261,6 +262,36 @@ Resources:
               
       Layers:
         - !Ref RequestsLayerARN
+
+  DeleteJobFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: >
+        This function deletes an object by his id        
+        
+      Tags:
+        owner: "montie01"
+        mantainer: "montie01"
+        project: "mroptimum"
+        version: "v1"
+        team: "cloudmrhub"
+      PackageType: Zip
+      CodeUri: delete-job-python/
+      Handler: app.lambda_handler
+      Runtime: python3.9
+      Policies:
+        - S3FullAccessPolicy:
+            BucketName: !Ref JobsBucket
+      Events:
+        DeleteJobApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref CMAPI
+            Path: /pipeline/{id}
+            Method: delete
+            Auth:
+              Authorizer: UserAuthorizer
+              
 
   RunJobFunction:
     Type: AWS::Serverless::Function
