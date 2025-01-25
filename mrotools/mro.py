@@ -365,11 +365,11 @@ def getSiemensKSpace2DInformation(s,signal=True,MR=False):
         }
         
 
-        o["direction"] = np.eye(3)  # Initialize with default identity matrix flipped.
+        o["direction"] = -np.eye(3)  # Initialize with default identity matrix flipped.
 
         # Update specific components based on the scalar values in sl['sNormal']
         if "dTra" in sl['sNormal']:
-            o["direction"][2, 2] = sl['sNormal']["dTra"]  # Update the z-axis (axial) direction
+            o["direction"][2, 2] = -sl['sNormal']["dTra"]  # Update the z-axis (axial) direction
 
         if "dSag" in sl['sNormal']:
             o["direction"][0, 0] = sl['sNormal']["dSag"]  # Update the x-axis (sagittal) direction

@@ -61,7 +61,7 @@
             ]
         },
         {
-            "name": "AC RSS",
+            "name": "AC brain RSS",
             "type": "python",
             "request": "launch",
             "program": "${file}",
@@ -69,7 +69,7 @@
             "justMyCode": true,
             "args": [
                 "-j",
-                "mrotools/collections/AC/rss_settings.json",
+                "mrotools/collections/AC/rss_brain_settings.json",
                 "-o",
                 "/g/SNR/AC/RSS/",
                 "--no-coilsens",

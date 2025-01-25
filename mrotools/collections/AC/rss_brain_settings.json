@@ -1,0 +1,39 @@
+{
+    "version": "v0",
+    "acquisition": 2,
+    "type": "SNR",
+    "id": 0,
+    "name": "AC",
+    "options": {
+        "reconstructor": {
+            "type": "recon",
+            "id": 1,
+            "name": "RSS",
+            "options": {
+                "signal": {
+                    "type": "file",
+                    "options": {
+                        "type": "local",
+                        "filename": "/data/MYDATA/siemensrawdataexamples/26092019_brain/26092019_meas_MID01481_FID318481_gre_snr.dat",
+                        "options": {},
+                        "multiraid": false,
+                        "vendor": "Siemens"
+                    }
+                },
+                "noise": {
+                    "type": "file",
+                    "options": {
+                        "type": "local",
+                        "filename": "/data/MYDATA/siemensrawdataexamples/26092019_brain/26092019_meas_MID01493_FID318493_gre_noise.dat",
+                        "options": {},
+                        "multiraid": false,
+                        "vendor": "Siemens"
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
