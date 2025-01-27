@@ -14,6 +14,7 @@ def getHeadersForRequestsWithToken(token):
     return headers
     
 def lambda_handler(event, context):
+    
     body = json.loads(event['body'])
     # Get the headers from the event object.
     headers = event['headers']
@@ -22,13 +23,40 @@ def lambda_handler(event, context):
     # Get the application and pipeline names.
     
     pipelineAPI = os.environ.get("PipelineDeleteAPI")
-    pipelineAPI+=body['id']
-    r2=requests.delete(pipelineAPI, headers=getHeadersForRequestsWithToken(authorization_header))
+    ID=body['id']
+    if not isinstance(ID,str):
+        ID=str(ID)
+    pipelineAPI+="/"+ID
+    
+    r2=requests.post(pipelineAPI, headers=getHeadersForRequestsWithToken(authorization_header))
     try:
         R=r2.json()
         print(R)
     except:
         print(r2.text)
+        
+    if r2.status_code==404:
+        return {
+        'statusCode': 404,
+        'body': json.dumps({
+            'message': 'Job not found'
+        }),
+                'headers': {
+                'Access-Control-Allow-Origin': '*'
+        }
+    }
+    if r2.status_code!=200:
+        return {
+        'statusCode': 500,
+        'body': json.dumps({
+            'message': 'Failed to delete job'
+        }),
+                'headers': {
+                'Access-Control-Allow-Origin': '*'
+        }
+    }   
+        
+    
    
     # Return the response object.
     return {

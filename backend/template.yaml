@@ -287,11 +287,12 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref CMAPI
-            Path: /pipeline/{id}
+            Path: /pipeline
             Method: delete
             Auth:
               Authorizer: UserAuthorizer
-              
+      Layers:
+        - !Ref RequestsLayerARN
 
   RunJobFunction:
     Type: AWS::Serverless::Function
@@ -705,5 +706,8 @@ Outputs:
     Value: !Ref StageName
     Export:
       Name: !Sub "${AWS::StackName}-StageName"
+  DeleteJobApi:
+    Description: "HTTP API endpoint files for delete a job in database"
+    Value: !Sub "https://${CMAPI}.execute-api.${AWS::Region}.amazonaws.com/${StageName}/pipeline/{id}"
 
 
