@@ -171,7 +171,12 @@ def handler(event, context,s3=None):
         }
         E.changeFileName("info")
         INFO["headers"]["log"]=L.log
-        E.writeJson(INFO)
+        import jsonpickle
+        jsonstring=jsonpickle.encode(INFO)
+        # Deserialize back to Python objects
+        data = jsonpickle.decode(jsonstring)
+        
+        E.writeJson(data)
         Z = pn.createRandomTemporaryPathableFromFileName("a.zip")
         shutil.make_archive(Z.getPosition()[:-4], "zip", O.getPath())
         s3.Bucket(mroptimum_failed).upload_file(
