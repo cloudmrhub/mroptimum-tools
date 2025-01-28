@@ -68,6 +68,4 @@ def lambda_handler(event, context):
         url=f'{pipelineAPIFailed}/{pipelineid}'
         r2=requests.post(url, data=json.dumps(data2), headers=getHeadersForRequestsWithToken(token))
         print("failed")
-    print (url)
-    R=r2.json()
-    print(R)
+    return True

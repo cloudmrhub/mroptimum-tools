@@ -132,21 +132,16 @@ def handler(event, context,s3=None):
         L.append("start uploading")
         s3.Bucket(mroptimum_result).upload_file(
             Z.getPosition(), Z.getBaseName())
-        L.append("uploading ended")
+
         return {
             "statusCode": 200,
             "body": json.dumps({"results": {"key": Z.getBaseName(), "bucket": mroptimum_result}})
         }
     except Exception as e:
-        print(e)
         L.append(str(e), 'error')
-        L.append("error")
-        O.changeBaseName("error.log")
-        L.writeLogAs(O.getPosition())
         O.changeBaseName("task.json")
         # copy the file inthe variable jf in /tmp
         try:
-
             O.writeJson(T)
         except:
             print(f"coudn't copy {fj.getPosition()}")
@@ -171,6 +166,7 @@ def handler(event, context,s3=None):
         }
         }
         E.changeFileName("info")
+        INFO["headers"]["log"]=L.log
         E.writeJson(INFO)
         Z = pn.createRandomTemporaryPathableFromFileName("a.zip")
         shutil.make_archive(Z.getPosition()[:-4], "zip", O.getPath())
