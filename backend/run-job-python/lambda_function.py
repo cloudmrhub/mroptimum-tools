@@ -5,8 +5,8 @@ import shutil
 from pynico_eros_montin import pynico as pn
 import os
 
-mroptimum_result = os.getenv("ResultsBucketName", "mroptimum-result")
-mroptimum_failed = os.getenv("FailedBucketName", "mroptimum-failed")
+mroptimum_result = os.getenv("ResultsBucketName", "mrorv2")
+mroptimum_failed = os.getenv("FailedBucketName", "mrofv2")
 
 
 def s3FileTolocal(J, s3=None, pt="/tmp"):
@@ -138,7 +138,7 @@ def handler(event, context,s3=None):
             "body": json.dumps({"results": {"key": Z.getBaseName(), "bucket": mroptimum_result}})
         }
     except Exception as e:
-        L.append(str(e), 'error')
+        # L.append(str(e), 'error')
         O.changeBaseName("task.json")
         # copy the file inthe variable jf in /tmp
         try:
@@ -147,6 +147,7 @@ def handler(event, context,s3=None):
             print(f"coudn't copy {fj.getPosition()}")
 
         E = pn.createRandomTemporaryPathableFromFileName("a.json")
+        
         E.changePath(O.getPath())
         E.changeFileName("event")
         E.writeJson(event)
@@ -155,8 +156,11 @@ def handler(event, context,s3=None):
             E.writeJson(J)
         except:
             print("couldn't write the options")
-        E.changeFileName("log")
-        E.writeJson(L.getWhatHappened())
+        E.changeBaseName("error.txt")
+        with open(E.getPosition(), "w") as f:
+            f.write(str(e))
+        
+        E.changeExtension("json")
 
         INFO = {"headers": {
                     "options": {

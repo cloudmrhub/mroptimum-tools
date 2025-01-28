@@ -1,1 +1,74 @@
-{"task": {"name": "mr", "queued": false, "version": "v0", "acquisition": 2, "type": "snr", "options": {"reconstructor": {"type": "recon", "options": {"sensitivityMap": {"type": "sensitivityMap", "name": "inner", "id": 2, "options": {"loadSensitivity": false, "sensitivityMapMethod": "inner", "mask": {"method": "no"}}}, "correction": {"useCorrection": false}, "gfactor": false, "signal": {"type": "file", "id": 265, "options": {"type": "s3", "filename": "meas_MID00909_FID256218_GRE_cor_50cm.dat", "options": {}, "multiraid": false, "bucket": "mrodv2", "key": "eb675c9c-6cff-417b-ac89-8a5ef901466b_meas_MID00909_FID256218_GRE_cor_50cm.dat", "vendor": "Siemens"}}, "noise": {"type": "file", "id": 266, "options": {"type": "s3", "filename": "meas_MID00911_FID256220_GRE_noi.dat", "options": {}, "multiraid": false, "bucket": "mrodv2", "key": "764d562c-faf9-4502-aef0-93c3b28012bb_meas_MID00911_FID256220_GRE_noi.dat", "vendor": "Siemens"}}}, "id": 0, "name": "rss"}}, "files": ["signal", "noise"], "id": 0}, "output": {"coilsensitivity": false, "gfactor": false, "matlab": true}, "application": "MR Optimum", "alias": "meas_MID00909_FID256218_GRE_cor_50cm.dat-ac", "pipeline": "9ca13672-4129-3797-be8c-1dbd430a3d54", "token": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC9jYW5jZWxpdC1lbnYtMS5lYmEtcG1hbWN1djUudXMtZWFzdC0xLmVsYXN0aWNiZWFuc3RhbGsuY29tXC9hcGlcL2F1dGhcL2xvZ2luIiwiaWF0IjoxNzM3NzU4MjU3LCJleHAiOjE3Mzc4NDQ2NTcsIm5iZiI6MTczNzc1ODI1NywianRpIjoibVppb3BycjM1UWZPQWVFciIsInN1YiI6OTk5OSwicHJ2IjoiODdlMGFmMWVmOWZkMTU4MTJmZGVjOTcxNTNhMTRlMGIwNDc1NDZhYSJ9.fTsBk6mpkjNjVEF-xPntshG54lMzPMw1dXGGEhRyLPY"}
+{
+    "task": {
+        "name": "mr",
+        "queued": false,
+        "version": "v0",
+        "acquisition": 2,
+        "type": "snr",
+        "options": {
+            "reconstructor": {
+                "type": "recon",
+                "options": {
+                    "sensitivityMap": {
+                        "type": "sensitivityMap",
+                        "name": "inner",
+                        "id": 2,
+                        "options": {
+                            "loadSensitivity": false,
+                            "sensitivityMapMethod": "inner",
+                            "mask": {
+                                "method": "no"
+                            }
+                        }
+                    },
+                    "correction": {
+                        "useCorrection": false
+                    },
+                    "gfactor": false,
+                    "signal": {
+                        "type": "file",
+                        "id": 265,
+                        "options": {
+                            "type": "s3",
+                            "filename": "xas.dat",
+                            "options": {},
+                            "multiraid": false,
+                            "bucket": "mytestcmr",
+                            "key": "xas.dat",
+                            "vendor": "Siemens"
+                        }
+                    },
+                    "noise": {
+                        "type": "file",
+                        "id": 266,
+                        "options": {
+                            "type": "s3",
+                            "filename": "xan.dat",
+                            "options": {},
+                            "multiraid": false,
+                            "bucket": "mytestcmr",
+                            "key": "xan.dat",
+                            "vendor": "Siemens"
+                        }
+                    }
+                },
+                "id": 0,
+                "name": "rss"
+            }
+        },
+        "files": [
+            "signal",
+            "noise"
+        ],
+        "id": 0
+    },
+    "output": {
+        "coilsensitivity": false,
+        "gfactor": false,
+        "matlab": true
+    },
+    "application": "MR Optimum",
+    "alias": "meas_MID00909_FID256218_GRE_cor_50cm.dat-ac",
+    "pipeline": "9ca13672-4129-3797-be8c-1dbd430a3d54",
+    "token": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC9jYW5jZWxpdC1lbnYtMS5lYmEtcG1hbWN1djUudXMtZWFzdC0xLmVsYXN0aWNiZWFuc3RhbGsuY29tXC9hcGlcL2F1dGhcL2xvZ2luIiwiaWF0IjoxNzM3NzU4MjU3LCJleHAiOjE3Mzc4NDQ2NTcsIm5iZiI6MTczNzc1ODI1NywianRpIjoibVppb3BycjM1UWZPQWVFciIsInN1YiI6OTk5OSwicHJ2IjoiODdlMGFmMWVmOWZkMTU4MTJmZGVjOTcxNTNhMTRlMGIwNDc1NDZhYSJ9.fTsBk6mpkjNjVEF-xPntshG54lMzPMw1dXGGEhRyLPY"
+}

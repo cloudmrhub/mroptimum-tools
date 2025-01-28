@@ -4,7 +4,7 @@ import os
 import boto3
 
 import pynico_eros_montin.pynico as pn
-E=pn.Pathable("backend/run-job-python/event.json")
+E=pn.Pathable("backend/run-job-python/event_fail.json")
 E=E.readJson()
 import sys
 import cmtools.cmaws as cmaws
