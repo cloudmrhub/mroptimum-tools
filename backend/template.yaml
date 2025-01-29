@@ -381,6 +381,10 @@ Resources:
       Policies:
         - S3FullAccessPolicy:
             BucketName: !Ref ResultsBucketPName
+        - S3FullAccessPolicy:
+            BucketName: mytestcmr
+        - S3FullAccessPolicy:
+            BucketName: !Ref FailedBucketPName
       Events:
         GetNIIAPI:
           Type: Api

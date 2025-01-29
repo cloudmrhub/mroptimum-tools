@@ -5,6 +5,30 @@ import shutil
 from pynico_eros_montin import pynico as pn
 import os
 
+
+def sanitize_for_json(data):
+    """Recursively sanitize data to make it JSON serializable."""
+    if isinstance(data, dict):
+        return {k: sanitize_for_json(v) for k, v in data.items()}
+    elif isinstance(data, list):
+        return [sanitize_for_json(v) for v in data]
+    elif isinstance(data, (int, float, str, bool, type(None))):
+        return data
+    else:
+        return str(data)  # Convert non-serializable types to strings
+
+def write_json_file(file_path, data):
+    """
+    Sanitizes the data and writes it to a JSON file.
+    """
+    try:
+        sanitized_data = sanitize_for_json(data)
+        with open(file_path, 'w', encoding='utf-8') as file:
+            json.dump(sanitized_data, file, indent=4)
+        print(f"JSON data successfully written to {file_path}")
+    except Exception as e:
+        print(f"Failed to write JSON data to file: {e}")
+
 mroptimum_result = os.getenv("ResultsBucketName", "mrorv2")
 mroptimum_failed = os.getenv("FailedBucketName", "mrofv2")
 
@@ -139,6 +163,7 @@ def handler(event, context,s3=None):
         }
     except Exception as e:
         # L.append(str(e), 'error')
+        print("jsonpickle")
         O.changeBaseName("task.json")
         # copy the file inthe variable jf in /tmp
         try:
@@ -175,13 +200,16 @@ def handler(event, context,s3=None):
         jsonstring=jsonpickle.encode(INFO)
         # Deserialize back to Python objects
         data = jsonpickle.decode(jsonstring)
-        
-        E.writeJson(data)
+        try:
+            E.writeJson(data)
+        except:
+            write_json_file(E.getPosition(), INFO)
+            print("couldn't write the info used my sanitizer")
         Z = pn.createRandomTemporaryPathableFromFileName("a.zip")
         shutil.make_archive(Z.getPosition()[:-4], "zip", O.getPath())
         s3.Bucket(mroptimum_failed).upload_file(
             Z.getPosition(), Z.getBaseName())
         return {
             "statusCode": 500,
-            "body": json.dumps({"error": str(e)})
+            "body": json.dumps({"error": "error"})
         }
