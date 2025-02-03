@@ -140,7 +140,7 @@ if __name__=="__main__":
             else:
                 NC,NCC=calculteNoiseCovariance(NOISE,args.verbose)
                 IMAOUT.append({"id":1,"dim":2,"name":"Noise Covariance","data":NC,"filename":'data/NC.nii.gz',"type":'output'})
-                IMAOUT.append({"id":2,"dim":2,"name":"Noise Coefficient","data":NCC,"filename":"data/NCC.nii.gz","type":'output'})
+                IMAOUT.append({"id":2,"dim":2,"name":"Noise Coefficients","data":NCC,"filename":"data/NCC.nii.gz","type":'output'})
 
             # get the specialized function for the snr calculation
             _SNR_calculator=SNR_calculator[SID]
@@ -315,6 +315,9 @@ if __name__=="__main__":
                     "data":[]
                 };
                 O=pn.Pathable(args.output)
+                
+                IMAOUT = sorted(IMAOUT, key=lambda x: x["id"])
+
                 for im in IMAOUT:
                     O.addBaseName(im["filename"])
                     O.ensureDirectoryExistence()

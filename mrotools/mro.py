@@ -122,8 +122,8 @@ def calcPseudoMultipleReplicasSNR(O):
         G=reconstructor.getOutput()
         IGF=1/G
         IGF[np.isinf(IGF)]=0        
-        OUT["images"]["GFactor"]={"id":4,"dim":3,"name":"G Factor","data":G,"filename":'data/G.nii.gz',"type":'accessory',"numpyPixelType":reconstructor.getOutput().dtype.name} 
-        OUT["images"]["InverseGFactor"]={"id":3,"dim":3,"name":"Inverse G Factor","data":IGF,"filename":'data/IG.nii.gz',"type":'accessory',"numpyPixelType":reconstructor.getOutput().dtype.name} 
+        OUT["images"]["GFactor"]={"id":3,"dim":3,"name":"G Factor","data":G,"filename":'data/G.nii.gz',"type":'accessory',"numpyPixelType":reconstructor.getOutput().dtype.name} 
+        OUT["images"]["InverseGFactor"]={"id":4,"dim":3,"name":"Inverse G Factor","data":IGF,"filename":'data/IG.nii.gz',"type":'accessory',"numpyPixelType":reconstructor.getOutput().dtype.name} 
 
     return OUT
 def calcPseudoMultipleReplicasSNRWien(O):    
@@ -160,8 +160,8 @@ def calcPseudoMultipleReplicasSNRWien(O):
         G=reconstructor.getOutput()
         IGF=1/G
         IGF[np.isinf(IGF)]=0        
-        OUT["images"]["GFactor"]={"id":4,"dim":3,"name":"G Factor","data":G,"filename":'data/G.nii.gz',"type":'accessory',"numpyPixelType":reconstructor.getOutput().dtype.name} 
-        OUT["images"]["InverseGFactor"]={"id":3,"dim":3,"name":"Inverse G Factor","data":IGF,"filename":'data/IG.nii.gz',"type":'accessory',"numpyPixelType":reconstructor.getOutput().dtype.name} 
+        OUT["images"]["GFactor"]={"id":3,"dim":3,"name":"G Factor","data":G,"filename":'data/G.nii.gz',"type":'accessory',"numpyPixelType":reconstructor.getOutput().dtype.name} 
+        OUT["images"]["InverseGFactor"]={"id":4,"dim":3,"name":"Inverse G Factor","data":IGF,"filename":'data/IG.nii.gz',"type":'accessory',"numpyPixelType":reconstructor.getOutput().dtype.name} 
     return OUT
 
 
@@ -189,8 +189,8 @@ def calcKellmanSNR(O):
         G=reconstructor.getOutput()
         IGF=1/G
         IGF[np.isinf(IGF)]=0        
-        OUT["images"]["GFactor"]={"id":4,"dim":3,"name":"G Factor","data":G,"filename":'data/G.nii.gz',"type":'accessory',"numpyPixelType":reconstructor.getOutput().dtype.name} 
-        OUT["images"]["InverseGFactor"]={"id":3,"dim":3,"name":"Inverse G Factor","data":IGF,"filename":'data/IG.nii.gz',"type":'accessory',"numpyPixelType":reconstructor.getOutput().dtype.name} 
+        OUT["images"]["GFactor"]={"id":3,"dim":3,"name":"G Factor","data":G,"filename":'data/G.nii.gz',"type":'accessory',"numpyPixelType":reconstructor.getOutput().dtype.name} 
+        OUT["images"]["InverseGFactor"]={"id":4,"dim":3,"name":"Inverse G Factor","data":IGF,"filename":'data/IG.nii.gz',"type":'accessory',"numpyPixelType":reconstructor.getOutput().dtype.name} 
     return OUT
 
 def calcMultipleReplicasSNR(O):    
@@ -260,8 +260,8 @@ def calcMultipleReplicasSNR(O):
         IGF=1/G
         IGF[np.isinf(IGF)]=0
         
-        OUT["images"]["GFactor"]={"id":4,"dim":3,"name":"G Factor","data":G,"filename":'data/G.nii.gz',"type":'accessory',"numpyPixelType":reconstructor.getOutput().dtype.name} 
-        OUT["images"]["InverseGFactor"]={"id":3,"dim":3,"name":"Inverse G Factor","data":IGF,"filename":'data/IG.nii.gz',"type":'accessory',"numpyPixelType":reconstructor.getOutput().dtype.name} 
+        OUT["images"]["GFactor"]={"id":3,"dim":3,"name":"G Factor","data":G,"filename":'data/G.nii.gz',"type":'accessory',"numpyPixelType":reconstructor.getOutput().dtype.name} 
+        OUT["images"]["InverseGFactor"]={"id":4,"dim":3,"name":"Inverse G Factor","data":IGF,"filename":'data/IG.nii.gz',"type":'accessory',"numpyPixelType":reconstructor.getOutput().dtype.name} 
     return OUT
 
 
