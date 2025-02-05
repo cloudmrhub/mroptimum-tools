@@ -4,6 +4,8 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+
+
         {
             "name": "TESTXA",
             "type": "python",
@@ -80,22 +82,22 @@
             ]
         },
         {
-            "name": "AC B1",
+            "name": "AC B1 20",
             "type": "python",
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
-            "justMyCode": true,
+            "justMyCode": false,
             "args": [
                 "-j",
-                "mrotools/collections/AC/b1_settings.json",
+                "mrotools/collections/AC/b1_settings_20.json",
                 "-o",
-                "/g/SNR/AC/B1/",
+                "/g/SNR/AC/B120/",
                 "--coilsens",
                 "--no-gfactor",
                 "--no-verbose",
                 "--matlab",
-                "--parallel"
+                "--no-parallel"
             ]
         },
         {

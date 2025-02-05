@@ -1,0 +1,50 @@
+{
+    "version": "v0",
+    "acquisition": 2,
+    "type": "SNR",
+    "id": 0,
+    "name": "AC",
+    "options": {
+        "reconstructor": {
+            "type": "recon",
+            "name": "B1",
+            "id": 2,
+            "options": {
+                "type": "B1",
+                "noise": {
+                    "type": "file",
+                    "options": {
+                        "type": "local",
+                        "filename": "/data/MYDATA/mroptimumtestData/noise.dat",
+                        "options": {},
+                        "multiraid": false,
+                        "vendor": "Siemens"
+                    }
+                },
+                "signal": {
+                    "type": "file",
+                    "options": {
+                        "type": "local",
+                        "filename": "/data/MYDATA/mroptimumtestData/signal.dat",
+                        "options": {},
+                        "multiraid": false,
+                        "vendor": "Siemens"
+                    }
+                },
+                "sensitivityMap": {
+                    "type": "sensitivityMap",
+                    "name": "inner",
+                    "id": 2,
+                    "options": {
+                        "loadSensitivity": false,
+                        "sensitivityMapMethod": "inner",
+                        "mask": {
+                            "method": "percentage",
+                            "value": 20
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
