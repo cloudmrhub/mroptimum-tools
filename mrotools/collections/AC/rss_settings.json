@@ -14,7 +14,7 @@
                     "type": "file",
                     "options": {
                         "type": "local",
-                        "filename": "/data/MYDATA/mroptimumtestData/noise.dat",
+                        "filename": "/home/eros/Downloads/d3add4ca-04e0-4c56-a170-d9e2a386aa63.dat",
                         "options": {},
                         "multiraid": false,
                         "vendor": "Siemens"
@@ -24,7 +24,7 @@
                     "type": "file",
                     "options": {
                         "type": "local",
-                        "filename": "/data/MYDATA/mroptimumtestData/signal.dat",
+                        "filename": "/home/eros/Downloads/40600f8c-17f8-45df-9722-4990b1f81134.dat",
                         "options": {},
                         "multiraid": false,
                         "vendor": "Siemens"

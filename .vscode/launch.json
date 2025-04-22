@@ -6,6 +6,7 @@
     "configurations": [
 
 
+
         {
             "name": "TESTXA",
             "type": "python",
@@ -150,6 +151,25 @@
                 "mrotools/collections/PMR/rss_settings.json",
                 "-o",
                 "/g/SNR/PMR/RSS/",
+                "--no-coilsens",
+                "--no-gfactor",
+                "--no-verbose",
+                "--matlab",
+                "--parallel"
+            ]
+        },
+        {
+            "name": "AC RSS",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "-j",
+                "mrotools/collections/AC/rss_settings.json",
+                "-o",
+                "/g/SNR/AC/RSS/",
                 "--no-coilsens",
                 "--no-gfactor",
                 "--no-verbose",
