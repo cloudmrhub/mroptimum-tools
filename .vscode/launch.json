@@ -140,6 +140,25 @@
             ]
         },
         {
+            "name": "AC real sense masked",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "-j",
+                "mrotools/collections/AC/sense_real_settings_masked.json",
+                "-o",
+                "/g/SNR/AC/senseRealdataACL/",
+                "--coilsens",
+                "--gfactor",
+                "--no-verbose",
+                "--matlab",
+                "--parallel"
+            ]
+        },
+        {
             "name": "PMR RSS",
             "type": "python",
             "request": "launch",
