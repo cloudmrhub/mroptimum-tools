@@ -170,14 +170,22 @@ if __name__=="__main__":
                         acceleration=reconstructor_dictionary["options"]["accelerations"]
                 else:
                     acceleration,_acl=getAccellerationInfo2D(s=reconstructor_dictionary["options"]["signal"])
+                    
                 LOG.append(f'acceleration is {acceleration}')
                 if "acl" in reconstructor_dictionary["options"].keys():
                     if reconstructor_dictionary["options"]["acl"]!=None:
                         autocalibration=[np.nan if v is None else v for v in reconstructor_dictionary["options"]["acl"]]
                 else:
                     autocalibration=_acl
+                    if RID==3:
+                        autocalibration=[_acl[1], _acl[1]]
                 LOG.append(f'autocalibration is {autocalibration}')
             #sensitivities
+            
+            #grappa
+            if RID==3 and not mimic:
+                reference=getSiemensReferenceKSpace2D(reconstructor_dictionary["options"]["signal"],signal_acceleration_realsize=SL[0]["size"][1],slice='all')
+
             if reconstructor().HasSensitivity:
                 sensitivitymethod=reconstructor_dictionary["options"]["sensitivityMap"]["options"]["sensitivityMapMethod"]
                 #if b1
@@ -233,7 +241,7 @@ if __name__=="__main__":
                 O["noise"]=None
                 # we are using th NC calculated before instead of passing the noise KSpace
                 O["noisecovariance"]=NC
-                if reconstructor().HasSensitivity:
+                if (reconstructor().HasSensitivity or (RID==3 and not mimic)):
                     O["reference"]=reference[counter]
                 else:
                     O["reference"]=None

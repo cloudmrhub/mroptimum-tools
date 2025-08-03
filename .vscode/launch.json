@@ -121,6 +121,44 @@
             ]
         },
         {
+            "name": "AC sense acc masked",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "-j",
+                "mrotools/collections/AC/sense_real_settings_masked_accelerated.json",
+                "-o",
+                "/g/SNR/AC/senseACL_m_acc/",
+                "--coilsens",
+                "--gfactor",
+                "--no-verbose",
+                "--matlab",
+                "--parallel"
+            ]
+        },
+        {
+            "name": "AC real sense threshold",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "-j",
+                "mrotools/collections/AC/sense_real_settings_threshold.json",
+                "-o",
+                "/g/SNR/AC/senseRealdataACL_threshold/",
+                "--coilsens",
+                "--gfactor",
+                "--no-verbose",
+                "--matlab",
+                "--parallel"
+            ]
+        },
+        {
             "name": "AC real sense",
             "type": "python",
             "request": "launch",
@@ -269,7 +307,26 @@
                 "--no-gfactor",
                 "--no-verbose",
                 "--matlab",
-                "--parallel"
+                "--no-parallel"
+            ]
+        },
+        {
+            "name": "PMR grappa real",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "-j",
+                "mrotools/collections/PMR/grappa_real_settings.json",
+                "-o",
+                "/g/SNR/PMR/real_grappa/",
+                "--coilsens",
+                "--no-gfactor",
+                "--no-verbose",
+                "--matlab",
+                "--no-parallel"
             ]
         },
         {

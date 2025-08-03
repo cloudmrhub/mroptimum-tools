@@ -13,7 +13,43 @@ from cmtools.cm2D import cm2DSignalToNoiseRatioPseudoMultipleReplicas as mroPseu
 from cmtools.cm2D import cm2DSignalToNoiseRatioPseudoMultipleReplicasWein as mroGeneralizedPseudoMultipleReplicas
 
 
+def patchSizeKSpace2D(K,sensmask):
+        # make the sensmask same size as the kspace
+        
+    K0, K1 = K.shape[:2]
+    s0, s1 = sensmask.shape[:2]
+    d0, d1 = K0 - s0, K1 - s1
 
+    if abs(d0) < 10 and abs(d1) < 10 and (d0 or d1):
+        # 1) center‐crop if too big
+        start0 = max((s0 - K0)//2, 0)
+        start1 = max((s1 - K1)//2, 0)
+        sensmask = sensmask[
+            start0:start0 + min(s0, K0),
+            start1:start1 + min(s1, K1),
+            :
+        ]
+
+        # Recalculate dimensions after cropping
+        s0, s1 = sensmask.shape[:2]
+        d0, d1 = K0 - s0, K1 - s1
+        
+        # 2) pad if still needed
+        pad0 = max(d0, 0)  # Changed from -d0
+        pad1 = max(d1, 0)  # Changed from -d1
+        pad_top = pad0//2; pad_bottom = pad0 - pad_top
+        pad_left = pad1//2; pad_right = pad1 - pad_left
+
+        sensmask = np.pad(
+            sensmask,
+            ((pad_top, pad_bottom),
+            (pad_left, pad_right),
+            (0, 0)),
+            mode='constant',
+            constant_values=0
+        )
+    return sensmask
+            
 def saveImage(x,origin=None,spacing=None,direction=None,fn=None):
     if not(direction is None):
         x.setImageDirection(direction)
@@ -55,6 +91,8 @@ def customizerecontructor(reconstructor,O={}):
         else:
             signal=fixAccelratedKSpace2D(signal)
             reference=fixAccelratedKSpace2D(reference)
+
+        reference =patchSizeKSpace2D(signal,reference)    
         reconstructor.setAcceleration(acceleration)
         reconstructor.setAutocalibrationLines(autocalibration)
         LOG.append(f'Acceleration set to {acceleration}' )
