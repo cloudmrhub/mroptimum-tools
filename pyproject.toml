@@ -10,7 +10,7 @@ include = ["**/*.py","**/*.pkl"]
 
 [project]
 name = "mrotools"
-version = "2.0.2.3"
+version = "2.0.2.4"
 license = "MIT"
 description = "SNR Tools"
 authors = [

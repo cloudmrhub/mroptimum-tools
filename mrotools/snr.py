@@ -165,11 +165,18 @@ if __name__=="__main__":
                 LOG.append(f'grappakernel is {grappakernel}')
 
             if reconstructor().HasAcceleration:
+                try:
+                    acceleration,_acl=getAccellerationInfo2D(s=reconstructor_dictionary["options"]["signal"])
+                except:
+                    LOG.appendError('acceleration not found')
+                    LOG.appendError('this version of SNR tool only works with siemens file at the moment')
+                    pass
+                    
                 if "accelerations" in reconstructor_dictionary["options"].keys():
                     if reconstructor_dictionary["options"]["accelerations"]!=None:
                         acceleration=reconstructor_dictionary["options"]["accelerations"]
-                else:
-                    acceleration,_acl=getAccellerationInfo2D(s=reconstructor_dictionary["options"]["signal"])
+                # else:
+                #     acceleration,_acl=getAccellerationInfo2D(s=reconstructor_dictionary["options"]["signal"])
                     
                 LOG.append(f'acceleration is {acceleration}')
                 if "acl" in reconstructor_dictionary["options"].keys():
