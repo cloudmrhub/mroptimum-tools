@@ -7,6 +7,15 @@ from pynico_eros_montin import pynico as pn
 from cmtools.cm2D import cm2DKellmanRSS as mroArrayCombiningRSS
 from cmtools.cm2D import cm2DKellmanB1 as mroArrayCombiningB1
 from cmtools.cm2D import cm2DKellmanSENSE as mroArrayCombiningSENSE
+from cmtools.cm2D import cm2DKellmanGRAPPA as mroArrayCombiningGRAPPA
+
+
+from cmtools.cm2D import cm2DKellmanRSS as mroAnaliticalMethodRSS
+from cmtools.cm2D import cm2DKellmanB1 as mroAnaliticalMethodB1
+from cmtools.cm2D import cm2DKellmanSENSE as mroAnaliticalMethodSENSE
+from cmtools.cm2D import cm2DKellmanGRAPPA as mroAnaliticalMethodGRAPPA
+
+
 
 from cmtools.cm2D import cm2DSignalToNoiseRatioMultipleReplicas as mroMultipleReplicas
 from cmtools.cm2D import cm2DSignalToNoiseRatioPseudoMultipleReplicas as mroPseudoMultipleReplicas
@@ -306,7 +315,7 @@ def calcMultipleReplicasSNR(O):
 RECON=["rss","b1","sense","grappa"]
 RECON_classes=[cm2DReconRSS,cm2DReconB1,cm2DReconSENSE,cm2DReconGRAPPA]
 SNR=["ac","mr","pmr","cr"]
-KELLMAN_classes=[cm2DKellmanRSS,cm2DKellmanB1,cm2DKellmanSENSE,None]
+KELLMAN_classes=[cm2DKellmanRSS,cm2DKellmanB1,cm2DKellmanSENSE,cm2DKellmanGRAPPA]
 SNR_calculator=[calcKellmanSNR,
                 calcMultipleReplicasSNR,
                 calcPseudoMultipleReplicasSNR,

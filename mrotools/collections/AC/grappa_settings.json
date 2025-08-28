@@ -1,0 +1,29 @@
+{
+    "version": "v0",
+    "acquisition": 2,
+    "type": "SNR",
+    "id": 0,
+    "name": "ac",
+    "options": {
+        "reconstructor": {
+            "type": "recon",
+            "name": "GRAPPA",
+            "id": 4,
+            "options": {
+                
+                "signal": {
+                    "type": "file",
+                    "options": {
+                        "type": "local",
+                        "filename": "/data/MYDATA/siemensrawdataexamples/Sebastian/raw/meas_MID02699_FID183827_gre_mSENSE_2.dat",
+                        "options": {},
+                        "multiraid": true,
+                        "vendor": "Siemens"
+                    }
+                },
+                "decimate": false,
+                "kernelSize" : [5,5]
+            }
+        }
+    }
+}

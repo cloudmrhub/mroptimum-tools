@@ -558,6 +558,25 @@
             ]
         },
         {
+            "name": "TESTS AM GRAPPA",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "-j",
+                "mrotools/collections/AC/grappa_settings.json",
+                "-o",
+                "/g/SNR/misc/RSS_GR/",
+                "--no-coilsens",
+                "--no-gfactor",
+                "--no-verbose",
+                "--matlab",
+                "--parallel"
+            ]
+        },
+        {
             "name": "TESTS B1 mask coil sens",
             "type": "python",
             "request": "launch",
