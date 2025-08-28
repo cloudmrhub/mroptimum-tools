@@ -10,10 +10,10 @@ from cmtools.cm2D import cm2DKellmanSENSE as mroArrayCombiningSENSE
 from cmtools.cm2D import cm2DKellmanGRAPPA as mroArrayCombiningGRAPPA
 
 
-from cmtools.cm2D import cm2DKellmanRSS as mroAnaliticalMethodRSS
-from cmtools.cm2D import cm2DKellmanB1 as mroAnaliticalMethodB1
-from cmtools.cm2D import cm2DKellmanSENSE as mroAnaliticalMethodSENSE
-from cmtools.cm2D import cm2DKellmanGRAPPA as mroAnaliticalMethodGRAPPA
+from cmtools.cm2D import cm2DKellmanRSS as mroAnalyticalMethodRSS
+from cmtools.cm2D import cm2DKellmanB1 as mroAnalitycalMethodB1
+from cmtools.cm2D import cm2DKellmanSENSE as mroAnalyticalMethodSENSE
+from cmtools.cm2D import cm2DKellmanGRAPPA as mroAnalyticalMethodGRAPPA
 
 
 
