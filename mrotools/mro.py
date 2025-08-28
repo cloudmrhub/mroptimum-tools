@@ -11,7 +11,7 @@ from cmtools.cm2D import cm2DKellmanGRAPPA as mroArrayCombiningGRAPPA
 
 
 from cmtools.cm2D import cm2DKellmanRSS as mroAnalyticalMethodRSS
-from cmtools.cm2D import cm2DKellmanB1 as mroAnalitycalMethodB1
+from cmtools.cm2D import cm2DKellmanB1 as mroAnalyticalMethodB1
 from cmtools.cm2D import cm2DKellmanSENSE as mroAnalyticalMethodSENSE
 from cmtools.cm2D import cm2DKellmanGRAPPA as mroAnalyticalMethodGRAPPA
 
