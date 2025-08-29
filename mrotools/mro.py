@@ -241,6 +241,10 @@ def calcKellmanSNR(O):
         
     if isinstance(reconstructor,cm2DReconGRAPPA) or (isinstance(reconstructor,cm2DKellmanGRAPPA)) and O["savegfactor"]:
         G=reconstructor.getGFactor()
+        N=3
+        S=np.concat([SNR[0:N,0:N].flatten(), SNR[:-N,:-N].flatten(),SNR[0:N,:-N].flatten(), SNR[:-N,0:N].flatten()],axis=0)
+        mask=SNR>np.median(S)
+        G*=mask
         IGF=1/G
         IGF[np.isinf(IGF)]=0        
         OUT["images"]["GFactor"]={"id":5,"dim":3,"name":"g Factor GRAPPA","data":G,"filename":'data/G_GRAPPA.nii.gz',"type":'accessory',"numpyPixelType":reconstructor.getOutput().dtype.name} 
@@ -319,6 +323,10 @@ def calcMultipleReplicasSNR(O):
  
     if isinstance(reconstructor,cm2DReconGRAPPA) or (isinstance(reconstructor,cm2DKellmanGRAPPA)) and O["savegfactor"]:
         G=reconstructor.getGFactor()
+        N=3
+        S=np.concat([SNR[0:N,0:N].flatten(), SNR[:-N,:-N].flatten(),SNR[0:N,:-N].flatten(), SNR[:-N,0:N].flatten()],axis=0)
+        mask=SNR>np.median(S)
+        G*=mask
         IGF=1/G
         IGF[np.isinf(IGF)]=0        
         OUT["images"]["GFactor"]={"id":5,"dim":3,"name":"g Factor GRAPPA","data":G,"filename":'data/G_GRAPPA.nii.gz',"type":'accessory',"numpyPixelType":reconstructor.getOutput().dtype.name} 
