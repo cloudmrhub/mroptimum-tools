@@ -238,6 +238,13 @@ def calcKellmanSNR(O):
         IGF[np.isinf(IGF)]=0        
         OUT["images"]["GFactor"]={"id":3,"dim":3,"name":"g Factor","data":G,"filename":'data/G.nii.gz',"type":'accessory',"numpyPixelType":reconstructor.getOutput().dtype.name} 
         OUT["images"]["InverseGFactor"]={"id":4,"dim":3,"name":"Inverse g Factor","data":IGF,"filename":'data/IG.nii.gz',"type":'accessory',"numpyPixelType":reconstructor.getOutput().dtype.name} 
+        
+    if isinstance(reconstructor,cm2DReconGRAPPA) or (isinstance(reconstructor,cm2DKellmanGRAPPA)) and O["savegfactor"]:
+        G=reconstructor.getGFactor()
+        IGF=1/G
+        IGF[np.isinf(IGF)]=0        
+        OUT["images"]["GFactor"]={"id":5,"dim":3,"name":"g Factor GRAPPA","data":G,"filename":'data/G_GRAPPA.nii.gz',"type":'accessory',"numpyPixelType":reconstructor.getOutput().dtype.name} 
+        OUT["images"]["InverseGFactor"]={"id":6,"dim":3,"name":"Inverse g Factor GRAPPA","data":IGF,"filename":'data/IG_GRAPPA.nii.gz',"type":'accessory',"numpyPixelType":reconstructor.getOutput().dtype.name}
     return OUT
 
 def calcMultipleReplicasSNR(O):    
@@ -309,6 +316,13 @@ def calcMultipleReplicasSNR(O):
         
         OUT["images"]["GFactor"]={"id":3,"dim":3,"name":"g Factor","data":G,"filename":'data/G.nii.gz',"type":'accessory',"numpyPixelType":reconstructor.getOutput().dtype.name} 
         OUT["images"]["InverseGFactor"]={"id":4,"dim":3,"name":"Inverse g Factor","data":IGF,"filename":'data/IG.nii.gz',"type":'accessory',"numpyPixelType":reconstructor.getOutput().dtype.name} 
+ 
+    if isinstance(reconstructor,cm2DReconGRAPPA) or (isinstance(reconstructor,cm2DKellmanGRAPPA)) and O["savegfactor"]:
+        G=reconstructor.getGFactor()
+        IGF=1/G
+        IGF[np.isinf(IGF)]=0        
+        OUT["images"]["GFactor"]={"id":5,"dim":3,"name":"g Factor GRAPPA","data":G,"filename":'data/G_GRAPPA.nii.gz',"type":'accessory',"numpyPixelType":reconstructor.getOutput().dtype.name} 
+        OUT["images"]["InverseGFactor"]={"id":6,"dim":3,"name":"Inverse g Factor GRAPPA","data":IGF,"filename":'data/IG_GRAPPA.nii.gz',"type":'accessory',"numpyPixelType":reconstructor.getOutput().dtype.name}
     return OUT
 
 

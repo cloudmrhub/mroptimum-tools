@@ -570,7 +570,7 @@
                 "-o",
                 "/g/SNR/misc/RSS_GR/",
                 "--no-coilsens",
-                "--no-gfactor",
+                "--gfactor",
                 "--no-verbose",
                 "--matlab",
                 "--parallel"

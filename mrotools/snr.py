@@ -16,7 +16,7 @@ import os
 
 
 #read debug from environment and put it to false if not present
-debug=os.getenv('DEBUG',False)
+debug=os.getenv('DEBUG',True)
    
 def getAccellerationInfo2D(s,raid=1):
     N=pn.Pathable(getFile(s))
@@ -94,8 +94,6 @@ if __name__=="__main__":
             NR=None
             if SID>1:
                 NR=J["options"]["NR"]
-
-            
             
             boxSize=None
             if SID>2:
