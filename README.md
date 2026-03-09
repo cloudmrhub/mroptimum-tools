@@ -137,13 +137,6 @@ json/
 
 ---
 
-## 🖥️ **GUI Tool**
-
-`mrotools/generate-ui.py` provides a **Tkinter-based GUI** for interactively building JSON configuration files and launching SNR calculations without writing code. Launch it with:
-
-```bash
-python mrotools/generate-ui.py
-```
 
 ---
 
