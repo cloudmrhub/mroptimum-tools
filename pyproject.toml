@@ -10,7 +10,7 @@ include = ["**/*.py","**/*.pkl"]
 
 [project]
 name = "mrotools"
-version = "2.0.3.3"
+version = "2.0.4"
 license = "MIT"
 description = "SNR Tools"
 authors = [
@@ -23,7 +23,7 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
-dependencies = ["matplotlib","scipy","Pillow","cmtools @ git+https://github.com/cloudmrhub/cloudmr-tools.git","raider_eros_montin @ git+https://github.com/erosmontin/raider.git","pynico_eros_montin @ git+https://github.com/erosmontin/pynico.git","pyable_eros_montin @ git+https://github.com/erosmontin/pyable.git"]
+dependencies = ["matplotlib","scipy","Pillow","cmtools @ git+https://github.com/cloudmrhub/cloudmr-tools.git","raider_eros_montin @ git+https://github.com/erosmontin/raider.git","pynico_eros_montin @ git+https://github.com/erosmontin/pynico.git@v2","pyable_eros_montin @ git+https://github.com/erosmontin/pyable.git@v2"]
 
 [project.urls]
 "Homepage" = "https://github.com/cloudmrhub/mroptimum-tools"

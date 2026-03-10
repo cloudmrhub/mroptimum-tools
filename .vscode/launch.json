@@ -595,5 +595,43 @@
                 "--no-parallel"
             ]
         },
+                {
+            "name": "TESTS AM VB",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "-j",
+                "mrotools/collections/AC/rss_settings_VB.json",
+                "-o",
+                "/g/SNR/misc/RSS_VB/",
+                "--no-coilsens",
+                "--gfactor",
+                "--no-verbose",
+                "--matlab",
+                "--parallel"
+            ]
+        },
+          {
+            "name": "TESTS AM VB2",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "-j",
+                "mrotools/collections/AC/rss_settings_VB2.json",
+                "-o",
+                "/g/SNR/misc/RSS_VB2/",
+                "--no-coilsens",
+                "--gfactor",
+                "--no-verbose",
+                "--matlab",
+                "--parallel"
+            ]
+        }
     ]
 }

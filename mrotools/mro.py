@@ -484,11 +484,30 @@ def getSiemensReferenceKSpace2D(s,signal_acceleration_realsize,slice=0,raid=1):
     sl=0
     return fixReferenceSiemens(np.transpose(r_array[0,0,0,0,0,0,0,0,0,0,0,sl,0,:,:,:],[2,0,1]),signal_acceleration_realsize)
 
+def search_vb_version(d):
+    if isinstance(d, dict):
+        for k, v in d.items():
+            if isinstance(v, (dict, list)):
+                if search_vb_version(v):
+                    return True
+            elif isinstance(v, str) and "VB" in v:
+                return True
+    elif isinstance(d, list):
+        for item in d:
+            if search_vb_version(item):
+                return True
+    return False
 
 def getSiemensKSpace2D(n,noise=False,aveRepetition=True,slice=0,raid=0,MR=False):
     
     twix=twixtools.map_twix(n)
-    im_array = twix[raid]['image']
+    try:
+            im_array = twix[raid]['image']
+    except:
+        if noise:
+            im_array = twix[raid]['noise']
+        else:
+            raise Exception("I can't find the image or noise data in this file")
     im_array.flags['remove_os'] = not noise  # activate automatic os removal
     _MR=7
     if noise:

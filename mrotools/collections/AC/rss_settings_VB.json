@@ -1,0 +1,39 @@
+{
+    "version": "v0",
+    "acquisition": 2,
+    "type": "SNR",
+    "id": 0,
+    "name": "AC",
+    "options": {
+        "reconstructor": {
+            "type": "recon",
+            "id": 1,
+            "name": "RSS",
+            "options": {
+                "noise": {
+                    "type": "file",
+                    "options": {
+                        "type": "local",
+                        "filename": "/data/garbage/mroptimum-final-test/VB/meas_MID92_SNR24_Noi_BW200_FID15245.dat",
+                        "options": {},
+                        "multiraid": false,
+                        "vendor": "Siemens"
+                    }
+                },
+                "signal": {
+                    "type": "file",
+                    "options": {
+                        "type": "local",
+                        "filename": "/data/garbage/mroptimum-final-test/VB/meas_MID91_SNR24_Tra_BW200_FID15244.dat",
+                        "options": {},
+                        "multiraid": false,
+                        "vendor": "Siemens"
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
