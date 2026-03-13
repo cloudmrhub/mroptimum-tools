@@ -22,12 +22,25 @@ Usage:
     conda run -n mro python tools/dat2numpy.py \\
         -i /path/to/signal.dat \\
         -o /path/to/output_dir/ \\
-        --multiraid           # if noise is embedded in the signal file
+        --multiraid           # noise embedded as a separate raid (multiraid files)
 
     conda run -n mro python tools/dat2numpy.py \\
         -i /path/to/signal.dat \\
         --noise /path/to/noise.dat \\
         -o /path/to/output_dir/
+
+    # No noise flag needed when prescan noise is in the signal file:
+    conda run -n mro python tools/dat2numpy.py \\
+        -i /path/to/signal.dat \\
+        -o /path/to/output_dir/
+
+Noise source priority:
+    1. --multiraid  : full noise scan from raid 0 (multiraid files)
+    2. --noise      : separate noise .dat file
+    3. auto-fallback: prescan noise ('noise' key) embedded in the signal file
+                      Every Siemens scan includes a brief noise pre-adjustment
+                      scan (EvalInfoMask NOISEADJSCAN). This yields a single-line
+                      noise sample: (cols, 1, coils).
 """
 
 import argparse
@@ -154,6 +167,44 @@ def extract_signal_kspace(dat_path, raid, MR=False):
             )
         slices.append(k)
     return slices
+
+
+def extract_prescan_noise_kspace(dat_path, raid):
+    """
+    Extract prescan noise from the ``noise`` scan type inside a signal .dat file.
+
+    Siemens scanners perform a noise pre-adjustment scan (EvalInfoMask
+    NOISEADJSCAN) at the beginning of every acquisition and store it in the
+    same raw-data file.  twixtools exposes it under the ``'noise'`` key.
+
+    The array layout (from twixtools) is::
+
+        [..., lin, cha, col]   (last three non-trivial dims)
+
+    which maps to ``(freq, phase, coils)`` after transposing [2, 0, 1].
+
+    Returns:
+        list with a single array shaped ``(cols, lines, coils)``, or None
+        when the key is absent or empty.
+    """
+    twix = twixtools.map_twix(dat_path)
+    if "noise" not in twix[raid]:
+        return None
+
+    n_arr = twix[raid]["noise"]
+    n_arr.flags["remove_os"] = False
+    n_arr.flags["average"]["Rep"] = False
+    n_arr.flags["average"]["Ave"] = False
+
+    # Full shape has 16 dims; last three are [lin, cha, col]
+    raw = n_arr[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, :, :, :]
+    # raw: (lin, cha, col) → transpose to (col, lin, cha) = (freq, phase, coils)
+    kspace = np.transpose(raw, [2, 0, 1])
+
+    if kspace.size == 0:
+        return None
+
+    return [kspace]  # single-slice list, consistent with other noise sources
 
 
 def extract_noise_kspace(dat_path, multiraid=False, raid=0):
@@ -319,8 +370,13 @@ def convert(
         print(f"Extracting noise from: {noise_path}")
         noise_slices = extract_noise_kspace(noise_path, multiraid=False)
     else:
-        print("WARNING: No noise source specified. Skipping noise extraction.")
-        noise_slices = None
+        # Fallback: try prescan noise embedded in the signal file
+        print("No external noise source — trying prescan noise in signal file...")
+        noise_slices = extract_prescan_noise_kspace(signal_path, signal_raid)
+        if noise_slices is not None:
+            print(f"  Found prescan noise: shape={noise_slices[0].shape}")
+        else:
+            print("  WARNING: No prescan noise found. Skipping noise extraction.")
 
     if noise_slices is not None:
         save_npz(noi_npz, noise_slices, None)

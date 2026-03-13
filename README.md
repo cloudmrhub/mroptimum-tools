@@ -30,6 +30,8 @@
 | File | Description |
 | ---- | ----------- |
 | `dat2numpy.py` | Convert Siemens `.dat` raw data to `.npz` files with embedded orientation and acceleration metadata. |
+| `dat_inventory.py` | Full inventory of a Siemens `.dat` file: exports every raid/scan-type as `.npz` + RSS preview PNG + `inventory.json` manifest. Intended for upload backends to present all available data to the user before SNR calculation. |
+| `ismrmrd2numpy.py` | Convert ISMRMRD `.h5` raw data (vendor-neutral format) to `.npz` files. Requires `pip install ismrmrd`. |
 
 ---
 
@@ -279,12 +281,25 @@ conda run -n mro python tools/dat2numpy.py \
     --noise /path/to/noise.dat \
     -o /path/to/output_dir/
 
+# No noise flag — prescan noise is extracted automatically from the signal file
+conda run -n mro python tools/dat2numpy.py \
+    -i /path/to/signal.dat \
+    -o /path/to/output_dir/
+
 # Multiple Replicas (MR) data
 conda run -n mro python tools/dat2numpy.py \
     -i /path/to/signal.dat \
     -o /path/to/output_dir/ \
     --multiraid --mr
 ```
+
+**Noise source priority:**
+
+| Priority | Source | When |
+|----------|--------|------|
+| 1 | `--multiraid` | Multiraid file; full noise scan in raid 0 |
+| 2 | `--noise path` | Separate noise `.dat` file |
+| 3 | Auto-fallback | Prescan noise (`noise` key) embedded in the signal file. Every Siemens scan includes a brief noise pre-adjustment (NOISEADJSCAN). Shape: `(cols, 1, coils)`. |
 
 **Output files:**
 
