@@ -12,21 +12,22 @@
             "options": {
                 "noise": {
                     "type": "file",
-                    "options": {
+                   "options": {
                         "type": "local",
-                        "filename": "/path/to/noise_kspace.npy",
                         "vendor": "numpy",
+                        "filename": "/g/testnumpymro2/signal.npz",
                         "multiraid": false
                     }
                 },
                 "signal": {
                     "type": "file",
                     "options": {
-                        "type": "local",
-                        "filename": "/path/to/signal_kspace.npy",
-                        "vendor": "numpy",
-                        "multiraid": false
-                    }
+                                "type": "local",
+                                "vendor": "numpy",
+                                "filename": "/g/testnumpymro/signal.npz",
+                                "multiraid": false
+                            }
+                            
                 }
             }
         }

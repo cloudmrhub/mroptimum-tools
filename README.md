@@ -20,7 +20,16 @@
 | `snr.py` | CLI entry point (`python -m mrotools.snr`) for running SNR calculations from a JSON configuration file. |
 | `generate.py` | Programmatic helpers to build JSON configuration objects for each SNR/recon type. |
 | `generate-ui.py` | Tkinter-based GUI for interactively building JSON configs and launching calculations. |
-| `collections/` | Example JSON configurations organized by SNR method (AC/, MR/, PMR/, CR/, misc/). |
+| `kspace_loaders.py` | Multi-vendor k-space loaders (Siemens, NumPy, MATLAB) with factory pattern. |
+| `collections/` | Example JSON configurations organized by SNR method (AC/, MR/, PMR/, CR/, numpy/, matlab/, misc/). |
+
+---
+
+### **1b. 🔧 `tools/` — Conversion Utilities**
+
+| File | Description |
+| ---- | ----------- |
+| `dat2numpy.py` | Convert Siemens `.dat` raw data to `.npz` files with embedded orientation and acceleration metadata. |
 
 ---
 
@@ -133,11 +142,14 @@ np.save("noise.npy", noise_kspace)
 
 ```python
 np.savez("signal.npz",
-    kspace   = kspace,                                      # required
-    spacing  = np.array([1.0, 1.0, 5.0]),                  # optional
-    origin   = np.array([0.0, 0.0, 0.0]),                  # optional
-    direction= np.array([1,0,0, 0,1,0, 0,0,1], dtype=float), # optional (9 elems)
-    fov      = np.array([256.0, 256.0, 50.0]),              # optional
+    kspace       = kspace,                                      # required
+    spacing      = np.array([1.0, 1.0, 5.0]),                  # optional
+    origin       = np.array([0.0, 0.0, 0.0]),                  # optional
+    direction    = np.array([1,0,0, 0,1,0, 0,0,1], dtype=float), # optional (9 elems)
+    fov          = np.array([256.0, 256.0, 50.0]),              # optional
+    acceleration = np.array([1, 2]),                            # optional (freq, phase)
+    acl          = np.array([0, 24]),                           # optional (autocalibration lines)
+    reference    = reference_kspace,                            # optional (ACS data, same shape as kspace)
 )
 ```
 
@@ -233,6 +245,57 @@ To override orientation from JSON (takes priority over file-embedded values):
 ```
 
 See `mrotools/collections/numpy/` and `mrotools/collections/matlab/` for full examples.
+
+---
+
+### Acceleration & Reference Metadata
+
+For accelerated acquisitions (SENSE / GRAPPA), the loader resolves acceleration info with the same three-level priority:
+
+1. **JSON keys** `"accelerations"` and `"acl"` in the reconstructor options
+2. **Embedded in the file** (`.npz` keys `acceleration`, `acl`; `.mat` variables)
+3. **Defaults**: `[1, 1]` (no acceleration) / `[NaN, NaN]`
+
+Reference / ACS k-space can be supplied as:
+- A separate file via `"reference_filename"` in the JSON config
+- Embedded inside the signal `.npz` file with the key `reference`
+
+---
+
+### Siemens `.dat` → NumPy Converter
+
+The `tools/dat2numpy.py` script converts Siemens raw data into self-contained `.npz` files:
+
+```bash
+# Multiraid file (noise embedded in raid 0)
+conda run -n mro python tools/dat2numpy.py \
+    -i /path/to/signal.dat \
+    -o /path/to/output_dir/ \
+    --multiraid
+
+# Separate noise file
+conda run -n mro python tools/dat2numpy.py \
+    -i /path/to/signal.dat \
+    --noise /path/to/noise.dat \
+    -o /path/to/output_dir/
+
+# Multiple Replicas (MR) data
+conda run -n mro python tools/dat2numpy.py \
+    -i /path/to/signal.dat \
+    -o /path/to/output_dir/ \
+    --multiraid --mr
+```
+
+**Output files:**
+
+| File              | Contents                                                      |
+| ----------------- | ------------------------------------------------------------- |
+| `signal.npz`      | Signal k-space + orientation + acceleration + ACL metadata    |
+| `noise.npz`       | Noise k-space                                                 |
+| `reference.npz`   | Reference / ACS k-space (only for accelerated acquisitions)   |
+| `config_numpy.json`| Ready-to-use JSON config for the MR Optimum SNR pipeline     |
+
+Each `.npz` file is self-contained — orientation and acceleration metadata are embedded alongside the k-space data, so the JSON config can be minimal.
 
 ---
 

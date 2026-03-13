@@ -632,6 +632,25 @@
                 "--matlab",
                 "--parallel"
             ]
+        },
+          {
+            "name": "TESTS A numpy",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "-j",
+                "mrotools/collections/numpy/rss_settings.json",
+                "-o",
+                "/g/SNR/NP/",
+                "--no-coilsens",
+                "--gfactor",
+                "--no-verbose",
+                "--matlab",
+                "--parallel"
+            ]
         }
     ]
 }

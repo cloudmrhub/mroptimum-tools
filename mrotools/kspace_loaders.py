@@ -176,10 +176,13 @@ class NumpyLoader(KSpaceLoader):
 
     .npz files may contain the following optional keys alongside ``kspace``::
 
-        spacing   : 1-D array of length 3  (dx, dy, dz)
-        origin    : 1-D array of length 3  (ox, oy, oz)
-        direction : 1-D array of length 9  (row-major 3x3)
-        fov       : 1-D array of length 3  (fov_freq, fov_phase, fov_slice)
+        spacing      : 1-D array of length 3  (dx, dy, dz)
+        origin       : 1-D array of length 3  (ox, oy, oz)
+        direction    : 1-D array of length 9  (row-major 3x3)
+        fov          : 1-D array of length 3  (fov_freq, fov_phase, fov_slice)
+        acceleration : 1-D array of length 2  (freq_accel, phase_accel)
+        acl          : 1-D array of length 2  (freq_acl, phase_acl)
+        reference    : complex array  (freq, phase, coils[, slices]) — embedded ACS data
 
     The numpy k-space array must be shaped as:
         Single-slice:                (freq, phase, coils)
@@ -219,16 +222,12 @@ class NumpyLoader(KSpaceLoader):
                     raise ValueError(f"Empty .npz file: {filepath}")
                 kspace = data[keys[0]]
 
-            # Extract orientation arrays if present
+            # Extract orientation + metadata arrays if present
             file_orient = {}
-            if "spacing" in data:
-                file_orient["spacing"] = data["spacing"].tolist()
-            if "origin" in data:
-                file_orient["origin"] = data["origin"].tolist()
-            if "direction" in data:
-                file_orient["direction"] = data["direction"].tolist()
-            if "fov" in data:
-                file_orient["fov"] = data["fov"].tolist()
+            for key in ("spacing", "origin", "direction", "fov",
+                        "acceleration", "acl"):
+                if key in data:
+                    file_orient[key] = data[key].tolist()
 
             return kspace, file_orient
         else:
@@ -365,19 +364,68 @@ class NumpyLoader(KSpaceLoader):
         else:
             return slices[int(slice_sel)]
 
+    def get_acceleration_info(self, signal_options):
+        """
+        Resolve acceleration info with priority: JSON > file-embedded > defaults.
+
+        JSON keys::
+
+            "accelerations": [1, 2],
+            "acl": [null, 24]
+
+        .npz keys: ``acceleration``, ``acl`` (1-D arrays of length 2).
+
+        Returns defaults of [1,1] / [nan,nan] when not supplied.
+        """
+        opts = signal_options.get("options", signal_options)
+
+        # Load file-embedded metadata if available
+        file_meta = {}
+        filepath = opts.get("filename")
+        if filepath and os.path.isfile(os.path.expanduser(filepath)):
+            ext = os.path.splitext(filepath)[1].lower()
+            if ext == ".npz":
+                data = np.load(os.path.expanduser(filepath))
+                if "acceleration" in data:
+                    file_meta["acceleration"] = data["acceleration"].tolist()
+                if "acl" in data:
+                    file_meta["acl"] = data["acl"].tolist()
+
+        # Priority: JSON > file > defaults
+        acceleration = opts.get("accelerations",
+                                file_meta.get("acceleration", [1, 1]))
+        acl = opts.get("acl",
+                       file_meta.get("acl", [np.nan, np.nan]))
+        acl = [np.nan if v is None or v == 0 else v for v in acl]
+        return acceleration, acl
+
     def get_reference_kspace(self, signal_options, signal_acceleration_realsize, slice_sel="all"):
         """
-        For numpy inputs the reference / ACS data is supplied as a separate file
-        via the ``reference`` block in the JSON, or None if not needed. 
-        If a ``reference_filename`` is given in the signal options, load it.
+        Load reference / ACS data.
+
+        Supports:
+        1. Separate file via ``reference_filename`` in JSON
+        2. Embedded ``reference`` key inside the signal ``.npz`` file
         """
         opts = signal_options["options"]
-        ref_path = opts.get("reference_filename", None)
-        if ref_path is None:
-            return None
 
-        npz_key = opts.get("npz_key", "kspace")
-        arr, _ = self._load_array(ref_path, npz_key)
+        # 1. Separate file
+        ref_path = opts.get("reference_filename", None)
+        if ref_path is not None:
+            npz_key = opts.get("npz_key", "kspace")
+            arr, _ = self._load_array(ref_path, npz_key)
+        else:
+            # 2. Embedded in signal file
+            filepath = opts.get("filename")
+            if filepath is None:
+                return None
+            ext = os.path.splitext(filepath)[1].lower()
+            if ext != ".npz":
+                return None
+            data = np.load(os.path.expanduser(filepath))
+            if "reference" not in data:
+                return None
+            arr = data["reference"]
 
         if arr.ndim == 3:
             slices = [arr]
@@ -389,24 +437,6 @@ class NumpyLoader(KSpaceLoader):
         if isinstance(slice_sel, str) and slice_sel.lower() == "all":
             return slices
         return slices[int(slice_sel)]
-
-    def get_acceleration_info(self, signal_options):
-        """
-        For numpy inputs acceleration must be specified explicitly in the JSON
-        (there are no twix headers to parse).
-        
-        The JSON should contain::
-        
-            "accelerations": [1, 2],
-            "acl": [null, 24]
-
-        Returns defaults of [1,1] / [nan,nan] when not supplied.
-        """
-        opts = signal_options.get("options", signal_options)
-        acceleration = opts.get("accelerations", [1, 1])
-        acl = opts.get("acl", [np.nan, np.nan])
-        acl = [np.nan if v is None else v for v in acl]
-        return acceleration, acl
 
 
 # ---------------------------------------------------------------------------
@@ -474,8 +504,9 @@ class MatlabLoader(KSpaceLoader):
             else:
                 raise KeyError("no user variables found")
 
-            # Orientation
-            for okey in ("spacing", "origin", "direction", "fov"):
+            # Orientation + metadata
+            for okey in ("spacing", "origin", "direction", "fov",
+                         "acceleration", "acl"):
                 if okey in mat:
                     file_orient[okey] = np.asarray(mat[okey]).flatten().tolist()
 
@@ -500,7 +531,8 @@ class MatlabLoader(KSpaceLoader):
                 if kspace.dtype.names and "real" in kspace.dtype.names:
                     kspace = kspace["real"] + 1j * kspace["imag"]
 
-                for okey in ("spacing", "origin", "direction", "fov"):
+                for okey in ("spacing", "origin", "direction", "fov",
+                             "acceleration", "acl"):
                     if okey in f:
                         file_orient[okey] = np.asarray(f[okey]).flatten().tolist()
 
@@ -579,13 +611,34 @@ class MatlabLoader(KSpaceLoader):
         return slices[int(slice_sel)]
 
     def get_reference_kspace(self, signal_options, signal_acceleration_realsize, slice_sel="all"):
+        """Load reference / ACS data from a separate file or embedded 'reference' variable."""
         opts = signal_options["options"]
-        ref_path = opts.get("reference_filename", None)
-        if ref_path is None:
-            return None
 
-        mat_key = opts.get("mat_key", "kspace")
-        arr, _ = self._load_mat(ref_path, mat_key)
+        # 1. Separate file
+        ref_path = opts.get("reference_filename", None)
+        if ref_path is not None:
+            mat_key = opts.get("mat_key", "kspace")
+            arr, _ = self._load_mat(ref_path, mat_key)
+        else:
+            # 2. Embedded 'reference' variable in signal file
+            filepath = opts.get("filename")
+            if filepath is None:
+                return None
+            try:
+                import scipy.io as sio
+                mat = sio.loadmat(os.path.expanduser(filepath))
+                if "reference" not in mat:
+                    return None
+                arr = np.asarray(mat["reference"])
+            except (NotImplementedError, Exception):
+                try:
+                    import h5py
+                    with h5py.File(os.path.expanduser(filepath), "r") as f:
+                        if "reference" not in f:
+                            return None
+                        arr = np.asarray(f["reference"]).T
+                except Exception:
+                    return None
 
         if arr.ndim == 3:
             slices = [arr]
@@ -599,10 +652,35 @@ class MatlabLoader(KSpaceLoader):
         return slices[int(slice_sel)]
 
     def get_acceleration_info(self, signal_options):
+        """Resolve acceleration info with priority: JSON > file-embedded > defaults."""
         opts = signal_options.get("options", signal_options)
-        acceleration = opts.get("accelerations", [1, 1])
-        acl = opts.get("acl", [np.nan, np.nan])
-        acl = [np.nan if v is None else v for v in acl]
+
+        # Load file-embedded metadata
+        file_meta = {}
+        filepath = opts.get("filename")
+        if filepath and os.path.isfile(os.path.expanduser(filepath)):
+            try:
+                import scipy.io as sio
+                mat = sio.loadmat(os.path.expanduser(filepath))
+                for key in ("acceleration", "acl"):
+                    if key in mat:
+                        file_meta[key] = np.asarray(mat[key]).flatten().tolist()
+            except (NotImplementedError, Exception):
+                try:
+                    import h5py
+                    with h5py.File(os.path.expanduser(filepath), "r") as f:
+                        for key in ("acceleration", "acl"):
+                            if key in f:
+                                file_meta[key] = np.asarray(f[key]).flatten().tolist()
+                except Exception:
+                    pass
+
+        # Priority: JSON > file > defaults
+        acceleration = opts.get("accelerations",
+                                file_meta.get("acceleration", [1, 1]))
+        acl = opts.get("acl",
+                       file_meta.get("acl", [np.nan, np.nan]))
+        acl = [np.nan if v is None or v == 0 else v for v in acl]
         return acceleration, acl
 
 
