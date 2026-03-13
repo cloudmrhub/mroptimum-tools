@@ -28,10 +28,12 @@
 
 ```
 mrotools/collections/
-├── AC/        # Analytical / Kellman configs
-├── MR/        # Multiple Replicas configs
-├── PMR/       # Pseudo Multiple Replicas configs
-├── CR/        # Coil Replica / Generalized PMR configs
+├── AC/        # Analytical / Kellman configs (Siemens)
+├── MR/        # Multiple Replicas configs (Siemens)
+├── PMR/       # Pseudo Multiple Replicas configs (Siemens)
+├── CR/        # Coil Replica / Generalized PMR configs (Siemens)
+├── numpy/     # Example configs for NumPy input files
+├── matlab/    # Example configs for MATLAB input files
 └── misc/      # Miscellaneous example configs
 
 json/
@@ -74,7 +76,167 @@ json/
 
 ---
 
-## 🚀 **Getting Started**
+## � **Supported Input File Formats**
+
+MR Optimum supports three k-space input formats. Set `"vendor"` in the JSON config to select the loader.
+
+| Vendor     | Extension(s)         | Description                                    |
+| ---------- | -------------------- | ---------------------------------------------- |
+| `siemens`  | `.dat`               | Siemens raw data via twixtools                 |
+| `numpy`    | `.npy`, `.npz`       | NumPy arrays with optional orientation         |
+| `matlab`   | `.mat`               | MATLAB v5 / v7.3 files with optional orientation |
+
+### K-Space Array Shape Convention
+
+All formats expect the k-space array shaped as:
+
+| Dimensions | Shape                             | Use case                  |
+| ---------- | --------------------------------- | ------------------------- |
+| 3-D        | `(freq, phase, coils)`            | Single 2-D slice          |
+| 4-D        | `(freq, phase, coils, slices)`    | Multi-slice               |
+| 4-D (MR)   | `(freq, phase, coils, replicas)`  | Single-slice Multiple Replicas |
+| 5-D        | `(freq, phase, coils, slices, replicas)` | Multi-slice Multiple Replicas |
+
+### Orientation Metadata
+
+Orientation is resolved with **three-level priority**:
+
+1. **JSON `"orientation"` block** in the config (highest priority)
+2. **Embedded in the file** (`.npz` keys or `.mat` variables)
+3. **Defaults**: spacing = `[1, 1, 1]` mm, origin = `[0, 0, 0]`, direction = `eye(3)`
+
+This means **a bare `.npy` or `.mat` file with only k-space data works out of the box** – orientation defaults to 1 mm isotropic.
+
+| Field       | Type             | Description                              |
+| ----------- | ---------------- | ---------------------------------------- |
+| `spacing`   | array of 3       | Voxel size in mm: `[dx, dy, dz]`        |
+| `origin`    | array of 3       | Image origin: `[ox, oy, oz]`            |
+| `direction` | array of 9       | Row-major 3×3 direction cosine matrix    |
+| `fov`       | array of 3       | Field of view in mm: `[fov_f, fov_p, fov_s]` |
+
+---
+
+### Writing NumPy Files
+
+#### Minimal (just k-space):
+
+```python
+import numpy as np
+
+# kspace shape: (frequency, phase, coils) for a single 2D slice
+kspace = np.array(...)  # complex64 or complex128
+np.save("signal.npy", kspace)
+np.save("noise.npy", noise_kspace)
+```
+
+#### With embedded orientation (`.npz`):
+
+```python
+np.savez("signal.npz",
+    kspace   = kspace,                                      # required
+    spacing  = np.array([1.0, 1.0, 5.0]),                  # optional
+    origin   = np.array([0.0, 0.0, 0.0]),                  # optional
+    direction= np.array([1,0,0, 0,1,0, 0,0,1], dtype=float), # optional (9 elems)
+    fov      = np.array([256.0, 256.0, 50.0]),              # optional
+)
+```
+
+#### Multi-slice:
+
+```python
+# shape: (freq, phase, coils, n_slices)
+kspace_multislice = np.stack([slice0, slice1, slice2], axis=3)
+np.save("signal_multislice.npy", kspace_multislice)
+```
+
+---
+
+### Writing MATLAB Files
+
+#### From MATLAB:
+
+```matlab
+% kspace: complex array of size (freq, phase, coils)
+kspace  = complex_kspace_data;      % required
+spacing = [1.0, 1.0, 5.0];         % optional
+origin  = [0.0, 0.0, 0.0];         % optional
+direction = [1,0,0, 0,1,0, 0,0,1]; % optional (9 elements, row-major)
+fov     = [256.0, 256.0, 50.0];    % optional
+
+save('signal.mat', 'kspace', 'spacing', 'origin', 'direction', 'fov');
+% or minimal:
+save('signal.mat', 'kspace');
+```
+
+#### From Python:
+
+```python
+import scipy.io as sio
+
+sio.savemat("signal.mat", {
+    "kspace":  kspace,                          # required – complex array
+    "spacing": np.array([1.0, 1.0, 5.0]),      # optional
+    "origin":  np.array([0.0, 0.0, 0.0]),      # optional
+})
+```
+
+---
+
+### JSON Configuration for NumPy / MATLAB
+
+A minimal JSON config using NumPy (RSS + Analytical):
+
+```json
+{
+    "version": "v0",
+    "acquisition": 2,
+    "type": "SNR",
+    "name": "AC",
+    "options": {
+        "reconstructor": {
+            "type": "recon",
+            "name": "RSS",
+            "options": {
+                "signal": {
+                    "type": "file",
+                    "options": {
+                        "vendor": "numpy",
+                        "filename": "/path/to/signal.npy"
+                    }
+                },
+                "noise": {
+                    "type": "file",
+                    "options": {
+                        "vendor": "numpy",
+                        "filename": "/path/to/noise.npy"
+                    }
+                }
+            }
+        }
+    }
+}
+```
+
+For MATLAB, change `"vendor": "numpy"` → `"vendor": "matlab"` and point to `.mat` files.
+
+To override orientation from JSON (takes priority over file-embedded values):
+
+```json
+"options": {
+    "vendor": "numpy",
+    "filename": "/path/to/signal.npy",
+    "orientation": {
+        "spacing": [0.5, 0.5, 3.0],
+        "origin":  [10.0, 20.0, 30.0]
+    }
+}
+```
+
+See `mrotools/collections/numpy/` and `mrotools/collections/matlab/` for full examples.
+
+---
+
+## �🚀 **Getting Started**
 
 1. Install **Python ≥ 3.9**.
 

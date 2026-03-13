@@ -4,9 +4,11 @@ from pyable_eros_montin import imaginable as ima
 
 try:
     from mro import *
+    from kspace_loaders import get_kspace_loader
     V='local'
 except:
     from mrotools.mro import *
+    from mrotools.kspace_loaders import get_kspace_loader
     V="pip"
 import cmtools.cm2D as cm2D
 
@@ -103,19 +105,17 @@ if __name__=="__main__":
             LOG.append('reconstructor and SNR are set')
 
             LOG.append('Signal K-Space reading')
-            #how many slices // CHANGE here for others vendors
-            if reconstructor_dictionary["options"]["signal"]["options"]["vendor"].lower()=='siemens':
-                MR=(SID==1)
-                SL=getSiemensKSpace2DInformation(reconstructor_dictionary["options"]["signal"],signal=True,MR=MR)
-                if isinstance(SL,str):
-                    LOG.appendError(SL)
-                    LOG.writeLogAs(logfn)
-                    raise Exception(SL)
-            else:
-                LOG.appendError('filetype unknown')
-                LOG.appendError('this version of SNR tool only works with siemens file at the moment')
+            # Detect vendor and get the appropriate loader
+            vendor = reconstructor_dictionary["options"]["signal"]["options"]["vendor"]
+            loader = get_kspace_loader(vendor)
+            LOG.append(f'Using {vendor} k-space loader')
+
+            MR=(SID==1)
+            SL=loader.get_signal_kspace(reconstructor_dictionary["options"]["signal"],signal=True,MR=MR)
+            if isinstance(SL,str):
+                LOG.appendError(SL)
                 LOG.writeLogAs(logfn)
-                raise Exception(' this version of SNR tool only works with siemens file at the moment')
+                raise Exception(SL)
             #intialize the output array (id,dimension,UI name,imaginable,fn,outputtype)
             
             LOG.append('Signal K-Space read')
@@ -125,10 +125,13 @@ if __name__=="__main__":
             NOISE=None
             #noise file
             if "noise" in reconstructor_dictionary["options"].keys():
-                NOISE=getNoiseKSpace(reconstructor_dictionary["options"]["noise"],'all')
-            # multiraid in signal
-            if(reconstructor_dictionary["options"]["signal"]["options"]["vendor"].lower()=='siemens') and (reconstructor_dictionary["options"]["signal"]["options"]["multiraid"])    :
-                NOISE=getNoiseKSpace(reconstructor_dictionary["options"]["signal"],'all')
+                # Use appropriate loader for the noise file
+                noise_vendor = reconstructor_dictionary["options"]["noise"]["options"].get("vendor", vendor)
+                noise_loader = get_kspace_loader(noise_vendor)
+                NOISE=noise_loader.get_noise_kspace(reconstructor_dictionary["options"]["noise"],'all')
+            # multiraid in signal (Siemens-specific: noise is embedded in the signal file)
+            if reconstructor_dictionary["options"]["signal"]["options"].get("multiraid", False):
+                NOISE=loader.get_noise_kspace(reconstructor_dictionary["options"]["signal"],'all')
             
             LOG.append('Noise K-Space read')
             # if no noise file is provided
@@ -164,10 +167,10 @@ if __name__=="__main__":
 
             if reconstructor().HasAcceleration:
                 try:
-                    acceleration,_acl=getAccellerationInfo2D(s=reconstructor_dictionary["options"]["signal"])
+                    acceleration,_acl=loader.get_acceleration_info(reconstructor_dictionary["options"]["signal"])
                 except:
-                    LOG.appendError('acceleration not found')
-                    LOG.appendError('this version of SNR tool only works with siemens file at the moment')
+                    LOG.appendError('acceleration not found from file headers')
+                    LOG.appendError('will try to use explicit values from JSON config')
                     pass
                     
                 if "accelerations" in reconstructor_dictionary["options"].keys():
@@ -189,7 +192,7 @@ if __name__=="__main__":
             
             #grappa
             if RID==3 and not mimic:
-                reference=getSiemensReferenceKSpace2D(reconstructor_dictionary["options"]["signal"],signal_acceleration_realsize=SL[0]["size"][1],slice='all')
+                reference=loader.get_reference_kspace(reconstructor_dictionary["options"]["signal"],signal_acceleration_realsize=SL[0]["size"][1],slice_sel='all')
 
             if reconstructor().HasSensitivity:
                 sensitivitymethod=reconstructor_dictionary["options"]["sensitivityMap"]["options"]["sensitivityMapMethod"]
@@ -203,7 +206,7 @@ if __name__=="__main__":
                         else:
                             reference=[None]*len(SL)
                     else:                    
-                        reference=getSiemensReferenceKSpace2D(reconstructor_dictionary["options"]["signal"],signal_acceleration_realsize=SL[0]["size"][1],slice='all')
+                        reference=loader.get_reference_kspace(reconstructor_dictionary["options"]["signal"],signal_acceleration_realsize=SL[0]["size"][1],slice_sel='all')
                 else:
                     LOG.appendError('sensitivity method not implemented')
                     LOG.appendError('this version of SNR tool only works with inner and outer sensitivity method at the moment')

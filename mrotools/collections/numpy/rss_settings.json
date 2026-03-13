@@ -1,0 +1,34 @@
+{
+    "version": "v0",
+    "acquisition": 2,
+    "type": "SNR",
+    "id": 0,
+    "name": "AC",
+    "options": {
+        "reconstructor": {
+            "type": "recon",
+            "id": 1,
+            "name": "RSS",
+            "options": {
+                "noise": {
+                    "type": "file",
+                    "options": {
+                        "type": "local",
+                        "filename": "/path/to/noise_kspace.npy",
+                        "vendor": "numpy",
+                        "multiraid": false
+                    }
+                },
+                "signal": {
+                    "type": "file",
+                    "options": {
+                        "type": "local",
+                        "filename": "/path/to/signal_kspace.npy",
+                        "vendor": "numpy",
+                        "multiraid": false
+                    }
+                }
+            }
+        }
+    }
+}

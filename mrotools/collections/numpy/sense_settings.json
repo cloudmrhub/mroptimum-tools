@@ -1,0 +1,53 @@
+{
+    "version": "v0",
+    "acquisition": 2,
+    "type": "SNR",
+    "id": 0,
+    "name": "AC",
+    "options": {
+        "reconstructor": {
+            "type": "recon",
+            "name": "Sense",
+            "id": 3,
+            "options": {
+                "noise": {
+                    "type": "file",
+                    "options": {
+                        "type": "local",
+                        "filename": "/path/to/noise_kspace.npy",
+                        "vendor": "numpy",
+                        "multiraid": false
+                    }
+                },
+                "signal": {
+                    "type": "file",
+                    "options": {
+                        "type": "local",
+                        "filename": "/path/to/signal_kspace.npy",
+                        "vendor": "numpy",
+                        "multiraid": false,
+                        "reference_filename": "/path/to/reference_kspace.npy",
+                        "orientation": {
+                            "spacing":   [1.0, 1.0, 5.0],
+                            "origin":    [0.0, 0.0, 0.0],
+                            "direction": [1,0,0, 0,1,0, 0,0,1],
+                            "fov":       [256.0, 256.0, 50.0]
+                        }
+                    }
+                },
+                "sensitivityMap": {
+                    "type": "sensitivityMap",
+                    "id": 1,
+                    "name": "inner",
+                    "options": {
+                        "mask": "no",
+                        "sensitivityMapMethod": "inner"
+                    }
+                },
+                "decimate": true,
+                "accelerations": [1, 2],
+                "acl": [null, 24]
+            }
+        }
+    }
+}
