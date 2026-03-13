@@ -16,8 +16,7 @@ import os
 
 
 #read debug from environment and put it to false if not present
-debug=os.getenv('DEBUG',True)
-   
+debug = os.getenv('DEBUG', 'false').lower() in ('true', '1', 'yes')   
 def getAccellerationInfo2D(s,raid=1):
     N=pn.Pathable(getFile(s))
     n=N.getPosition()
