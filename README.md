@@ -8,7 +8,7 @@ Visit the [project page](https://cmr.cloudmrhub.com/apps/mroptimum/) for more in
 ![GitHub forks](https://img.shields.io/github/forks/cloudmrhub/mroptimum-tools)
 ![GitHub stars](https://img.shields.io/github/stars/cloudmrhub/mroptimum-tools)
 
-**MR Optimum** provides tools for advanced signal-to-noise ratio (SNR) estimation and image reconstruction methods for Magnetic Resonance Imaging (MRI). It is designed for researchers and developers to efficiently perform SNR calculations, reconstructions, and custom pipeline configurations.
+**MR Optimum** provides tools for signal-to-noise ratio (SNR) estimation and image reconstruction methods for Magnetic Resonance Imaging (MRI). It is designed for researchers and developers to perform SNR calculations, reconstructions, and custom pipeline configurations.
 
 ---
 
