@@ -1,4 +1,6 @@
-# **MR Optimum — SNR Tools**
+# **MR Optimum — Backend Tools**
+
+Visit the [project page](https://cmr.cloudmrhub.com/apps/mroptimum/) for more information about MR Optimum.
 
 ![License](https://img.shields.io/github/license/cloudmrhub/mroptimum-tools)
 ![GitHub last commit](https://img.shields.io/github/last-commit/cloudmrhub/mroptimum-tools)
@@ -6,7 +8,7 @@
 ![GitHub forks](https://img.shields.io/github/forks/cloudmrhub/mroptimum-tools)
 ![GitHub stars](https://img.shields.io/github/stars/cloudmrhub/mroptimum-tools)
 
-**MR Optimum** provides tools for advanced signal-to-noise ratio (SNR) estimation and image reconstruction methods for Magnetic Resonance Imaging (MRI). It is designed for researchers and developers to efficiently perform SNR calculations, reconstructions, and custom pipeline configurations.
+**MR Optimum** provides tools for signal-to-noise ratio (SNR) estimation and image reconstruction methods for Magnetic Resonance Imaging (MRI). It is designed for researchers and developers to perform SNR calculations, reconstructions, and custom pipeline configurations.
 
 ---
 
@@ -137,10 +139,7 @@ json/
 
 ---
 
-
----
-
-## 🌐 **Live Example**
+## **Tutorial**
 
 Try MR Optimum in your browser — no installation required:
 
@@ -173,7 +172,8 @@ pip install git+https://github.com/cloudmrhub/mroptimum-tools.git
 
 ## 💬 **Acknowledgments**
 
-This work is supported in part by NIH grants and performed under the **Center for Advanced Imaging Innovation and Research (CAI²R)**, an NIH National Center for Biomedical Imaging and Bioengineering (P41 EB017183).
+This research has been supported in part by the National Institute of Biomedical Imaging and
+Bioengineering (NIBIB) under award numbers: R01 EB024536.
 
 ---
 
@@ -185,18 +185,6 @@ This is a research tool intended for academic and research purposes. While every
 
 ## 📃 **License**
 
-MR Optimum is released under the **MIT License**. See [LICENSE](LICENSE) for details.
+MR Optimum is released under the **MIT License**.
 
 ---
-
-## 👥 **Contributors**
-
-[*Dr. Eros Montin, PhD*](http://me.biodimensional.com)\
-[![GitHub](https://img.shields.io/badge/GitHub-erosmontin-blue)](https://github.com/erosmontin)\
-[![ORCID](https://img.shields.io/badge/ORCID-0000--0002--1773--0064-green)](https://orcid.org/0000-0002-1773-0064)\
-[![Scopus](https://img.shields.io/badge/Scopus-35604121500-orange)](https://www.scopus.com/authid/detail.uri?authorId=35604121500)
-
-[*Prof. Riccardo Lattanzi, PhD*](https://med.nyu.edu/faculty/riccardo-lattanzi)\
-[![GitHub](https://img.shields.io/badge/GitHub-rlattanzi-blue)](https://github.com/rlattanzi)\
-[![ORCID](https://img.shields.io/badge/ORCID-0000--0002--8240--5903-green)](https://orcid.org/0000-0002-8240-5903)\
-[![Scopus](https://img.shields.io/badge/Scopus-6701330033-orange)](https://www.scopus.com/authid/detail.uri?authorId=6701330033)
