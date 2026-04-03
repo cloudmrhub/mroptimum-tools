@@ -1,0 +1,30 @@
+{
+    "version": "v0",
+    "acquisition": 2,
+    "type": "SNR",
+    "id": 0,
+    "name": "AC",
+    "options": {
+        "reconstructor": {
+            "type": "recon",
+            "id": 1,
+            "name": "RSS",
+            "options": {
+                
+                "signal": {
+                    "type": "file",
+                    "options": {
+                        "type": "local",
+                        "filename": "/data/garbage/mroptimum-final-test/wrong/meas_MID02807_FID20496_gre_signal.dat",
+                        "options": {},
+                        "multiraid": true,
+                        "vendor": "Siemens"
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+

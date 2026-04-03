@@ -16,7 +16,7 @@ import os
 
 
 #read debug from environment and put it to false if not present
-debug = os.getenv('DEBUG', 'false').lower() in ('true', '1', 'yes')   
+debug = os.getenv('DEBUG', 'false').lower() in ('true', '1', 'yes')  
 def getAccellerationInfo2D(s,raid=1):
     N=pn.Pathable(getFile(s))
     n=N.getPosition()
@@ -138,7 +138,10 @@ if __name__=="__main__":
                 NC,NCC=calculteNoiseCovariance(NOISE,args.verbose)
                 IMAOUT.append({"id":1,"dim":2,"name":"Noise Covariance","data":NC,"filename":'data/NC.nii.gz',"type":'output'})
                 IMAOUT.append({"id":2,"dim":2,"name":"Noise Coefficients","data":NCC,"filename":"data/NCC.nii.gz","type":'output'})
-
+            # if debug:
+            #     os.makedirs('/g/NC',exist_ok=True)
+            #     np.save('/g/NC/NC.npy',NC)
+            #     np.save('/g/NC/NCC.npy',NCC)
             # get the specialized function for the snr calculation
             _SNR_calculator=SNR_calculator[SID]
             

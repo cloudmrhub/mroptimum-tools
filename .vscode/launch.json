@@ -4,6 +4,8 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+    
+
 
 
 
@@ -626,6 +628,25 @@
                 "mrotools/collections/AC/rss_settings_VB2.json",
                 "-o",
                 "/g/SNR/misc/RSS_VB2/",
+                "--no-coilsens",
+                "--gfactor",
+                "--no-verbose",
+                "--matlab",
+                "--parallel"
+            ]
+        },
+          {
+            "name": "TESTS AM VB2 multiraid",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "-j",
+                "mrotools/collections/AC/rss_settings_VB2_multiraid.json",
+                "-o",
+                "/g/SNR/misc/RSS_VB2_multiraid/",
                 "--no-coilsens",
                 "--gfactor",
                 "--no-verbose",
