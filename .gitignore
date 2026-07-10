@@ -21,3 +21,4 @@ __pycache__
 
 .vscode
 mrotools/link_rawdata_examples
+covariance_comparison.png
