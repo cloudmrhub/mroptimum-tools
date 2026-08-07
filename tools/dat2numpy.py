@@ -333,9 +333,26 @@ def convert(
         generate_json: If True, generate a ready-to-use JSON config.
     """
     os.makedirs(output_dir, exist_ok=True)
-    signal_raid = 1 if multiraid else (len(twixtools.map_twix(signal_path)) - 1)
 
-    print(f"Reading: {signal_path}")
+    # ── 0. Version detection ──────────────────────────────────────────────
+    from mrotools.dat_version import DatFileInfo
+    try:
+        dat_info = DatFileInfo(signal_path)
+        print(f"Reading: {signal_path}")
+        print(f"  Platform:       {dat_info.platform}")
+        print(f"  Syngo Version:  {dat_info.syngo_version}")
+        print(f"  Multiraid:      {dat_info.is_multiraid}")
+        print(f"  N Raids:        {dat_info.n_raids}")
+        # Auto-detect multiraid if not explicitly set
+        if not multiraid and dat_info.is_multiraid and dat_info.n_raids > 1:
+            multiraid = True
+            print(f"  Auto-detected multiraid format")
+    except Exception as e:
+        print(f"  [WARN] Version detection failed: {e}")
+        dat_info = None
+
+    signal_raid = 1 if multiraid else (len(twixtools.map_twix(signal_path, verbose=False)) - 1)
+
     print(f"  Signal raid index: {signal_raid}")
 
     # ── 1. Signal ──────────────────────────────────────────────────────────
@@ -406,6 +423,14 @@ def convert(
             acceleration=acceleration,
             acl=acl,
         )
+        # Add version metadata
+        if dat_info is not None:
+            config["_source"] = {
+                "dat_file": os.path.abspath(signal_path),
+                "platform": dat_info.platform,
+                "syngo_version": dat_info.syngo_version,
+                "is_multiraid": dat_info.is_multiraid,
+            }
         config_path = os.path.join(output_dir, "config_numpy.json")
         with open(config_path, "w") as f:
             json.dump(config, f, indent=2)

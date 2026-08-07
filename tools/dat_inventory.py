@@ -254,11 +254,28 @@ def inventory(dat_path, output_dir):
     os.makedirs(output_dir, exist_ok=True)
     print(f"Scanning: {dat_path}")
 
+    # Version detection
+    from mrotools.dat_version import DatFileInfo
+    try:
+        dat_info = DatFileInfo(dat_path)
+        print(f"  Platform:      {dat_info.platform}")
+        print(f"  Syngo Version: {dat_info.syngo_version}")
+        print(f"  Multiraid:     {dat_info.is_multiraid}")
+    except Exception as e:
+        print(f"  [WARN] Version detection: {e}")
+        dat_info = None
+
     twix_data = twixtools.map_twix(dat_path)
     print(f"  Found {len(twix_data)} raid(s)")
 
     manifest = {
         "source": dat_path,
+        "version_info": {
+            "platform": dat_info.platform if dat_info else "unknown",
+            "syngo_version": dat_info.syngo_version if dat_info else "unknown",
+            "is_multiraid": dat_info.is_multiraid if dat_info else None,
+            "n_raids": dat_info.n_raids if dat_info else len(twix_data),
+        },
         "raids": {},
     }
 
