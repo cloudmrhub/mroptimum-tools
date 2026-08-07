@@ -327,9 +327,27 @@ if __name__=="__main__":
 
             
             if len(IMAOUT)>0:
+                # Determine physical slice ordering for NIfTI output.
+                # Slices in IMAOUT are in acquisition order — we need to
+                # reorder to physical (monotonic position) order for NIfTI.
+                if len(SL) > 1:
+                    # Get slice positions along the slice normal direction
+                    slice_dir = SL[0]["direction"][:, 2]  # 3rd column = slice direction
+                    positions = [np.dot(sl["origin"], slice_dir) for sl in SL]
+                    # Sort indices by position (ascending along slice direction)
+                    phys_order = np.argsort(positions)
+                    # Use the first physical slice for origin
+                    origin = SL[phys_order[0]]["origin"]
+                    # Reorder all 3D image data along the slice dimension
+                    for im in IMAOUT:
+                        if im["dim"] == 3 and im["data"].ndim >= 3:
+                            im["data"] = im["data"][..., phys_order]
+                else:
+                    phys_order = [0]
+                    origin = SL[0]["origin"]
+
                 direction=SL[0]["direction"].flatten()
                 spacing=SL[0]["spacing"]
-                origin=SL[0]["origin"]
                 JO={"headers":{
                     "calculation_time":T.stop(),
                     "options":J

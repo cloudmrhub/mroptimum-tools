@@ -287,11 +287,18 @@ def compute_snr(signal_path, noise_path, recon_type='rss', accel_from_name=None)
             snr_map = out['images']['SNR']['data']
             snr_slices.append(np.abs(snr_map))
 
-        # Stack slices
+        # Stack slices and reorder to physical (monotonic) order for NIfTI
         if len(snr_slices) == 1:
             snr_3d = np.expand_dims(snr_slices[0], axis=-1)
         else:
             snr_3d = np.stack(snr_slices, axis=-1)
+            # Reorder slices by physical position along slice direction
+            slice_dir = SL[0]['direction'][:, 2]  # slice normal
+            positions = [np.dot(sl['origin'], slice_dir) for sl in SL]
+            phys_order = np.argsort(positions)
+            snr_3d = snr_3d[..., phys_order]
+            # Update origin to first physical slice
+            result['origin'] = SL[phys_order[0]]['origin']
 
         # Stats
         mask = snr_3d > 0
