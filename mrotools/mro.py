@@ -242,7 +242,7 @@ def calcKellmanSNR(O):
     if isinstance(reconstructor,cm2DReconGRAPPA) or (isinstance(reconstructor,cm2DKellmanGRAPPA)) and O["savegfactor"]:
         G=reconstructor.getGFactor()
         N=3
-        S=np.concat([SNR[0:N,0:N].flatten(), SNR[:-N,:-N].flatten(),SNR[0:N,:-N].flatten(), SNR[:-N,0:N].flatten()],axis=0)
+        S=np.concatenate([SNR[0:N,0:N].flatten(), SNR[:-N,:-N].flatten(),SNR[0:N,:-N].flatten(), SNR[:-N,0:N].flatten()],axis=0)
         mask=SNR>np.median(S)
         G*=mask
         IGF=1/G
@@ -324,7 +324,7 @@ def calcMultipleReplicasSNR(O):
     if isinstance(reconstructor,cm2DReconGRAPPA) or (isinstance(reconstructor,cm2DKellmanGRAPPA)) and O["savegfactor"]:
         G=reconstructor.getGFactor()
         N=3
-        S=np.concat([SNR[0:N,0:N].flatten(), SNR[:-N,:-N].flatten(),SNR[0:N,:-N].flatten(), SNR[:-N,0:N].flatten()],axis=0)
+        S=np.concatenate([SNR[0:N,0:N].flatten(), SNR[:-N,:-N].flatten(),SNR[0:N,:-N].flatten(), SNR[:-N,0:N].flatten()],axis=0)
         mask=SNR>np.median(S)
         G*=mask
         IGF=1/G
@@ -592,7 +592,7 @@ def getKSpace(s,slice=0):
 
 
 import cmtools.cm2D as cm2D    
-def calculteNoiseCovariance(NOISE,verbose=False):
+def calculteNoiseCovariance(NOISE,verbose=False,expected_coils=None):
     # N is an array of 2d slices f,p,c
     NN=cm2D.cm2DRecon()
     for tn in range(0,len(NOISE)):
@@ -600,6 +600,12 @@ def calculteNoiseCovariance(NOISE,verbose=False):
             BN=NOISE[tn]
         else:
             BN=np.concatenate((BN,NOISE[tn]),axis=1)
+    # Validate coil count against signal
+    if expected_coils is not None and BN.shape[2] != expected_coils:
+        raise ValueError(
+            f"Noise has {BN.shape[2]} coils but signal has {expected_coils}. "
+            f"They must match for proper noise covariance estimation."
+        )
     NN.setNoiseKSpace(BN)
     NC=NN.getNoiseCovariance()
     NCC=NN.getNoiseCovarianceCoefficients()

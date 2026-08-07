@@ -144,15 +144,20 @@ class SiemensLoader(KSpaceLoader):
         Map twix data safely, avoiding geometry and regrid crashes on
         files with missing 'Meas' header key (some XA/older exports).
         Returns the mapped twix data list.
+
+        Reuses raw twix from DatFileInfo if already loaded.
         """
-        try:
+        # Try to reuse raw data from DatFileInfo cache
+        dat_info = self._get_dat_info(filepath)
+        if dat_info._raw_twix:
+            raw = dat_info._raw_twix
+        else:
             raw = self._twixtools.read_twix(filepath, verbose=False, parse_geometry=False)
+
+        try:
             return self._twixtools.map_twix(raw, verbose=False)
         except (KeyError, TypeError, ValueError):
             # map_twix crashed (e.g. missing 'Meas' key for regrid calc).
-            # Fallback: read raw and map without regridding by patching the hdr.
-            raw = self._twixtools.read_twix(filepath, verbose=False,
-                                            parse_geometry=False)
             # Inject a minimal 'Meas' dict so map_twix's regrid calc won't crash
             for meas in raw:
                 if isinstance(meas, dict) and 'hdr' in meas:

@@ -138,7 +138,7 @@ if __name__=="__main__":
                 NC=None
                 NCC=None
             else:
-                NC,NCC=calculteNoiseCovariance(NOISE,args.verbose)
+                NC,NCC=calculteNoiseCovariance(NOISE,args.verbose,expected_coils=SL[0]['KSpace'].shape[-1])
                 IMAOUT.append({"id":1,"dim":2,"name":"Noise Covariance","data":NC,"filename":'data/NC.nii.gz',"type":'output'})
                 IMAOUT.append({"id":2,"dim":2,"name":"Noise Coefficients","data":NCC,"filename":"data/NCC.nii.gz","type":'output'})
             # if debug:
@@ -158,8 +158,9 @@ if __name__=="__main__":
             LOG.append(f'decimate is {mimic}')
 
             #acceleration
-            accelleration=None
+            acceleration=None
             autocalibration=None
+            _acl=None
             grappakernel=[4,4]
             if RID==3: #if grappa
                 if "kernelSize" in reconstructor_dictionary["options"].keys():
@@ -167,28 +168,31 @@ if __name__=="__main__":
                         grappakernel=reconstructor_dictionary["options"]["kernelSize"]
                 LOG.append(f'grappakernel is {grappakernel}')
 
-            if reconstructor().HasAcceleration:
+            # Instantiate reconstructor once to check capabilities
+            _recon_instance = reconstructor()
+
+            if _recon_instance.HasAcceleration:
                 try:
                     acceleration,_acl=loader.get_acceleration_info(reconstructor_dictionary["options"]["signal"])
                 except:
                     LOG.appendError('acceleration not found from file headers')
                     LOG.appendError('will try to use explicit values from JSON config')
-                    pass
+                    acceleration=[1,1]
+                    _acl=[np.nan,np.nan]
                     
                 if "accelerations" in reconstructor_dictionary["options"].keys():
                     if reconstructor_dictionary["options"]["accelerations"]!=None:
                         acceleration=reconstructor_dictionary["options"]["accelerations"]
-                # else:
-                #     acceleration,_acl=getAccellerationInfo2D(s=reconstructor_dictionary["options"]["signal"])
                     
                 LOG.append(f'acceleration is {acceleration}')
                 if "acl" in reconstructor_dictionary["options"].keys():
                     if reconstructor_dictionary["options"]["acl"]!=None:
                         autocalibration=[np.nan if v is None else v for v in reconstructor_dictionary["options"]["acl"]]
                 else:
-                    autocalibration=_acl
-                    if RID==3:
-                        autocalibration=[_acl[1], _acl[1]]
+                    if _acl is not None:
+                        autocalibration=_acl
+                        if RID==3:
+                            autocalibration=[_acl[1], _acl[1]]
                 LOG.append(f'autocalibration is {autocalibration}')
             #sensitivities
             
@@ -196,7 +200,7 @@ if __name__=="__main__":
             if RID==3 and not mimic:
                 reference=loader.get_reference_kspace(reconstructor_dictionary["options"]["signal"],signal_acceleration_realsize=SL[0]["size"][1],slice_sel='all')
 
-            if reconstructor().HasSensitivity:
+            if _recon_instance.HasSensitivity:
                 sensitivitymethod=reconstructor_dictionary["options"]["sensitivityMap"]["options"]["sensitivityMapMethod"]
                 #if b1
                 if RID==1:
@@ -218,7 +222,7 @@ if __name__=="__main__":
 
             #decimate area
             mask =[False]*len(SL)
-            if reconstructor().HasSensitivity:
+            if _recon_instance.HasSensitivity:
                 SENSOPTIONS=reconstructor_dictionary["options"]["sensitivityMap"]["options"]
                 
                 if "mask" in SENSOPTIONS.keys():
@@ -251,19 +255,19 @@ if __name__=="__main__":
                 O["noise"]=None
                 # we are using th NC calculated before instead of passing the noise KSpace
                 O["noisecovariance"]=NC
-                if (reconstructor().HasSensitivity or (RID==3 and not mimic)):
+                if (_recon_instance.HasSensitivity or (RID==3 and not mimic)):
                     O["reference"]=reference[counter]
                 else:
                     O["reference"]=None
                 O["mask"]=mask[counter]
                 O["mimic"]=mimic
-                if reconstructor().HasAcceleration:
+                if _recon_instance.HasAcceleration:
                     O["acceleration"]=acceleration
                     O["autocalibration"]=autocalibration
                 else:
                     O["acceleration"]=None
                     O["autocalibration"]=None
-                if reconstructor().HasAcceleration and not reconstructor().HasSensitivity:
+                if _recon_instance.HasAcceleration and not _recon_instance.HasSensitivity:
                     O["grappakernel"]=grappakernel
                 else:
                     O["grappakernel"]=None
