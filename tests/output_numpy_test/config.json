@@ -1,0 +1,41 @@
+{
+  "version": "v0",
+  "acquisition": 2,
+  "type": "SNR",
+  "id": 0,
+  "name": "AC",
+  "options": {
+    "reconstructor": {
+      "type": "recon",
+      "id": 1,
+      "name": "RSS",
+      "options": {
+        "signal": {
+          "type": "file",
+          "options": {
+            "type": "local",
+            "vendor": "numpy",
+            "filename": "tests/output_numpy_test/signal.npy",
+            "multiraid": false,
+            "orientation": {
+              "spacing": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            }
+          }
+        },
+        "noise": {
+          "type": "file",
+          "options": {
+            "type": "local",
+            "vendor": "numpy",
+            "filename": "tests/output_numpy_test/noise.npy",
+            "multiraid": false
+          }
+        }
+      }
+    }
+  }
+}

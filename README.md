@@ -22,7 +22,18 @@ Visit the [project page](https://cmr.cloudmrhub.com/apps/mroptimum/) for more in
 | `snr.py` | CLI entry point (`python -m mrotools.snr`) for running SNR calculations from a JSON configuration file. |
 | `generate.py` | Programmatic helpers to build JSON configuration objects for each SNR/recon type. |
 | `generate-ui.py` | Tkinter-based GUI for interactively building JSON configs and launching calculations. |
-| `collections/` | Example JSON configurations organized by SNR method (AC/, MR/, PMR/, CR/, misc/). |
+| `kspace_loaders.py` | Multi-vendor k-space loaders (Siemens, NumPy, MATLAB) with factory pattern. |
+| `collections/` | Example JSON configurations organized by SNR method (AC/, MR/, PMR/, CR/, numpy/, matlab/, misc/). |
+
+---
+
+### **1b. 🔧 `tools/` — Conversion Utilities**
+
+| File | Description |
+| ---- | ----------- |
+| `dat2numpy.py` | Convert Siemens `.dat` raw data to `.npz` files with embedded orientation and acceleration metadata. |
+| `dat_inventory.py` | Full inventory of a Siemens `.dat` file: exports every raid/scan-type as `.npz` + RSS preview PNG + `inventory.json` manifest. Intended for upload backends to present all available data to the user before SNR calculation. |
+| `ismrmrd2numpy.py` | Convert ISMRMRD `.h5` raw data (vendor-neutral format) to `.npz` files. Requires `pip install ismrmrd`. |
 
 ---
 
@@ -30,10 +41,12 @@ Visit the [project page](https://cmr.cloudmrhub.com/apps/mroptimum/) for more in
 
 ```
 mrotools/collections/
-├── AC/        # Analytical / Kellman configs
-├── MR/        # Multiple Replicas configs
-├── PMR/       # Pseudo Multiple Replicas configs
-├── CR/        # Coil Replica / Generalized PMR configs
+├── AC/        # Analytical / Kellman configs (Siemens)
+├── MR/        # Multiple Replicas configs (Siemens)
+├── PMR/       # Pseudo Multiple Replicas configs (Siemens)
+├── CR/        # Coil Replica / Generalized PMR configs (Siemens)
+├── numpy/     # Example configs for NumPy input files
+├── matlab/    # Example configs for MATLAB input files
 └── misc/      # Miscellaneous example configs
 
 json/
@@ -76,7 +89,234 @@ json/
 
 ---
 
-## 🚀 **Getting Started**
+## � **Supported Input File Formats**
+
+MR Optimum supports three k-space input formats. Set `"vendor"` in the JSON config to select the loader.
+
+| Vendor     | Extension(s)         | Description                                    |
+| ---------- | -------------------- | ---------------------------------------------- |
+| `siemens`  | `.dat`               | Siemens raw data via twixtools                 |
+| `numpy`    | `.npy`, `.npz`       | NumPy arrays with optional orientation         |
+| `matlab`   | `.mat`               | MATLAB v5 / v7.3 files with optional orientation |
+
+### K-Space Array Shape Convention
+
+All formats expect the k-space array shaped as:
+
+| Dimensions | Shape                             | Use case                  |
+| ---------- | --------------------------------- | ------------------------- |
+| 3-D        | `(freq, phase, coils)`            | Single 2-D slice          |
+| 4-D        | `(freq, phase, coils, slices)`    | Multi-slice               |
+| 4-D (MR)   | `(freq, phase, coils, replicas)`  | Single-slice Multiple Replicas |
+| 5-D        | `(freq, phase, coils, slices, replicas)` | Multi-slice Multiple Replicas |
+
+### Orientation Metadata
+
+Orientation is resolved with **three-level priority**:
+
+1. **JSON `"orientation"` block** in the config (highest priority)
+2. **Embedded in the file** (`.npz` keys or `.mat` variables)
+3. **Defaults**: spacing = `[1, 1, 1]` mm, origin = `[0, 0, 0]`, direction = `eye(3)`
+
+This means **a bare `.npy` or `.mat` file with only k-space data works out of the box** – orientation defaults to 1 mm isotropic.
+
+| Field       | Type             | Description                              |
+| ----------- | ---------------- | ---------------------------------------- |
+| `spacing`   | array of 3       | Voxel size in mm: `[dx, dy, dz]`        |
+| `origin`    | array of 3       | Image origin: `[ox, oy, oz]`            |
+| `direction` | array of 9       | Row-major 3×3 direction cosine matrix    |
+| `fov`       | array of 3       | Field of view in mm: `[fov_f, fov_p, fov_s]` |
+
+---
+
+### Writing NumPy Files
+
+#### Minimal (just k-space):
+
+```python
+import numpy as np
+
+# kspace shape: (frequency, phase, coils) for a single 2D slice
+kspace = np.array(...)  # complex64 or complex128
+np.save("signal.npy", kspace)
+np.save("noise.npy", noise_kspace)
+```
+
+#### With embedded orientation (`.npz`):
+
+```python
+np.savez("signal.npz",
+    kspace       = kspace,                                      # required
+    spacing      = np.array([1.0, 1.0, 5.0]),                  # optional
+    origin       = np.array([0.0, 0.0, 0.0]),                  # optional
+    direction    = np.array([1,0,0, 0,1,0, 0,0,1], dtype=float), # optional (9 elems)
+    fov          = np.array([256.0, 256.0, 50.0]),              # optional
+    acceleration = np.array([1, 2]),                            # optional (freq, phase)
+    acl          = np.array([0, 24]),                           # optional (autocalibration lines)
+    reference    = reference_kspace,                            # optional (ACS data, same shape as kspace)
+)
+```
+
+#### Multi-slice:
+
+```python
+# shape: (freq, phase, coils, n_slices)
+kspace_multislice = np.stack([slice0, slice1, slice2], axis=3)
+np.save("signal_multislice.npy", kspace_multislice)
+```
+
+---
+
+### Writing MATLAB Files
+
+#### From MATLAB:
+
+```matlab
+% kspace: complex array of size (freq, phase, coils)
+kspace  = complex_kspace_data;      % required
+spacing = [1.0, 1.0, 5.0];         % optional
+origin  = [0.0, 0.0, 0.0];         % optional
+direction = [1,0,0, 0,1,0, 0,0,1]; % optional (9 elements, row-major)
+fov     = [256.0, 256.0, 50.0];    % optional
+
+save('signal.mat', 'kspace', 'spacing', 'origin', 'direction', 'fov');
+% or minimal:
+save('signal.mat', 'kspace');
+```
+
+#### From Python:
+
+```python
+import scipy.io as sio
+
+sio.savemat("signal.mat", {
+    "kspace":  kspace,                          # required – complex array
+    "spacing": np.array([1.0, 1.0, 5.0]),      # optional
+    "origin":  np.array([0.0, 0.0, 0.0]),      # optional
+})
+```
+
+---
+
+### JSON Configuration for NumPy / MATLAB
+
+A minimal JSON config using NumPy (RSS + Analytical):
+
+```json
+{
+    "version": "v0",
+    "acquisition": 2,
+    "type": "SNR",
+    "name": "AC",
+    "options": {
+        "reconstructor": {
+            "type": "recon",
+            "name": "RSS",
+            "options": {
+                "signal": {
+                    "type": "file",
+                    "options": {
+                        "vendor": "numpy",
+                        "filename": "/path/to/signal.npy"
+                    }
+                },
+                "noise": {
+                    "type": "file",
+                    "options": {
+                        "vendor": "numpy",
+                        "filename": "/path/to/noise.npy"
+                    }
+                }
+            }
+        }
+    }
+}
+```
+
+For MATLAB, change `"vendor": "numpy"` → `"vendor": "matlab"` and point to `.mat` files.
+
+To override orientation from JSON (takes priority over file-embedded values):
+
+```json
+"options": {
+    "vendor": "numpy",
+    "filename": "/path/to/signal.npy",
+    "orientation": {
+        "spacing": [0.5, 0.5, 3.0],
+        "origin":  [10.0, 20.0, 30.0]
+    }
+}
+```
+
+See `mrotools/collections/numpy/` and `mrotools/collections/matlab/` for full examples.
+
+---
+
+### Acceleration & Reference Metadata
+
+For accelerated acquisitions (SENSE / GRAPPA), the loader resolves acceleration info with the same three-level priority:
+
+1. **JSON keys** `"accelerations"` and `"acl"` in the reconstructor options
+2. **Embedded in the file** (`.npz` keys `acceleration`, `acl`; `.mat` variables)
+3. **Defaults**: `[1, 1]` (no acceleration) / `[NaN, NaN]`
+
+Reference / ACS k-space can be supplied as:
+- A separate file via `"reference_filename"` in the JSON config
+- Embedded inside the signal `.npz` file with the key `reference`
+
+---
+
+### Siemens `.dat` → NumPy Converter
+
+The `tools/dat2numpy.py` script converts Siemens raw data into self-contained `.npz` files:
+
+```bash
+# Multiraid file (noise embedded in raid 0)
+conda run -n mro python tools/dat2numpy.py \
+    -i /path/to/signal.dat \
+    -o /path/to/output_dir/ \
+    --multiraid
+
+# Separate noise file
+conda run -n mro python tools/dat2numpy.py \
+    -i /path/to/signal.dat \
+    --noise /path/to/noise.dat \
+    -o /path/to/output_dir/
+
+# No noise flag — prescan noise is extracted automatically from the signal file
+conda run -n mro python tools/dat2numpy.py \
+    -i /path/to/signal.dat \
+    -o /path/to/output_dir/
+
+# Multiple Replicas (MR) data
+conda run -n mro python tools/dat2numpy.py \
+    -i /path/to/signal.dat \
+    -o /path/to/output_dir/ \
+    --multiraid --mr
+```
+
+**Noise source priority:**
+
+| Priority | Source | When |
+|----------|--------|------|
+| 1 | `--multiraid` | Multiraid file; full noise scan in raid 0 |
+| 2 | `--noise path` | Separate noise `.dat` file |
+| 3 | Auto-fallback | Prescan noise (`noise` key) embedded in the signal file. Every Siemens scan includes a brief noise pre-adjustment (NOISEADJSCAN). Shape: `(cols, 1, coils)`. |
+
+**Output files:**
+
+| File              | Contents                                                      |
+| ----------------- | ------------------------------------------------------------- |
+| `signal.npz`      | Signal k-space + orientation + acceleration + ACL metadata    |
+| `noise.npz`       | Noise k-space                                                 |
+| `reference.npz`   | Reference / ACS k-space (only for accelerated acquisitions)   |
+| `config_numpy.json`| Ready-to-use JSON config for the MR Optimum SNR pipeline     |
+
+Each `.npz` file is self-contained — orientation and acceleration metadata are embedded alongside the k-space data, so the JSON config can be minimal.
+
+---
+
+## �🚀 **Getting Started**
 
 1. Install **Python ≥ 3.9**.
 
