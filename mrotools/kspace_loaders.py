@@ -105,7 +105,13 @@ class KSpaceLoader(ABC):
 # Siemens loader  (wraps the existing twixtools-based functions)
 # ---------------------------------------------------------------------------
 class SiemensLoader(KSpaceLoader):
-    """Loads k-space from Siemens .dat files via twixtools."""
+    """
+    Loads k-space from Siemens .dat files via twixtools.
+
+    Uses DatFileInfo for version-aware orientation/acceleration extraction
+    (handles VB, VD, VE, XA correctly), and the existing getSiemensKSpace2D
+    for raw k-space data extraction.
+    """
 
     def __init__(self):
         # Lazy imports so we don't break at import time if twixtools is absent
@@ -115,31 +121,234 @@ class SiemensLoader(KSpaceLoader):
         self._twixtools = twixtools
         self._pn = pn
         self._cmaws = cmaws
+        self._dat_info_cache = {}  # cache DatFileInfo per filepath
 
-    # -- helpers (delegates to existing mro functions) ----------------------
+    # -- helpers ------------------------------------------------------------
+
     def _get_file(self, s, s3=None):
         return self._cmaws.getCMRFile(s, s3)
 
+    def _resolve_filepath(self, signal_options):
+        """Resolve the local filepath from signal options."""
+        return self._pn.Pathable(self._get_file(signal_options)).getPosition()
+
+    def _get_dat_info(self, filepath):
+        """Get or create a cached DatFileInfo for a filepath."""
+        if filepath not in self._dat_info_cache:
+            from mrotools.dat_version import DatFileInfo
+            self._dat_info_cache[filepath] = DatFileInfo(filepath)
+        return self._dat_info_cache[filepath]
+
+    def _safe_map_twix(self, filepath):
+        """
+        Map twix data safely, avoiding geometry and regrid crashes on
+        files with missing 'Meas' header key (some XA/older exports).
+        Returns the mapped twix data list.
+        """
+        try:
+            raw = self._twixtools.read_twix(filepath, verbose=False, parse_geometry=False)
+            return self._twixtools.map_twix(raw, verbose=False)
+        except (KeyError, TypeError, ValueError):
+            # map_twix crashed (e.g. missing 'Meas' key for regrid calc).
+            # Fallback: read raw and map without regridding by patching the hdr.
+            raw = self._twixtools.read_twix(filepath, verbose=False,
+                                            parse_geometry=False)
+            # Inject a minimal 'Meas' dict so map_twix's regrid calc won't crash
+            for meas in raw:
+                if isinstance(meas, dict) and 'hdr' in meas:
+                    if 'Meas' not in meas['hdr']:
+                        meas['hdr']['Meas'] = {}
+            return self._twixtools.map_twix(raw, verbose=False)
+
+    def _extract_kspace(self, filepath, raid=0, noise=False, MR=False,
+                        aveRepetition=True, slice_sel='all'):
+        """
+        Extract k-space from a .dat file without triggering twixtools geometry
+        crashes.
+
+        Args:
+            filepath: Path to .dat file
+            raid: Raid index
+            noise: If True, extract noise data (keep oversampling)
+            MR: If True, extract multiple replicas
+            aveRepetition: Average repetitions (ignored if MR=True)
+            slice_sel: 'all' or int
+
+        Returns:
+            List of arrays (one per slice), or a single array, or error string.
+        """
+        twix = self._safe_map_twix(filepath)
+
+        try:
+            im_array = twix[raid]['image']
+        except (KeyError, IndexError):
+            if noise:
+                try:
+                    im_array = twix[raid]['noise']
+                except (KeyError, IndexError):
+                    raise Exception("Cannot find image or noise data in this file")
+            else:
+                raise Exception("Cannot find image data in this file")
+
+        im_array.flags['remove_os'] = not noise
+
+        _MR_DIM = 7
+        if noise:
+            im_array.flags['average']['Rep'] = False
+            im_array.flags['average']['Ave'] = False
+        else:
+            if not MR:
+                im_array.flags['average']['Rep'] = aveRepetition
+                im_array.flags['average']['Ave'] = True
+            else:
+                if not im_array.shape[_MR_DIM] > 1:
+                    return "No Multiple Replicas Data"
+                im_array.flags['average']['Rep'] = False
+                im_array.flags['average']['Ave'] = True
+
+        SL_DIM = 11
+        if isinstance(slice_sel, str) and slice_sel.lower() == 'all':
+            K = []
+            for sl in range(im_array.shape[SL_DIM]):
+                if MR:
+                    K.append(np.transpose(
+                        im_array[0, 0, 0, 0, 0, 0, 0, :, 0, 0, 0, sl, 0, :, :, :],
+                        [3, 1, 2, 0]))
+                else:
+                    K.append(np.transpose(
+                        im_array[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, sl, 0, :, :, :],
+                        [2, 0, 1]))
+            return K
+        else:
+            sl = int(slice_sel)
+            if MR:
+                return np.transpose(
+                    im_array[0, 0, 0, 0, 0, 0, 0, :, 0, 0, 0, sl, 0, :, :, :],
+                    [3, 1, 2, 0])
+            else:
+                return np.transpose(
+                    im_array[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, sl, 0, :, :, :],
+                    [2, 0, 1])
+
+    # -- public interface ---------------------------------------------------
+
     def get_signal_kspace(self, signal_options, signal=True, MR=False):
-        # Re-use the original function from mro.py
-        from mrotools.mro import getSiemensKSpace2DInformation
-        return getSiemensKSpace2DInformation(signal_options, signal=signal, MR=MR)
+        """
+        Load signal k-space with version-aware orientation extraction.
+
+        Strategy:
+        - Uses DatFileInfo for orientation metadata (spacing, origin,
+          direction, fov) — handles VB/VD/VE/XA header differences.
+        - Uses a safe k-space extraction that avoids twixtools geometry
+          crashes on XA files.
+        """
+        filepath = self._resolve_filepath(signal_options)
+        dat_info = self._get_dat_info(filepath)
+
+        # Determine signal raid index
+        raid = dat_info.signal_raid
+
+        # Extract raw k-space data (safe method that skips parse_geometry)
+        K = self._extract_kspace(filepath, raid=raid, noise=False, MR=MR)
+
+        # If MR mode returned an error string, propagate it
+        if isinstance(K, str):
+            return K
+
+        # Extract orientation from DatFileInfo (version-aware)
+        n_kspace_slices = len(K)
+        orientations = []
+        for i in range(n_kspace_slices):
+            try:
+                orient = dat_info.orientation(i)
+            except (KeyError, IndexError, TypeError):
+                # Fallback: use first slice orientation for all
+                orient = dat_info.orientation(0)
+            orientations.append(orient)
+
+        # Build output: list of per-slice dicts
+        slices = []
+        for i, kspace in enumerate(K):
+            o = orientations[i] if i < len(orientations) else orientations[0]
+            slices.append({
+                "KSpace": kspace,
+                "spacing": o["spacing"],
+                "origin": o["origin"],
+                "direction": o["direction"],
+                "size": o["size"],
+                "fov": o["fov"],
+            })
+
+        return slices
 
     def get_noise_kspace(self, noise_options, slice_sel="all"):
-        from mrotools.mro import getNoiseKSpace
-        return getNoiseKSpace(noise_options, slice=slice_sel)
+        """
+        Load noise k-space.
+
+        For multiraid files (VD/VE/XA), noise is typically in raid 0.
+        For VB files or separate noise files, reads from the image data
+        with oversampling kept.
+        """
+        from raider_eros_montin import raider
+
+        filepath = self._resolve_filepath(noise_options)
+        opts = noise_options.get("options", noise_options)
+        multiraid = opts.get("multiraid", False)
+
+        if multiraid:
+            # Multiraid: noise is in raid 0
+            return raider.readMultiRaidNoise(filepath, slice=slice_sel, raid=0)
+        else:
+            # Separate noise file or embedded noise — use safe extraction
+            return self._extract_kspace(filepath, raid=0, noise=True, slice_sel=slice_sel)
 
     def get_reference_kspace(self, signal_options, signal_acceleration_realsize, slice_sel="all"):
-        from mrotools.mro import getSiemensReferenceKSpace2D
-        return getSiemensReferenceKSpace2D(
-            signal_options,
-            signal_acceleration_realsize=signal_acceleration_realsize,
-            slice=slice_sel,
-        )
+        """
+        Load reference / ACS k-space for accelerated acquisitions.
+        Uses DatFileInfo to determine the correct raid index.
+        """
+        from mrotools.mro import fixReferenceSiemens
+
+        filepath = self._resolve_filepath(signal_options)
+        dat_info = self._get_dat_info(filepath)
+        raid = dat_info.signal_raid
+
+        twix = self._safe_map_twix(filepath)
+
+        try:
+            r_array = twix[raid]['refscan']
+        except (KeyError, IndexError):
+            return None
+
+        r_array.flags['remove_os'] = True
+        r_array.flags['average']['Rep'] = True
+        r_array.flags['average']['Ave'] = True
+
+        SL_DIM = 11
+        if isinstance(slice_sel, str) and slice_sel.lower() == 'all':
+            slices = []
+            for sl in range(r_array.shape[SL_DIM]):
+                ref = fixReferenceSiemens(
+                    np.transpose(r_array[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, sl, 0, :, :, :], [2, 0, 1]),
+                    signal_acceleration_realsize,
+                )
+                slices.append(ref)
+            return slices
+        else:
+            sl = int(slice_sel)
+            return fixReferenceSiemens(
+                np.transpose(r_array[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, sl, 0, :, :, :], [2, 0, 1]),
+                signal_acceleration_realsize,
+            )
 
     def get_acceleration_info(self, signal_options):
-        from mrotools.mro import getAccellerationInfo2D
-        return getAccellerationInfo2D(signal_options)
+        """
+        Get acceleration info using DatFileInfo (version-aware).
+        Handles NaN values and different header paths across VB/VD/VE/XA.
+        """
+        filepath = self._resolve_filepath(signal_options)
+        dat_info = self._get_dat_info(filepath)
+        return dat_info.acceleration()
 
 
 # ---------------------------------------------------------------------------
