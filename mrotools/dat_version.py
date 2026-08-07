@@ -308,11 +308,11 @@ class DatFileInfo:
         # Clamp slice_idx
         slice_idx = min(slice_idx, n_slices - 1)
 
-        # Slice ordering
+        # Slice ordering: chronSliceIndices[acquisition_idx] = physical_slice_idx
+        # slice_idx here is the acquisition index (matches twixtools output order)
         slice_order = self._get_slice_order(hdr, n_slices)
         if slice_order and slice_idx < len(slice_order):
-            # Map from chronological to physical slice index
-            physical_idx = slice_order.index(slice_idx) if slice_idx in slice_order else slice_idx
+            physical_idx = slice_order[slice_idx]
         else:
             physical_idx = slice_idx
 
