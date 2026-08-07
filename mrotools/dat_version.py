@@ -131,6 +131,7 @@ class DatFileInfo:
 
     filepath: str
     _twix_data: Any = field(default=None, repr=False)
+    _raw_twix: Any = field(default=None, repr=False)
     _is_ve_format: Optional[bool] = field(default=None, repr=False)
     _n_scans: Optional[int] = field(default=None, repr=False)
     _syngo_version: Optional[str] = field(default=None, repr=False)
@@ -154,14 +155,34 @@ class DatFileInfo:
             # to read_twix which just gives us headers + mdb lists.
             try:
                 raw = twixtools.read_twix(self.filepath, verbose=False, parse_geometry=False)
+                self._raw_twix = raw
                 self._twix_data = twixtools.map_twix(raw, verbose=False)
             except (KeyError, TypeError, ValueError):
                 # Fallback: use raw read_twix output (list of dicts with 'hdr' + 'mdb')
-                self._twix_data = twixtools.read_twix(
+                raw = twixtools.read_twix(
                     self.filepath, verbose=False,
                     parse_geometry=False, parse_data=False,
                 )
+                self._raw_twix = raw
+                self._twix_data = raw
         return self._twix_data
+
+    @property
+    def raw_twix(self):
+        """
+        Raw twix data with MDB lists (for quaternion access).
+        Loaded lazily — triggers twix_data loading if not yet done.
+        """
+        if self._raw_twix is None:
+            # Loading raw with parse_data=True to get MDB quaternions
+            try:
+                self._raw_twix = twixtools.read_twix(
+                    self.filepath, verbose=False,
+                    parse_geometry=False, parse_data=True,
+                )
+            except (KeyError, TypeError, ValueError, FileNotFoundError, OSError):
+                self._raw_twix = []
+        return self._raw_twix
 
     # ----- Version properties ----------------------------------------------
 
@@ -312,8 +333,8 @@ class DatFileInfo:
         ]
         fov = [readout_fov, phase_fov, thickness * n_slices]
 
-        # --- Direction (normal vector) ---
-        direction = self._extract_direction(sl)
+        # --- Direction (rotation matrix) ---
+        direction = self._get_direction_for_slice(physical_idx, sl)
 
         # --- Patient position ---
         patient_position = self._get_patient_position(hdr)
@@ -562,31 +583,167 @@ class DatFileInfo:
             self._safe_float(pos.get("dTra", 0.0), 0.0),
         ]
 
-    def _extract_direction(self, sl: Dict) -> np.ndarray:
+    def _get_direction_for_slice(self, physical_slice_idx: int, sl: Dict) -> np.ndarray:
         """
-        Extract direction matrix from slice normal vector.
+        Get the 3x3 direction cosine matrix for a slice.
 
-        This is a simplified version using the diagonal approach from
-        the existing mro.py code. For production use with oblique slices,
-        consider using twixtools.geometry.Geometry which uses MDB quaternions.
+        Priority:
+        1. MDB quaternions (most accurate, works for all orientations)
+        2. Analytical computation from sNormal + dInPlaneRot
         """
-        direction = -np.eye(3)
+        # Try MDB quaternion approach first
+        direction = self._direction_from_mdb(physical_slice_idx)
+        if direction is not None:
+            return direction
 
-        normal = sl.get("sNormal", {})
-        if "dTra" in normal:
-            val = self._safe_float(normal["dTra"], 0.0)
-            if val != 0.0:
-                direction[2, 2] = -val
-        if "dSag" in normal:
-            val = self._safe_float(normal["dSag"], 0.0)
-            if val != 0.0:
-                direction[0, 0] = val
-        if "dCor" in normal:
-            val = self._safe_float(normal["dCor"], 0.0)
-            if val != 0.0:
-                direction[1, 1] = val
+        # Fallback: compute from sNormal + dInPlaneRot
+        return self._direction_from_normal(sl)
+
+    def _direction_from_mdb(self, physical_slice_idx: int) -> Optional[np.ndarray]:
+        """
+        Extract direction matrix from MDB quaternion data.
+        Returns None if MDB data is not available.
+        """
+        try:
+            raw = self.raw_twix
+            if not raw:
+                return None
+
+            raid_idx = self.signal_raid
+            if raid_idx >= len(raw):
+                return None
+
+            raid = raw[raid_idx]
+            if not isinstance(raid, dict) or 'mdb' not in raid:
+                return None
+
+            mdb_list = raid['mdb']
+            if not mdb_list:
+                return None
+
+            # Handle slice ordering
+            hdr = raid.get('hdr', {})
+            slice_order = self._get_slice_order(hdr, physical_slice_idx + 1)
+
+            # Find the first MDB for this slice
+            for m in mdb_list:
+                try:
+                    if (hasattr(m, 'mdh') and
+                        m.mdh.Counter.Sli == physical_slice_idx and
+                        m.is_image_scan()):
+                        # Extract quaternion
+                        quat = m.mdh.SliceData.Quaternion
+                        mat = self._quat_to_rotmat(*quat)
+                        # In twixtools convention: columns are Phase, Readout, Slice
+                        # in PCS (Sag, Cor, Tra). Readout and Phase columns are negated.
+                        mat[:, :2] *= -1
+                        # mat now maps PRS → PCS
+                        # For NIfTI: columns = (readout_dir, phase_dir, slice_dir)
+                        # PRS order is Phase(col0), Readout(col1), Slice(col2)
+                        # We want RPS: Readout(col1), Phase(col0), Slice(col2 negated)
+                        direction = np.column_stack([
+                            mat[:, 1],   # readout direction
+                            mat[:, 0],   # phase direction
+                            -mat[:, 2],  # slice direction (negate for consistency)
+                        ])
+                        return direction
+                except (AttributeError, TypeError, IndexError):
+                    continue
+
+            return None
+        except (KeyError, IndexError, TypeError, AttributeError):
+            return None
+
+    @staticmethod
+    def _quat_to_rotmat(scalar, i, j, k):
+        """Convert quaternion (scalar-first) to 3x3 rotation matrix."""
+        r = scalar
+        mat = np.array([
+            [1 - 2*(j**2 + k**2), 2*(i*j - k*r),       2*(i*k + j*r)],
+            [2*(i*j + k*r),       1 - 2*(i**2 + k**2), 2*(j*k - i*r)],
+            [2*(i*k - j*r),       2*(j*k + i*r),       1 - 2*(i**2 + j**2)],
+        ])
+        return mat
+
+    def _direction_from_normal(self, sl: Dict) -> np.ndarray:
+        """
+        Compute direction cosine matrix analytically from sNormal and dInPlaneRot.
+
+        The Siemens convention:
+        - sNormal defines the slice normal in PCS (Sag, Cor, Tra)
+        - The phase encoding direction is derived from cross(normal, reference_axis)
+        - The readout direction is cross(phase, normal)
+        - dInPlaneRot applies an additional in-plane rotation
+
+        Returns a 3x3 matrix whose columns are (readout_dir, phase_dir, slice_dir)
+        in the Patient Coordinate System (Sag, Cor, Tra).
+        """
+        normal_dict = sl.get("sNormal", {})
+        dSag = self._safe_float(normal_dict.get("dSag", 0.0), 0.0)
+        dCor = self._safe_float(normal_dict.get("dCor", 0.0), 0.0)
+        dTra = self._safe_float(normal_dict.get("dTra", 0.0), 0.0)
+
+        slice_normal = np.array([dSag, dCor, dTra], dtype=np.float64)
+        norm = np.linalg.norm(slice_normal)
+        if norm < 1e-6:
+            # No normal info available, return default axial
+            return np.array([[-1, 0, 0], [0, -1, 0], [0, 0, -1]], dtype=np.float64)
+
+        slice_normal /= norm
+
+        # Determine phase direction using Siemens convention:
+        # Choose reference vector that is least parallel to slice normal
+        # Siemens uses: if |dTra| is dominant → reference is [0, 1, 0] (Cor)
+        #               if |dCor| is dominant → reference is [0, 0, 1] (Tra)
+        #               if |dSag| is dominant → reference is [0, 1, 0] (Cor)
+        abs_normal = np.abs(slice_normal)
+        if abs_normal[2] >= abs_normal[0] and abs_normal[2] >= abs_normal[1]:
+            # Predominantly axial (Tra dominant) → phase along Cor
+            ref = np.array([0.0, 1.0, 0.0])
+        elif abs_normal[1] >= abs_normal[0]:
+            # Predominantly coronal (Cor dominant) → phase along Tra
+            ref = np.array([0.0, 0.0, 1.0])
+        else:
+            # Predominantly sagittal (Sag dominant) → phase along Cor
+            ref = np.array([0.0, 1.0, 0.0])
+
+        # Phase direction = cross(slice_normal, reference) normalized
+        phase_dir = np.cross(slice_normal, ref)
+        phase_norm = np.linalg.norm(phase_dir)
+        if phase_norm < 1e-6:
+            # Degenerate: normal parallel to reference, use alternative
+            ref = np.array([1.0, 0.0, 0.0])
+            phase_dir = np.cross(slice_normal, ref)
+            phase_norm = np.linalg.norm(phase_dir)
+        phase_dir /= phase_norm
+
+        # Readout direction = cross(phase, slice_normal)
+        read_dir = np.cross(phase_dir, slice_normal)
+        read_dir /= np.linalg.norm(read_dir)
+
+        # Apply in-plane rotation if present
+        inplane_rot = self._safe_float(sl.get("dInPlaneRot", 0.0), 0.0)
+        if abs(inplane_rot) > 1e-6:
+            cos_r = np.cos(inplane_rot)
+            sin_r = np.sin(inplane_rot)
+            read_new = cos_r * read_dir + sin_r * phase_dir
+            phase_new = -sin_r * read_dir + cos_r * phase_dir
+            read_dir = read_new
+            phase_dir = phase_new
+
+        # Build direction matrix: columns = (readout, phase, slice)
+        # Negate to match Siemens LPS-like convention used in NIfTI output
+        direction = np.column_stack([
+            -read_dir,
+            -phase_dir,
+            -slice_normal,
+        ])
 
         return direction
+
+    def _extract_direction(self, sl: Dict) -> np.ndarray:
+        """Legacy wrapper — use _get_direction_for_slice instead."""
+        return self._direction_from_normal(sl)
 
     def _get_patient_position(self, hdr: Dict) -> Optional[str]:
         """
