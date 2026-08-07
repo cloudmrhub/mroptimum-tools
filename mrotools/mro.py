@@ -61,10 +61,19 @@ def patchSizeKSpace2D(K,sensmask):
             
 def saveImage(x,origin=None,spacing=None,direction=None,fn=None):
     if not(direction is None):
+        # SimpleITK requires direction as a flat list of Python floats
+        if hasattr(direction, 'flatten'):
+            direction = [float(v) for v in direction.flatten()]
+        elif hasattr(direction, '__iter__'):
+            direction = [float(v) for v in direction]
         x.setImageDirection(direction)
     if not(spacing  is None):
+        if hasattr(spacing, 'tolist'):
+            spacing = spacing.tolist()
         x.setImageSpacing(spacing)
     if not(direction  is None):
+        if hasattr(origin, 'tolist'):
+            origin = origin.tolist()
         x.setImageOrigin(origin)
     x.writeImageAs(fn)
 

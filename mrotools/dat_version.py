@@ -645,7 +645,7 @@ class DatFileInfo:
                             mat[:, 1],   # readout direction
                             mat[:, 0],   # phase direction
                             -mat[:, 2],  # slice direction (negate for consistency)
-                        ])
+                        ]).astype(np.float64)
                         return direction
                 except (AttributeError, TypeError, IndexError):
                     continue
@@ -656,13 +656,14 @@ class DatFileInfo:
 
     @staticmethod
     def _quat_to_rotmat(scalar, i, j, k):
-        """Convert quaternion (scalar-first) to 3x3 rotation matrix."""
-        r = scalar
+        """Convert quaternion (scalar-first) to 3x3 rotation matrix (float64)."""
+        r = float(scalar)
+        i, j, k = float(i), float(j), float(k)
         mat = np.array([
             [1 - 2*(j**2 + k**2), 2*(i*j - k*r),       2*(i*k + j*r)],
             [2*(i*j + k*r),       1 - 2*(i**2 + k**2), 2*(j*k - i*r)],
             [2*(i*k - j*r),       2*(j*k + i*r),       1 - 2*(i**2 + j**2)],
-        ])
+        ], dtype=np.float64)
         return mat
 
     def _direction_from_normal(self, sl: Dict) -> np.ndarray:
