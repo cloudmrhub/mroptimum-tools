@@ -172,8 +172,11 @@ if __name__=="__main__":
             _recon_instance = reconstructor()
 
             if _recon_instance.HasAcceleration:
+                _acceleration_from_headers = False
+                _acceleration_from_json = False
                 try:
                     acceleration,_acl=loader.get_acceleration_info(reconstructor_dictionary["options"]["signal"])
+                    _acceleration_from_headers = True
                 except:
                     LOG.appendError('acceleration not found from file headers')
                     LOG.appendError('will try to use explicit values from JSON config')
@@ -183,17 +186,35 @@ if __name__=="__main__":
                 if "accelerations" in reconstructor_dictionary["options"].keys():
                     if reconstructor_dictionary["options"]["accelerations"]!=None:
                         acceleration=reconstructor_dictionary["options"]["accelerations"]
-                    
-                LOG.append(f'acceleration is {acceleration}')
-                if "acl" in reconstructor_dictionary["options"].keys():
-                    if reconstructor_dictionary["options"]["acl"]!=None:
-                        autocalibration=[np.nan if v is None else v for v in reconstructor_dictionary["options"]["acl"]]
+                        _acceleration_from_json = True
+
+                # If no real acceleration info is available (not from headers, not from JSON)
+                # and acceleration is [1,1], fall back to B1 reconstruction for SENSE
+                # Unaccelerated SENSE is equivalent to B1
+                _is_unaccelerated = (acceleration is not None and all(a <= 1 for a in acceleration))
+                if _is_unaccelerated and RID==2:
+                    LOG.append('Acceleration is [1,1] — SENSE with no acceleration is equivalent to B1')
+                    LOG.append('Falling back to B1 reconstruction')
+                    RID=1
+                    reconstructor=RECON_classes[RID]
+                    if SID==0:
+                        reconstructor=KELLMAN_classes[RID]
+                    _recon_instance = reconstructor()
+                    LOG.append(f'Reconstructor class changed to {reconstructor.__name__}')
+                    # Reset acceleration since B1 doesn't use it
+                    acceleration=None
+                    autocalibration=None
                 else:
-                    if _acl is not None:
-                        autocalibration=_acl
-                        if RID==3:
-                            autocalibration=[_acl[1], _acl[1]]
-                LOG.append(f'autocalibration is {autocalibration}')
+                    LOG.append(f'acceleration is {acceleration}')
+                    if "acl" in reconstructor_dictionary["options"].keys():
+                        if reconstructor_dictionary["options"]["acl"]!=None:
+                            autocalibration=[np.nan if v is None else v for v in reconstructor_dictionary["options"]["acl"]]
+                    else:
+                        if _acl is not None:
+                            autocalibration=_acl
+                            if RID==3:
+                                autocalibration=[_acl[1], _acl[1]]
+                    LOG.append(f'autocalibration is {autocalibration}')
             #sensitivities
             
             #grappa
@@ -211,8 +232,11 @@ if __name__=="__main__":
                             reference=[s["KSpace"] for s in  SL]
                         else:
                             reference=[None]*len(SL)
-                    else:                    
-                        reference=loader.get_reference_kspace(reconstructor_dictionary["options"]["signal"],signal_acceleration_realsize=SL[0]["size"][1],slice_sel='all')
+                    else:
+                        if sensitivitymethod=="inner":
+                            reference=[s["KSpace"] for s in  SL]
+                        else:
+                            reference=loader.get_reference_kspace(reconstructor_dictionary["options"]["signal"],signal_acceleration_realsize=SL[0]["size"][1],slice_sel='all')
                 else:
                     LOG.appendError('sensitivity method not implemented')
                     LOG.appendError('this version of SNR tool only works with inner and outer sensitivity method at the moment')
