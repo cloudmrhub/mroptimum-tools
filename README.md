@@ -18,6 +18,7 @@ Visit the [project page](https://cmr.cloudmrhub.com/apps/mroptimum/) for more in
 ![VD13](https://img.shields.io/badge/Siemens-VD13-green)
 ![VE11](https://img.shields.io/badge/Siemens-VE11-green)
 ![XA51](https://img.shields.io/badge/Siemens-XA51-green)
+![XA61](https://img.shields.io/badge/Siemens-XA61-green)
 
 **MR Optimum** provides tools for signal-to-noise ratio (SNR) estimation and image reconstruction methods for Magnetic Resonance Imaging (MRI). It is designed for researchers and developers to perform SNR calculations, reconstructions, and custom pipeline configurations.
 
