@@ -271,14 +271,49 @@ class SiemensLoader(KSpaceLoader):
                 orient = dat_info.orientation(0)
             orientations.append(orient)
 
+        # Compute actual center-to-center inter-slice distance from header
+        # positions.  DatFileInfo returns dThickness which is slice thickness
+        # only; any slice gap (distance factor) must be inferred from the
+        # actual sPosition values of adjacent slices.
+        # Slices may be in interleaved acquisition order — sort by physical
+        # position along the slice normal before computing the step.
+        slice_normal = np.asarray(orientations[0]["direction"])[:, 2]
+        centers = [np.array(o["origin"], dtype=float) for o in orientations]
+        if len(centers) > 1:
+            projs = sorted([np.dot(c, slice_normal) for c in centers])
+            dists = [abs(projs[j+1] - projs[j]) for j in range(len(projs) - 1)]
+            actual_slice_spacing = float(np.median(dists))
+        else:
+            actual_slice_spacing = float(orientations[0]["spacing"][2])
+
         # Build output: list of per-slice dicts
         slices = []
         for i, kspace in enumerate(K):
             o = orientations[i] if i < len(orientations) else orientations[0]
+
+            # DatFileInfo.orientation() returns sPosition, which is the SLICE
+            # CENTER in Siemens PCS.  NIfTI/SimpleITK/DICOM all expect the
+            # first-voxel CORNER as origin.  Convert:
+            #   corner = center
+            #            - (N_readout/2)*sp_readout * readout_dir
+            #            - (N_phase/2)  *sp_phase   * phase_dir
+            direction = np.asarray(o["direction"])         # 3x3
+            readout_dir = direction[:, 0]                  # image x-axis
+            phase_dir   = direction[:, 1]                  # image y-axis
+            n_readout   = kspace.shape[0]
+            n_phase     = kspace.shape[1]
+            sp_readout  = o["spacing"][0]
+            sp_phase    = o["spacing"][1]
+            center      = np.array(o["origin"], dtype=float)
+            corner      = (center
+                           - (n_readout / 2) * sp_readout * readout_dir
+                           - (n_phase   / 2) * sp_phase   * phase_dir)
+
+            spacing = [o["spacing"][0], o["spacing"][1], actual_slice_spacing]
             slices.append({
                 "KSpace": kspace,
-                "spacing": o["spacing"],
-                "origin": o["origin"],
+                "spacing": spacing,
+                "origin": corner.tolist(),
                 "direction": o["direction"],
                 "size": o["size"],
                 "fov": o["fov"],

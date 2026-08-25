@@ -1,0 +1,46 @@
+{
+    "version": "v0",
+    "acquisition": 2,
+    "type": "SNR",
+    "id": 0,
+    "name": "AC",
+    "options": {
+        "reconstructor": {
+            "type": "recon",
+            "name": "RSS",
+            "id": 0,
+            "options": {
+                "noise": {
+                    "type": "file",
+                    "options": {
+                        "type": "local",
+                        "filename": "/data/MYDATA/mroptimumtestData/noise.dat",
+                        "options": {},
+                        "multiraid": false,
+                        "vendor": "Siemens"
+                    }
+                },
+                "signal": {
+                    "type": "file",
+                    "options": {
+                        "type": "local",
+                        "filename": "/data/MYDATA/mroptimumtestData/signal.dat",
+                        "options": {},
+                        "multiraid": false,
+                        "vendor": "Siemens"
+                    }
+                }
+            }
+        },
+        "correction": {
+            "useCorrection": true,
+            "faCorrection": {
+                "type": "file",
+                "options": {
+                    "type": "local",
+                    "filename": "/data/MYDATA/mroptimumtestData/fa_map.nii.gz"
+                }
+            }
+        }
+    }
+}

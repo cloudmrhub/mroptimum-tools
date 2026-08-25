@@ -5,10 +5,12 @@ from pyable_eros_montin import imaginable as ima
 try:
     from mro import *
     from kspace_loaders import get_kspace_loader
+    from fa_normalization import normalize_snr_with_fa
     V='local'
 except:
     from mrotools.mro import *
     from mrotools.kspace_loaders import get_kspace_loader
+    from mrotools.fa_normalization import normalize_snr_with_fa
     V="pip"
 import cmtools.cm2D as cm2D
 
@@ -44,6 +46,7 @@ if __name__=="__main__":
     parser.add_argument('-v','--verbose', choices=[True,False],type=bool, help='would you like to see the plots while calculating',default=False, action=argparse.BooleanOptionalAction)
     parser.add_argument('-m','--matlab', choices=[True,False],type=bool, help='would you like to have a mat file',default=False, action=argparse.BooleanOptionalAction)
     parser.add_argument('-p','--parallel', choices=[True,False],type=bool, help='Parallel?',default=True, action=argparse.BooleanOptionalAction)
+    parser.add_argument('--fa-map', type=str, help='Path to FA map (degrees). When provided, an FA-normalised SNR map is added to the output: SNR_fa_corrected = SNR / sin(FA).', default=None)
 
        
     args = parser.parse_args()
@@ -381,6 +384,54 @@ if __name__=="__main__":
                 O=pn.Pathable(args.output)
                 
                 IMAOUT = sorted(IMAOUT, key=lambda x: x["id"])
+
+                # ── Resolve FA map from JSON payload (faCorrection) if not set via CLI ──
+                if args.fa_map is None:
+                    _correction = reconstructor_dictionary.get("options", {}).get("correction", {})
+                    if _correction.get("useCorrection", False):
+                        _fa_cfg = _correction.get("faCorrection", None)
+                        if _fa_cfg is not None:
+                            try:
+                                args.fa_map = getFile(_fa_cfg)
+                                LOG.append(f'FA map resolved from JSON payload: {args.fa_map}')
+                            except Exception as _e:
+                                LOG.appendError(f'Could not resolve faCorrection from JSON: {_e}')
+                # ─────────────────────────────────────────────────────────────
+
+                # ── FA Normalization (optional) ──────────────────────────────
+                if args.fa_map is not None:
+                    LOG.append(f'FA map provided: {args.fa_map} — applying FA normalization')
+                    try:
+                        IDS_cur = [x["id"] for x in IMAOUT]
+                        snr_idx = IDS_cur.index(0)
+                        snr_data = IMAOUT[snr_idx]["data"]  # (H, W, N_slices)
+
+                        # Build a reference Imaginable for geometry validation
+                        snr_ref = ima.numpyToImaginable(snr_data)
+                        snr_ref.setImageOrigin(origin.tolist() if hasattr(origin, 'tolist') else list(origin))
+                        snr_ref.setImageSpacing(spacing.tolist() if hasattr(spacing, 'tolist') else list(spacing))
+                        snr_ref.setImageDirection([float(v) for v in direction])
+
+                        fa_result = normalize_snr_with_fa(
+                            snr_array=snr_data,
+                            snr_img=snr_ref,
+                            fa_path=args.fa_map,
+                        )
+                        IMAOUT.append({
+                            "id": 100,
+                            "dim": 3,
+                            "name": "SNR FA Corrected",
+                            "data": fa_result.snr_fa_corrected,
+                            "filename": "data/SNR_FA_corrected.nii.gz",
+                            "type": "output",
+                        })
+                        # Store provenance in the job output headers
+                        JO["headers"]["faCorrection"] = fa_result.provenance
+                        LOG.append(f'FA normalization applied. Provenance: {fa_result.provenance}')
+                    except Exception as fa_err:
+                        LOG.appendError(f'FA normalization failed: {fa_err}')
+                        raise
+                # ─────────────────────────────────────────────────────────────
 
                 for im in IMAOUT:
                     O.addBaseName(im["filename"])

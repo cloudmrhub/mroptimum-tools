@@ -397,7 +397,67 @@ import twixtools
 import numpy as np
 from raider_eros_montin import raider
 import copy
-def getSiemensKSpace2DInformation(s,signal=True,MR=False):
+def _siemens_direction_from_normal(sNormal: dict, dInPlaneRot: float = 0.0) -> np.ndarray:
+    """Compute the 3×3 direction cosine matrix from a Siemens sNormal dict.
+
+    Matches the DICOM ImageOrientationPatient convention so that the
+    resulting NIfTI geometry is compatible with DICOM-derived images
+    (e.g. TFL FA maps).
+
+    Columns of the returned matrix:
+        col 0 = readout (frequency-encoding) direction in LPS
+        col 1 = phase-encoding direction in LPS
+        col 2 = slice-stack direction in LPS  (= cross(readout, phase))
+
+    Args:
+        sNormal: dict with optional keys 'dSag', 'dCor', 'dTra' (Siemens PCS = LPS).
+        dInPlaneRot: in-plane rotation in radians (from header field dInPlaneRot).
+    """
+    dSag = float(sNormal.get('dSag', 0.0))
+    dCor = float(sNormal.get('dCor', 0.0))
+    dTra = float(sNormal.get('dTra', 0.0))
+
+    n = np.array([dSag, dCor, dTra], dtype=np.float64)
+    norm_len = np.linalg.norm(n)
+    if norm_len < 1e-9:
+        return np.eye(3)
+    n /= norm_len
+
+    abs_n = np.abs(n)
+    # Reference vector selection to match standard Siemens DICOM IOP values
+    if abs_n[2] >= abs_n[0] and abs_n[2] >= abs_n[1]:   # mostly axial  (Tra)
+        read_ref = np.array([0.0,  1.0, 0.0])   # P
+    elif abs_n[1] >= abs_n[0]:                           # mostly coronal (Cor)
+        read_ref = np.array([0.0,  0.0, -1.0])  # -S = I
+    else:                                                 # mostly sagittal (Sag)
+        read_ref = np.array([0.0,  0.0,  1.0])  # S
+
+    readout_dir = np.cross(read_ref, n)
+    rlen = np.linalg.norm(readout_dir)
+    if rlen < 1e-9:
+        # Degenerate: ref parallel to n, pick a fallback
+        readout_dir = np.cross(np.array([1.0, 0.0, 0.0]), n)
+        rlen = np.linalg.norm(readout_dir)
+    readout_dir /= rlen
+
+    phase_dir = np.cross(n, readout_dir)
+    phase_dir /= np.linalg.norm(phase_dir)
+
+    # For mostly-sagittal orientations the phase direction derived above has the
+    # opposite sign compared to the Siemens DICOM IOP convention.  Negate both
+    # phase and slice directions so the NIfTI geometry matches DICOM.
+    if abs_n[0] > abs_n[1] and abs_n[0] > abs_n[2]:   # mostly sagittal
+        phase_dir = -phase_dir
+
+    if abs(dInPlaneRot) > 1e-6:
+        cos_r, sin_r = np.cos(dInPlaneRot), np.sin(dInPlaneRot)
+        readout_dir, phase_dir = (
+            cos_r * readout_dir + sin_r * phase_dir,
+            -sin_r * readout_dir + cos_r * phase_dir,
+        )
+
+    slice_dir = np.cross(readout_dir, phase_dir)   # matches DICOM normal convention
+    return np.column_stack([readout_dir, phase_dir, slice_dir])
     N=pn.Pathable(getFile(s))
     n=N.getPosition()
     twix=twixtools.map_twix(n)
@@ -429,31 +489,33 @@ def getSiemensKSpace2DInformation(s,signal=True,MR=False):
         sl=SL[t]
         slp=SL[t]['sPosition']
         try:
-            ORIGIN=[slp["dSag"],slp["dCor"],slp["dTra"]]
+            slice_center=np.array([slp["dSag"],slp["dCor"],slp["dTra"]])
         except:
-            ORIGIN=[0]*3
+            slice_center=np.zeros(3)
             print("wasn't able to get the origin of this slice")
+
+        # Compute correct direction matrix from sNormal (matches DICOM IOP convention)
+        dInPlaneRot = float(sl.get('dInPlaneRot', 0.0))
+        direction = _siemens_direction_from_normal(sl['sNormal'], dInPlaneRot)
+        readout_dir = direction[:, 0]   # x-axis
+        phase_dir   = direction[:, 1]   # y-axis
+
+        # Convert slice CENTER (Siemens sPosition) → first voxel CORNER
+        # to match DICOM ImagePositionPatient convention used by NIfTI readers.
+        # corner = center − (N_readout/2)·sp_readout·readout_dir
+        #                  − (N_phase/2)  ·sp_phase  ·phase_dir
+        sp = [sl["dReadoutFOV"]/KS[0], sl["dPhaseFOV"]/KS[1]]
+        ORIGIN = (slice_center - (KS[0]/2)*sp[0]*readout_dir
+                               - (KS[1]/2)*sp[1]*phase_dir).tolist()
+
         o={
             "fov":[sl["dReadoutFOV"],sl["dPhaseFOV"],sl["dThickness"]*SA["lSize"]],
-            "spacing":[sl["dReadoutFOV"]/KS[0],sl["dPhaseFOV"]/KS[1],sl["dThickness"]],
-            
+            "spacing":[sp[0],sp[1],sl["dThickness"]],
             "origin":ORIGIN,
             "size":[*KS,1],
-            "KSpace":K[t]
+            "KSpace":K[t],
+            "direction":direction,
         }
-        
-
-        o["direction"] = -np.eye(3)  # Initialize with default identity matrix flipped.
-
-        # Update specific components based on the scalar values in sl['sNormal']
-        if "dTra" in sl['sNormal']:
-            o["direction"][2, 2] = -sl['sNormal']["dTra"]  # Update the z-axis (axial) direction
-
-        if "dSag" in sl['sNormal']:
-            o["direction"][0, 0] = sl['sNormal']["dSag"]  # Update the x-axis (sagittal) direction
-
-        if "dCor" in sl['sNormal']:
-            o["direction"][1, 1] = sl['sNormal']["dCor"]  # Update the y-axis (coronal) direction
 
            
         slices.append(o)
