@@ -68,13 +68,38 @@ mroptimum-tools  (mrotools Python package — inside Docker image)
 - User registers their computing unit with cloudmr-brain
 - All S3 data stays in the user's account
 - Script: `scripts/deploy-mode1-local.sh` / `deploy-and-register-mode1.sh`
+- Uses the **public ECR image** (no cross-account IAM needed)
 
-> ⚠️ **Mode 2 does NOT auto-update.** When you push a new Docker image for Mode 1,
-> Mode 2 users are unaffected — their Fargate cluster uses the image URI baked into
-> their CloudFormation stack at deploy time. `build-images.yml` currently only pushes
-> to the private Mode 1 ECR (no public ECR step). To update a Mode 2 user:
-> 1. Add a public ECR push step to `build-images.yml`
-> 2. Notify the user to re-run their deployment script to pull the new image URI
+### Local / SLURM / Other Clouds
+- Same public ECR image, pulled without authentication
+- SLURM: use Singularity/Apptainer to wrap the Docker image
+- Other clouds (GCP, Azure): pull from public ECR, run as container
+
+### Public Image URIs (no auth required)
+```
+Fargate: public.ecr.aws/r2m7t0q6/cloudmrhub/mroptimum-fargate:vX.Y.Z
+Lambda:  public.ecr.aws/r2m7t0q6/cloudmrhub/mroptimum-lambda:vX.Y.Z
+```
+The semver tag matches the pinned mrotools version (e.g. `v3.1.0`).
+`:latest` always points to the most recent build.
+
+**Usage by platform:**
+```bash
+# Local Docker
+docker run public.ecr.aws/r2m7t0q6/cloudmrhub/mroptimum-fargate:v3.1.0
+
+# SLURM via Singularity/Apptainer
+singularity pull mroptimum-v3.1.0.sif \
+  docker://public.ecr.aws/r2m7t0q6/cloudmrhub/mroptimum-fargate:v3.1.0
+apptainer exec mroptimum-v3.1.0.sif python -m mrotools.snr -j job.json -o out/
+
+# Mode 2 AWS CloudFormation — reference in task definition:
+#   image: public.ecr.aws/r2m7t0q6/cloudmrhub/mroptimum-fargate:v3.1.0
+```
+
+> **Mode 2 update procedure**: `build-images.yml` pushes to public ECR on every
+> build with a versioned tag. Mode 2 users re-run their deployment script pointing
+> to the new tag to update. No AWS credentials needed to pull the image.
 
 ---
 
@@ -112,7 +137,7 @@ mroptimum-tools  (mrotools Python package — inside Docker image)
 
 | Workflow file | Trigger paths | What it does |
 |---|---|---|
-| `build-images.yml` | `calculation/src/**`, `calculation/Dockerfile*`, `.github/workflows/build-images.yml` | Builds `DockerfileLambda` + `DockerfileFargate`, pushes to ECR |
+| `build-images.yml` | `calculation/src/**`, `calculation/Dockerfile*`, `.github/workflows/build-images.yml` | Builds `DockerfileLambda` + `DockerfileFargate`, pushes to **private ECR** (Mode 1) **and public ECR** (Mode 2 / local / SLURM) |
 | `deploy-and-register.yml` | depends on `build-images.yml` or `workflow_dispatch` | SAM deploy, registers computing unit with cloudmr-brain |
 | `register-computing-unit.yml` | manual | Re-registers the computing unit only (no rebuild) |
 
@@ -340,6 +365,8 @@ Conda env for local dev: mro
 | `mroptimum-app/calculation/src/requirements-fargate-compiled.txt` | **Real Fargate deps — edit this to update mrotools** |
 | `mroptimum-app/calculation/src/requirements-lambda-frozen.txt` | **Real Lambda deps — edit this to update mrotools** |
 | `mroptimum-app/worker/requirements.txt` | ⚠️ Reference only — NOT used by Docker build |
+| Public Fargate image | `public.ecr.aws/r2m7t0q6/cloudmrhub/mroptimum-fargate:vX.Y.Z` — no auth, use on Mode 2 / local / SLURM |
+| Public Lambda image  | `public.ecr.aws/r2m7t0q6/cloudmrhub/mroptimum-lambda:vX.Y.Z` — no auth |
 | `mroptimum-app/.github/workflows/build-images.yml` | CI: rebuilds Docker on `calculation/src/**` changes |
 | `mroptimum-app/.github/workflows/deploy-and-register.yml` | CI: SAM deploy + computing unit registration |
 | `mroptimum-tools/tests/test_fa_correction_app_payload.py` | Integration test: FA from JSON payload (12/12) |
