@@ -137,9 +137,18 @@ apptainer exec mroptimum-v3.1.0.sif python -m mrotools.snr -j job.json -o out/
 
 | Workflow file | Trigger paths | What it does |
 |---|---|---|
-| `build-images.yml` | `calculation/src/**`, `calculation/Dockerfile*`, `.github/workflows/build-images.yml` | Builds `DockerfileLambda` + `DockerfileFargate`, pushes to **private ECR** (Mode 1) **and public ECR** (Mode 2 / local / SLURM) |
-| `deploy-and-register.yml` | depends on `build-images.yml` or `workflow_dispatch` | SAM deploy, registers computing unit with cloudmr-brain |
+| `build-images.yml` | `calculation/src/**`, `calculation/Dockerfile*`, `.github/workflows/build-images.yml` | Builds `DockerfileLambda` + `DockerfileFargate`, pushes to **private ECR** always; pushes to **public ECR only on `main`** |
+| `deploy-and-register.yml` | depends on `build-images.yml` or `workflow_dispatch` | SAM deploy to branch-specific stack, registers computing unit with cloudmr-brain |
 | `register-computing-unit.yml` | manual | Re-registers the computing unit only (no rebuild) |
+
+### Branch strategy:
+
+| Branch | Deploys to | Public ECR push | Purpose |
+|---|---|---|---|
+| `dev` | `mroptimum-app-dev` (Mode 1 staging) | ❌ No | Work in progress, testing |
+| `main` | `mroptimum-app-test` (Mode 1 prod) | ✅ Yes | Stable release, updates Mode 2 / local / SLURM |
+
+**Workflow:** develop on `dev` → test in staging → PR merge to `main` → prod deploys + public ECR updates.
 
 ### ⚠️ Files that DO and DO NOT trigger a rebuild:
 
