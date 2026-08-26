@@ -69,6 +69,13 @@ mroptimum-tools  (mrotools Python package — inside Docker image)
 - All S3 data stays in the user's account
 - Script: `scripts/deploy-mode1-local.sh` / `deploy-and-register-mode1.sh`
 
+> ⚠️ **Mode 2 does NOT auto-update.** When you push a new Docker image for Mode 1,
+> Mode 2 users are unaffected — their Fargate cluster uses the image URI baked into
+> their CloudFormation stack at deploy time. `build-images.yml` currently only pushes
+> to the private Mode 1 ECR (no public ECR step). To update a Mode 2 user:
+> 1. Add a public ECR push step to `build-images.yml`
+> 2. Notify the user to re-run their deployment script to pull the new image URI
+
 ---
 
 ## 4. Runtime Call Flow (detailed)
