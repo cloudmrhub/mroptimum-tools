@@ -427,9 +427,9 @@ if __name__=="__main__":
                         IMAOUT.append({
                             "id": 100,
                             "dim": 3,
-                            "name": "SNR FA Corrected",
+                            "name": "SNR_90deg",
                             "data": fa_result.snr_fa_corrected,
-                            "filename": "data/SNR_FA_corrected.nii.gz",
+                            "filename": "data/SNR_90deg.nii.gz",
                             "type": "output",
                         })
                         IMAOUT.append({
