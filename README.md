@@ -56,11 +56,13 @@ Pass `--fa-map` to the SNR command:
 python -m mrotools.snr \
     -j config.json \
     -o /output/dir/ \
-    --fa-map /path/to/fa_map.nii.gz
+    --fa-map /path/to/fa_map.nii.gz \
+    --fa-interpolation bspline
 ```
 
 The FA map must be in **degrees**. It does not need to share the same grid as the
-SNR map — resampling is applied automatically.
+SNR map — resampling is applied automatically. Cubic B-spline is the production
+default; the explicit option above documents the choice in a reproducible command.
 
 #### Preparing a Siemens GRE FA map from DICOM
 
@@ -105,6 +107,27 @@ When `--fa-map` is supplied, two extra files appear in the output directory:
 | `SNR_FA_corrected.nii.gz` | Complex FA-corrected SNR map |
 | `FA_on_SNR.nii.gz` | FA map resampled onto the SNR grid (degrees, float32) — useful for QC |
 
+#### Colab example with real validation data
+
+The [Google Colab notebook](mroptimum_tools.ipynb) contains a self-contained
+**B-spline FA normalization (SNR90°)** section. It downloads
+[`data/fa90_example_slice.pkl`](data/fa90_example_slice.pkl), a single slice
+from the product-coil validation dataset containing:
+
+- the original complex SNR at 256×256;
+- the native FA map at 64×64 in degrees; and
+- the origin, spacing, and direction of both grids.
+
+The example reconstructs both image geometries, resamples FA onto the SNR grid
+with the production cubic B-spline path, computes `SNR / sin(FA)`, writes the
+corrected image as `FA90°.nii.gz`, and plots `abs(SNR)`, the resampled FA map,
+and `abs(SNR90°)`. The committed pickle can be regenerated from the private
+validation volumes with:
+
+```bash
+conda run -n mro python tools/build_fa_colab_example_data.py
+```
+
 #### Provenance
 
 The log file records full provenance for every run:
@@ -114,6 +137,7 @@ The log file records full provenance for every run:
   "faCorrectionApplied": true,
   "faUnits": "degrees",
   "faCorrectionMethod": "snr_over_sin_fa",
+  "faInterpolation": "bspline",
   "epsilonThreshold": 0.02,
   "fillWindow": 3,
   "nNearZeroVoxelsDetected": 25745,
@@ -839,8 +863,8 @@ voxels (no valid neighbours within the window) still get masked.
 | Issue | MATLAB | Python |
 |-------|--------|--------|
 | Grid alignment | Manual interactive UI (non-reproducible) | Automatic BSpline using NIfTI affines |
-| In-plane interpolation | `imresize` bilinear | BSpline order-3 (smoother) |
-| Through-slice interpolation | `interp1` per pixel (slow) | 3D BSpline (single pass) |
+| In-plane interpolation | `imresize` nearest-neighbor | BSpline order-3 (smoother) |
+| Through-slice interpolation | Slice pairing/reversal; no interpolation | 3D BSpline (single pass) |
 | Ringing artefact | Not addressed | Clamped to [0°, 180°] after resample |
 | Near-zero sin(FA) | Immediate → 0 | 3×3×3 median inpainting, then → NaN |
 | Reproducibility | Requires human each run | Fully automated, same result every time |
@@ -853,7 +877,7 @@ voxels (no valid neighbours within the window) still get masked.
 |--------|--------|-------|
 | Default `recon_method = 'opt'` in MATLAB | ~30% higher SNR in MATLAB | Use `'rss'` in `snr_toolbox_batch.m` line 69 for a like-for-like comparison |
 | FA alignment | MATLAB: interactive manual UI; Python: geometry-aware BSpline | Python is fully automated and reproducible |
-| FA interpolation | MATLAB: `imresize` (bilinear 2D per-slice); Python: 3D BSpline | Python handles slice-direction interpolation correctly |
+| FA interpolation | MATLAB: `imresize` (nearest-neighbor in this workflow); Python: 3D BSpline | The two methods use different voxel-center/grid conventions |
 | Near-zero sin(FA) | MATLAB: immediate zero; Python: 3×3×3 median inpainting first | Python heals ~400–600 boundary voxels per dataset |
 | Slice ordering | MATLAB: heuristic interleaved convention; Python: physical positions from header | Python is geometrically correct |
 | Output format | MATLAB: `.mat` workspace; Python: NIfTI + JSON provenance | Python outputs are directly viewable in ITK-SNAP / FSLeyes |

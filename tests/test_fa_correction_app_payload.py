@@ -123,7 +123,13 @@ def check_outputs(output_dir, log_path):
     data_dir = os.path.join(output_dir, "data")
 
     # ── 1. Expected files exist ──────────────────────────────────────────
-    for fname in ["SNR.nii.gz", "SNR_FA_corrected.nii.gz", "NC.nii.gz", "NCC.nii.gz"]:
+    for fname in [
+        "SNR.nii.gz",
+        "SNR_FA_corrected.nii.gz",
+        "FA_on_SNR.nii.gz",
+        "NC.nii.gz",
+        "NCC.nii.gz",
+    ]:
         path = os.path.join(data_dir, fname)
         checks.append((os.path.isfile(path), f"File exists: {fname}"))
 

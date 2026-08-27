@@ -7,8 +7,9 @@ Formula:
 where FA is provided in degrees by the user.
 
 Design decisions:
-- FA map is resampled onto the SNR grid with cubic B-spline interpolation,
-  then clamped to [0, 180] to suppress ringing overshoot.
+- FA map is resampled onto the SNR grid with a selectable interpolation
+  method (cubic B-spline by default, or nearest-neighbor for legacy
+  comparisons), then clamped to [0, 180] to suppress overshoot.
 - Near-zero sin(FA) voxels (BSpline fringe artefacts at the FA map boundary)
   are healed via a 3x3(x3) median filter: each masked voxel is replaced by the
   median of its immediate neighbours.  Voxels that are still near-zero after
@@ -20,6 +21,7 @@ Design decisions:
 """
 
 import numpy as np
+import SimpleITK as sitk
 from dataclasses import dataclass, field
 from typing import Optional
 
@@ -42,6 +44,7 @@ class FANormalizationResult:
     """Holds the corrected SNR array and provenance metadata."""
 
     snr_fa_corrected: np.ndarray
+    fa_on_snr: Optional[np.ndarray] = None
     provenance: dict = field(default_factory=dict)
 
 
@@ -75,6 +78,7 @@ def load_fa_map(path: str) -> ima.Imaginable:
 def validate_and_resample_fa(
     fa_img: ima.Imaginable,
     snr_img: ima.Imaginable,
+    interpolation: str = "bspline",
 ) -> ima.Imaginable:
     """Check that FA map geometry is compatible with the SNR map.
 
@@ -101,16 +105,25 @@ def validate_and_resample_fa(
     if same_space:
         return fa_img
 
-    # Attempt resampling with cubic B-spline interpolation.
-    # B-spline gives smoother FA values at the SNR grid resolution than
-    # linear interpolation, reducing artefacts at the FA map boundary.
-    # Clamp to [0, 180] after resampling to suppress BSpline ringing overshoot.
+    interpolation_key = interpolation.lower().replace("_", "-")
+    interpolators = {
+        "bspline": sitk.sitkBSplineResampler,
+        "nearest": sitk.sitkNearestNeighbor,
+        "nearest-neighbor": sitk.sitkNearestNeighbor,
+        "linear": sitk.sitkLinear,
+    }
+    if interpolation_key not in interpolators:
+        raise ValueError(
+            f"Unsupported FA interpolation '{interpolation}'. "
+            f"Choose one of: bspline, nearest, linear."
+        )
+
+    # Clamp to [0, 180] after resampling. This suppresses B-spline ringing
+    # overshoot and is a harmless no-op for nearest-neighbor interpolation.
     try:
-        import SimpleITK as sitk
-        import numpy as np
         fa_resampled = fa_img.resampleOnTargetImage(
             snr_img,
-            interpolator=sitk.sitkBSplineResampler,  # cubic B-spline (order 3)
+            interpolator=interpolators[interpolation_key],
             default_value=0,
         )
         arr = fa_resampled.getImageAsNumpy()
@@ -173,10 +186,14 @@ def apply_fa_normalization(
         n_still_zero = 0
 
     # Preserve complex dtype if input is complex, otherwise use float64
-    if np.iscomplexobj(snr_array):
-        snr_corrected = snr_array.astype(np.complex128) / sin_fa
-    else:
-        snr_corrected = snr_array.astype(np.float64) / sin_fa
+    # Background voxels deliberately contain NaN after the near-zero guard.
+    # Suppress the expected divide/invalid warnings; the CLI cleanup converts
+    # those background values to zero before writing the final image.
+    with np.errstate(divide="ignore", invalid="ignore"):
+        if np.iscomplexobj(snr_array):
+            snr_corrected = snr_array.astype(np.complex128) / sin_fa
+        else:
+            snr_corrected = snr_array.astype(np.float64) / sin_fa
 
     provenance = {
         "faCorrectionApplied": True,
@@ -194,6 +211,7 @@ def apply_fa_normalization(
     out_dtype = np.complex64 if np.iscomplexobj(snr_corrected) else np.float32
     return FANormalizationResult(
         snr_fa_corrected=snr_corrected.astype(out_dtype),
+        fa_on_snr=fa_array.astype(np.float32),
         provenance=provenance,
     )
 
@@ -202,6 +220,7 @@ def normalize_snr_with_fa(
     snr_array: np.ndarray,
     snr_img: ima.Imaginable,
     fa_path: str,
+    interpolation: str = "bspline",
 ) -> FANormalizationResult:
     """End-to-end convenience function: load, validate, resample, and apply FA normalization.
 
@@ -209,6 +228,7 @@ def normalize_snr_with_fa(
         snr_array: SNR map as numpy array (H, W[, D, ...]).
         snr_img:   Imaginable wrapping the SNR map (for geometry reference).
         fa_path:   Path to the FA map file (degrees, user-supplied).
+        interpolation: Resampling method: ``bspline``, ``nearest``, or ``linear``.
 
     Returns:
         FANormalizationResult with corrected map and provenance.
@@ -219,6 +239,8 @@ def normalize_snr_with_fa(
         ValueError:        Geometry incompatible and cannot be resampled.
     """
     fa_img = load_fa_map(fa_path)
-    fa_img = validate_and_resample_fa(fa_img, snr_img)
+    fa_img = validate_and_resample_fa(fa_img, snr_img, interpolation=interpolation)
     fa_array = fa_img.getImageAsNumpy()
-    return apply_fa_normalization(snr_array, fa_array)
+    result = apply_fa_normalization(snr_array, fa_array)
+    result.provenance["faInterpolation"] = interpolation.lower().replace("_", "-")
+    return result

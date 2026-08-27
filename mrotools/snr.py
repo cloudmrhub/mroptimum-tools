@@ -47,6 +47,12 @@ if __name__=="__main__":
     parser.add_argument('-m','--matlab', choices=[True,False],type=bool, help='would you like to have a mat file',default=False, action=argparse.BooleanOptionalAction)
     parser.add_argument('-p','--parallel', choices=[True,False],type=bool, help='Parallel?',default=True, action=argparse.BooleanOptionalAction)
     parser.add_argument('--fa-map', type=str, help='Path to FA map (degrees). When provided, an FA-normalised SNR map is added to the output: SNR_fa_corrected = SNR / sin(FA).', default=None)
+    parser.add_argument(
+        '--fa-interpolation',
+        choices=['bspline', 'nearest', 'linear'],
+        default='bspline',
+        help='Interpolation used to resample the FA map onto the SNR grid (default: bspline).',
+    )
 
        
     args = parser.parse_args()
@@ -416,6 +422,7 @@ if __name__=="__main__":
                             snr_array=snr_data,
                             snr_img=snr_ref,
                             fa_path=args.fa_map,
+                            interpolation=args.fa_interpolation,
                         )
                         IMAOUT.append({
                             "id": 100,
@@ -423,6 +430,14 @@ if __name__=="__main__":
                             "name": "SNR FA Corrected",
                             "data": fa_result.snr_fa_corrected,
                             "filename": "data/SNR_FA_corrected.nii.gz",
+                            "type": "output",
+                        })
+                        IMAOUT.append({
+                            "id": 101,
+                            "dim": 3,
+                            "name": "FA on SNR Grid",
+                            "data": fa_result.fa_on_snr,
+                            "filename": "data/FA_on_SNR.nii.gz",
                             "type": "output",
                         })
                         # Store provenance in the job output headers
@@ -627,5 +642,3 @@ if __name__=="__main__":
 # plt.title('GFactor')
 # plt.show()
     
-
-

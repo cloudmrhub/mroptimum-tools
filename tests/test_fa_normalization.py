@@ -152,6 +152,32 @@ class TestGeometryValidation:
         result_img = validate_and_resample_fa(fa_img, snr_img)
         assert result_img is not None
 
+    def test_nearest_neighbor_resampling(self, tmp_path):
+        """Nearest-neighbor mode is available for legacy MATLAB comparisons."""
+        arr_fa = np.arange(16, dtype=np.float32).reshape(4, 4, 1)
+        fa_path = str(tmp_path / "fa_nearest.nii.gz")
+        _make_nifti(arr_fa, fa_path, spacing=(2.0, 2.0, 1.0))
+
+        snr_img = ima.numpyToImaginable(np.ones((8, 8, 1), dtype=np.float32))
+        snr_img.setImageSpacing([1.0, 1.0, 1.0])
+
+        result_img = validate_and_resample_fa(
+            load_fa_map(fa_path), snr_img, interpolation="nearest"
+        )
+        assert result_img.getImageAsNumpy().shape == (8, 8, 1)
+
+    def test_unknown_interpolation_raises(self, tmp_path):
+        arr = np.ones((2, 2, 1), dtype=np.float32)
+        fa_path = str(tmp_path / "fa_invalid_interp.nii.gz")
+        _make_nifti(arr, fa_path)
+        snr_img = ima.numpyToImaginable(arr)
+        snr_img.setImageSpacing([1.0, 1.0, 1.0])
+        fa_img = load_fa_map(fa_path)
+        # Force a geometry mismatch so interpolation selection is exercised.
+        fa_img.setImageSpacing([2.0, 2.0, 2.0])
+        with pytest.raises(ValueError, match="Unsupported FA interpolation"):
+            validate_and_resample_fa(fa_img, snr_img, interpolation="unknown")
+
     def test_missing_fa_file_raises(self):
         with pytest.raises(FileNotFoundError):
             load_fa_map("/nonexistent/path/fa.nii.gz")
@@ -174,7 +200,9 @@ class TestEndToEnd:
 
         result = normalize_snr_with_fa(snr_data, snr_img, fa_path)
         np.testing.assert_allclose(result.snr_fa_corrected, snr_data, rtol=1e-4)
+        np.testing.assert_allclose(result.fa_on_snr, fa_data, rtol=1e-4)
         assert result.provenance["faCorrectionApplied"] is True
+        assert result.provenance["faInterpolation"] == "bspline"
 
     def test_full_pipeline_fa30(self, tmp_path):
         """End-to-end: SNR / sin(30°) == SNR * 2."""
